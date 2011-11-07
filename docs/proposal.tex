@@ -1,0 +1,96 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,hyperref,graphicx,booktabs,float}
+
+% Paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+
+\title{Mathematical Term Rewriting System}
+\author{Taddeus Kroes (taddeuskroes@hotmail.com)
+    \and Sander Mathijs van Veen (smvv@kompiler.org)}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+TODO
+
+TODO
+
+TODO
+
+\section{Purpose}
+
+\begin{itemize}
+    \item A user can simplify / reduce a mathematical expression.
+    \item Program can verify the user's reduction step.
+    \item A user should be able to ask for zero, one or more hints (with a
+    maximum of one hint per reduction step).
+    \item Program can generate exercises using predefined templates.
+\end{itemize}
+
+\section{Components}
+
+\subsection{Input parsing and canonical form}
+
+\begin{itemize}
+    \item Parse expressions and interpret functions (\texttt{integrate()},
+    \texttt{expand()}, \texttt{diff()}, etc.). This will include building a
+    parser generator using \emph{bison} and \emph{flex}.
+    \item Canonicalize an expression: $4 + x^2 + x \rightarrow x^2 + x + 4$.
+\end{itemize}
+
+\subsection{Validation and tutoring}
+
+\begin{itemize}
+    \item Validate expressions with the expression of given exercise.
+    \item If requested, select the best hint (based on the chosen strategy).
+    \item Generate exercise using predefined templates.
+\end{itemize}
+
+\subsubsection{Modules}
+
+\begin{itemize}
+    \item \emph{TODO}
+\end{itemize}
+
+\subsection{Graphical user interface}
+
+\begin{itemize}
+    \item Mathematical notation viewer:
+    \begin{itemize}
+        \item Rewrite shell expressions to \LaTeX.
+        \item \LaTeX $ $ to HTML/CSS/JS using \emph{MathJax}.
+    \end{itemize}
+    \item View hints (if requested by the user) in the notation viewer.
+    \item Evaluate the GUI with some early adopters (few pupils and a teacher).
+\end{itemize}
+
+\subsection{Screencast, tutorial and final report}
+
+\begin{itemize}
+    \item Create a screencast to demonstrate the project.
+    \item Write a few short-length tutorials (how to use the system).
+    \item Write the final report (e.g. evaluation of the project).
+\end{itemize}
+
+\section{European credits}
+
+\begin{tabular}{rl}
+\toprule
+EC & Component \\
+\midrule
+3  & Input parsing and canonical form \\
+9  & Validation and tutoring \\
+3  & Graphical user interface \\
+3  & Screencast, tutorial and final report \\
+\bottomrule
+\end{tabular}
+
+\end{document}
