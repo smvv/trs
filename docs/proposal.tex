@@ -8,7 +8,7 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
 
-\title{Mathematical Term Rewriting System}
+\title{An interactive math tutoring system for secondary schools}
 \author{Taddeus Kroes (taddeuskroes@hotmail.com)
     \and Sander Mathijs van Veen (smvv@kompiler.org)}
 
@@ -24,21 +24,23 @@ reductions. The basic idea is that the student can work on an assignment using
 an online text editor. The text entered in the editor is converted to a
 mathematical notation and displayed on the screen in real-time. If the student
 gets stuck while rewriting a mathematical formula, he or she can request a
-'hint' from the system. The system should recognize the best reduction to
-apply at that time, and push the student in the right direction by displaying
-a textual hint that tells the user what sort of reduction can be applied. The
-system should also be able to apply that reduction itself.
+`hint' from the system. The system should recognize a best reduction to apply
+at that time, and guide the student in the right direction by displaying a
+textual hint that tells the user what sort of reduction can be applied. When
+asked the system should apply an appropriate reduction step itself.
 
-This document lists the different sections in which the project can be
-divided, along with their expected gradations.
+This document lists the different sections in which the project can be divided,
+along with their expected gradations.
 
 \section{Purpose}
 
 \begin{itemize}
     \item A user can simplify / reduce a mathematical expression.
-    \item Program can verify the user's reduction step.
+    \item Program can verify the user's reduction steps.
     \item A user should be able to ask for zero, one or more hints (with a
-    maximum of one hint per reduction step).
+    maximum of one hint per reduction step). In case the hint does not help,
+    the system should output the outcome of an appropriate single reduction
+    step.
     \item Program can generate exercises using predefined templates.
 \end{itemize}
 
@@ -50,54 +52,53 @@ divided, along with their expected gradations.
     \item Parse expressions and interpret functions (\texttt{integrate()},
     \texttt{expand()}, \texttt{diff()}, etc.). This will include building a
     parser generator using \emph{bison} and \emph{flex}.
-    \item Canonicalize an expression: $4 + x^2 + x \rightarrow x^2 + x + 4$.
+    \item Bring an expression to a normal form:
+    $4 + x^2 + x \rightarrow x^2 + x + 4$.
 \end{itemize}
 
 \subsection{Validation and tutoring}
 
 \begin{itemize}
-    \item Validate expressions with the expression of given exercise.
+    \item Validate eacg reduction step and the final input.
     \item If requested, select the best hint (based on the chosen strategy).
-    \item Generate exercise using predefined templates.
+    \item Generate exercises using predefined templates.
 \end{itemize}
 
 \subsubsection{Modules}
 
+Each module will require design of an appropriate set of term
+rewriting rules and selection of an appropriate reduction strategy
+that allows for nondeterminism, both in the choice of the rewriting
+rule and in the choice of the subterm to which the rule will be
+applied. Nondeterminism is needed for validating every user's input
+(outcome of a single reduction step) against the previous term.
+
 \begin{itemize}
-    \item Expressions without variables. $(3+4) \times (5+7)$
+    \item Expressions without variables. $(3+4) \times (5+7)$,
+    $\frac{3}{4} + \frac{4}{5}$
     \item Linear expressions. $(3+2p) \times 7$
     \item Linear expressions with absolute values. $|x-1| = 2$
-    \item Systems of linear equations (two variables).
+    \item Equations of the second degree. $(x+1)(x-2) + 2x + 7$,
     $$ \
     \begin{array}{|rcr|}
     3x + 2y & = & 5 \\
     2x - 3y & = & 6
     \end{array}
     \
-    \rightarrow
-    \
-    \begin{array}{|rcr|}
-    x + \frac{2}{3}y & = & \frac{5}{3} \\
-    x - \frac{3}{2}y & = & 3
-    \end{array}
-    \
-    \rightarrow
-    \
-    \frac{5}{3} - \frac{2}{3}y = 3 + \frac{3}{2}y
-    \
-    \rightarrow
+    \dots
     \
     \begin{array}{|rcr|}
     x & = & 2\frac{1}{13} \\
     y & = & -\frac{8}{13}
     \end{array}
     $$
-    \item Trigonometric functions.
-    \item Derivatives.
+
+    \item Trigonometric functions, as considered in VWO.
+    \item Derivatives, as considered in VWO.
     \item Integrals (computing antiderivates).
 \end{itemize}
 
-\subsection{Graphical user interface}
+\subsection{Graphical user interface and evaluation}
 
 \begin{itemize}
     \item Mathematical notation viewer:
@@ -105,8 +106,8 @@ divided, along with their expected gradations.
         \item Rewrite shell expressions to \LaTeX.
         \item \LaTeX $ $ to HTML/CSS/JS using \emph{MathJax}.
     \end{itemize}
-    \item View hints (if requested by the user) in the notation viewer.
-    \item Evaluate the GUI with some early adopters (few pupils and a teacher).
+    \item Show hints (if requested by the user) in the notation viewer.
+    \item Evaluate the GUI with some early adopters (some pupils and a teacher).
 \end{itemize}
 
 \subsection{Screencast, tutorial and final report}
@@ -115,6 +116,8 @@ divided, along with their expected gradations.
     \item Create a screencast to demonstrate the project.
     \item Write a few short-length tutorials (how to use the system).
     \item Write the final report (e.g. evaluation of the project).
+    \item Clarify for which chapters of the VWO mathematic books the system can
+    be used.
 \end{itemize}
 
 \section{European Credits}
@@ -124,7 +127,7 @@ divided, along with their expected gradations.
 EC & Component \\
 \midrule
 3  & Input parsing and canonical form \\
-9  & Validation and tutoring \\
+9  & Validation, tutoring and evaluation \\
 3  & Graphical user interface \\
 3  & Screencast, tutorial and final report \\
 \bottomrule
