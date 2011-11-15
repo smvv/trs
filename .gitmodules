@@ -1,0 +1,3 @@
+[submodule "external/pybison"]
+	path = external/pybison
+	url = git@kompiler.org:python/pybison
