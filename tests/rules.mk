@@ -12,7 +12,7 @@ endif
 
 test: $(TESTS) build
 
-coverage: ${COVERAGE}
+coverage: ${COVERAGE} build
 	mkdir ${COVERAGE_OUTPUT_DIR} 2>/dev/null || true
 	${COVERAGE} erase
 	for t in ${TESTS}; do \
@@ -26,4 +26,4 @@ ${COVERAGE}:
 	@echo "Install package 'python-coverage' to generate a coverage report."
 	@echo "On Debian/Ubuntu use: sudo apt-get install python-coverage"; false
 
-$(TESTS): ; @python -m testrunner $@
+$(TESTS): build; @python -m testrunner $@

@@ -40,6 +40,12 @@ class Parser(BisonParser):
         ('right', ('POW', )),
         )
 
+    interactive = 0
+
+    def __init__(self, **kwargs):
+        BisonParser.__init__(self, **kwargs)
+        self.interactive = kwargs.get('interactive', 0)
+
     # ------------------------------------------------------------------
     # override default read method with a version that prompts for input
     # ------------------------------------------------------------------
@@ -67,7 +73,11 @@ class Parser(BisonParser):
         input :
               | input line
         """
-        return
+
+        if option == 1:
+            if self.interactive:
+                print values[1]
+            return values[1]
 
     def on_line(self, target, option, names, values):
         """
@@ -75,7 +85,10 @@ class Parser(BisonParser):
              | exp NEWLINE
         """
         if option == 1:
-            print 'on_line: exp =', values[0]
+            if self.verbose:
+                print 'on_line: exp =', values[0]
+
+            return values[0]
 
     def on_exp(self, target, option, names, values):
         """
@@ -88,7 +101,9 @@ class Parser(BisonParser):
             | exp POW exp
             | LPAREN exp RPAREN
         """
-        print 'on_exp: got %s %s %s %s' % (target, option, names, values)
+
+        if self.verbose:
+            print 'on_exp: got %s %s %s %s' % (target, option, names, values)
 
         if option == 0:
             return float(values[0])
@@ -146,5 +161,5 @@ class Parser(BisonParser):
     """
 
 if __name__ == '__main__':
-    p = Parser(verbose=0, keepfiles=1)
+    p = Parser(verbose=0, keepfiles=1, interactive=1)
     p.run(debug=0)
