@@ -1,0 +1,40 @@
+Introduction
+------------
+
+This project comprises the design and production of a web application that can
+assist high school students in learning how to apply mathematical term
+reductions.
+
+The basic idea is that the student can work on an assignment using an online
+text editor. The text entered in the editor is converted to a mathematical
+notation and displayed on the screen in real-time. If the student gets stuck
+while rewriting a mathematical formula, he or she can request a `hint' from the
+system.
+
+The system should recognize a best reduction to apply at that time, and guide
+the student in the right direction by displaying a textual hint that tells the
+user what sort of reduction can be applied. When asked the system should apply
+an appropriate reduction step itself.
+
+This project is implemented and designed by Taddeus Kroes
+<taddeuskroes@hotmail.com> and Sander Mathijs van Veen <smvv@kompiler.org> and
+supervised by drs. Krzysztof Apt of the CWI, Amsterdam.
+
+Dependencies
+------------
+
+ - GNU Bison and Flex.
+ - GNU GCC (or another decent C compiler).
+ - Pyrex <http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/>.
+
+Deployment / Installation
+-------------------------
+
+Use the following commands in order to be able to deploy the term rewriting
+system on a Linux box:
+
+    git clone git@kompiler.org:trs
+    cd trs
+    git submodule init
+    git submodule update
+    make -j4
