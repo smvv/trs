@@ -27,6 +27,12 @@ Dependencies
  - GNU GCC (or another decent C compiler).
  - Pyrex <http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/>.
 
+In order to run the unit tests and and see how much coverage the unit tests
+have, please install:
+
+ - Python testrunner <http://git/kompiler.org/python/testrunner>.
+ - Python coverage <http://nedbatchelder.com/code/coverage/>.
+
 Deployment / Installation
 -------------------------
 
