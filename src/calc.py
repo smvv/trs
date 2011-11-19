@@ -45,7 +45,7 @@ class Parser(BisonParser):
     # ------------------------------------------------------------------
     def read(self, nbytes):
         try:
-            return raw_input("> ") + "\n"
+            return raw_input(">>> ") + "\n"
         except EOFError:
             return ''
 
@@ -75,8 +75,7 @@ class Parser(BisonParser):
              | exp NEWLINE
         """
         if option == 1:
-            print 'option:', option
-            #print 'on_line:', values[0]
+            print 'on_line: exp =', values[0]
 
     def on_exp(self, target, option, names, values):
         """
@@ -92,11 +91,9 @@ class Parser(BisonParser):
         print 'on_exp: got %s %s %s %s' % (target, option, names, values)
 
         if option == 0:
-            return
-            #return float(values[0])
+            return float(values[0])
         elif option == 1:
-            return
-            #return values[0] + values[2]
+            return values[0] + values[2]
         elif option == 2:
             return values[0] - values[2]
         elif option == 3:
@@ -150,4 +147,4 @@ class Parser(BisonParser):
 
 if __name__ == '__main__':
     p = Parser(verbose=0, keepfiles=1)
-    p.run(debug=1)
+    p.run(debug=0)
