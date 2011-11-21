@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 
@@ -38,5 +39,35 @@ class TestCalc(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def run_expressions(self, expressions, fail=True):
+        for exp, out in expressions:
+            try:
+                res = TestParser([exp], keepfiles=1).run()
+                assert res == out
+            except:
+                print >>sys.stderr, 'error: %s = %s, but expected: %s' \
+                                    % (exp, str(res), str(out))
+                if fail:
+                    raise
+
     def test_constructor(self):
         assert TestParser(['1+4'], keepfiles=1).run() == 5.0
+
+    def test_basic_on_exp(self):
+        expressions = [('4', 4.0),
+                       ('3+4', 7.0),
+                       ('3-4', -1.0),
+                       ('3/4', .75),
+                       ('-4', -4.0),
+                       ('3^4', 81.0),
+                       ('(4)', 4.0)]
+
+        self.run_expressions(expressions)
+
+    def test_infinity(self):
+        expressions = [('2^9999', None),
+                       ('2^-9999', 0.0),
+                       ('2^99999999999', None),
+                       ('2^-99999999999', 0.0)]
+
+        self.run_expressions(expressions, fail=False)

@@ -106,21 +106,34 @@ class Parser(BisonParser):
             print 'on_exp: got %s %s %s %s' % (target, option, names, values)
 
         if option == 0:
+            # TODO: A bit hacky, this achieves long integers and floats.
+            # return float(values[0]) if '.' in values[0] else long(values[0])
             return float(values[0])
-        elif option == 1:
-            return values[0] + values[2]
-        elif option == 2:
-            return values[0] - values[2]
-        elif option == 3:
-            return values[0] * values[2]
-        elif option == 4:
-            return values[0] / values[2]
-        elif option == 5:
-            return - values[1]
-        elif option == 6:
-            return values[0] ** values[2]
-        elif option == 7:
+
+        if option == 7:
             return values[1]
+
+        try:
+            if option == 1:
+                return values[0] + values[2]
+
+            if option == 2:
+                return values[0] - values[2]
+
+            if option == 3:
+                return values[0] * values[2]
+
+            if option == 4:
+                return values[0] / values[2]
+
+            if option == 5:
+                return - values[1]
+
+            if option == 6:
+                return values[0] ** values[2]
+        except OverflowError:
+            print >>sys.stderr, 'error: Overflow occured in "%s" %s %s %s' \
+                                % (target, option, names, values)
 
     # -----------------------------------------
     # raw lex script, verbatim here
@@ -147,7 +160,7 @@ class Parser(BisonParser):
     "+"    { returntoken(PLUS); }
     "-"    { returntoken(MINUS); }
     "*"    { returntoken(TIMES); }
-    "**"   { returntoken(POW); }
+    "^"    { returntoken(POW); }
     "/"    { returntoken(DIVIDE); }
     "quit" { printf("lex: got QUIT\n"); yyterminate(); returntoken(QUIT); }
 
