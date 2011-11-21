@@ -2,7 +2,11 @@ import logging
 import logging.config
 import sys
 
-import config
+try:
+    import config
+except ImportError:
+    config = object()
+
 import default_config as default
 
 try:
@@ -16,3 +20,7 @@ except IOError as e:  # pragma: no cover
 
 def logger(name):
     return logging.getLogger(name)
+
+
+def filter_non_ascii(data):
+        return ''.join(map(lambda x: 33 < ord(x) < 125 and x or '.', data))

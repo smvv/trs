@@ -3,6 +3,9 @@
 A simple pybison parser program implementing a calculator
 """
 
+from sympy import Symbol
+from logger import filter_non_ascii
+
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
 PYBISON_PYREX = os.path.realpath('external/pybison/src/pyrex')
@@ -25,7 +28,7 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # lexer tokens - these must match those in your lex script (below)
     # ----------------------------------------------------------------
-    tokens = ['NUMBER',
+    tokens = ['NUMBER', 'IDENTIFIER',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
               'LPAREN', 'RPAREN',
               'NEWLINE', 'QUIT']
@@ -51,7 +54,7 @@ class Parser(BisonParser):
     # ------------------------------------------------------------------
     def read(self, nbytes):
         try:
-            return raw_input(">>> ") + "\n"
+            return raw_input('>>> ') + "\n"
         except EOFError:
             return ''
 
@@ -75,8 +78,12 @@ class Parser(BisonParser):
         """
 
         if option == 1:
+            # Interactive mode is enabled if the term rewriting system is used
+            # as a shell. In that case, it is useful that the shell prints the
+            # output of the evaluation.
             if self.interactive:
                 print values[1]
+
             return values[1]
 
     def on_line(self, target, option, names, values):
@@ -84,7 +91,7 @@ class Parser(BisonParser):
         line : NEWLINE
              | exp NEWLINE
         """
-        if option == 1:
+        if option in [1, 2]:
             if self.verbose:
                 print 'on_line: exp =', values[0]
 
@@ -93,6 +100,7 @@ class Parser(BisonParser):
     def on_exp(self, target, option, names, values):
         """
         exp : NUMBER
+            | IDENTIFIER
             | exp PLUS exp
             | exp MINUS exp
             | exp TIMES exp
@@ -100,40 +108,80 @@ class Parser(BisonParser):
             | MINUS exp %prec NEG
             | exp POW exp
             | LPAREN exp RPAREN
+            | symbolic
         """
 
         if self.verbose:
             print 'on_exp: got %s %s %s %s' % (target, option, names, values)
 
+        # rule: NUMBER
         if option == 0:
             # TODO: A bit hacky, this achieves long integers and floats.
             # return float(values[0]) if '.' in values[0] else long(values[0])
             return float(values[0])
 
-        if option == 7:
+        # rule: IDENTIFIER
+        if option == 1:
+            return Symbol(values[0])
+
+        # rule: LPAREN exp RPAREN
+        if option == 8:
+            return values[1]
+
+        # rule: symbolic
+        if option == 9:
             return values[1]
 
         try:
-            if option == 1:
+            # rule: exp PLUS expo
+            if option == 2:
                 return values[0] + values[2]
 
-            if option == 2:
+            # rule: exp MINUS expo
+            if option == 3:
                 return values[0] - values[2]
 
-            if option == 3:
+            # rule: exp TIMES expo
+            if option == 4:
                 return values[0] * values[2]
 
-            if option == 4:
+            # rule: exp DIVIDE expo
+            if option == 5:
                 return values[0] / values[2]
 
-            if option == 5:
+            # rule: NEG expo
+            if option == 6:
                 return - values[1]
 
-            if option == 6:
+            # rule: exp POW expo
+            if option == 7:
                 return values[0] ** values[2]
         except OverflowError:
             print >>sys.stderr, 'error: Overflow occured in "%s" %s %s %s' \
                                 % (target, option, names, values)
+
+    def on_symbolic(self, target, option, names, values):
+        """
+        symbolic : NUMBER IDENTIFIER
+                 | IDENTIFIER NUMBER
+                 | IDENTIFIER IDENTIFIER
+        """
+        # TODO: this class method requires verification.
+
+        # rule: NUMBER IDENTIFIER
+        if option == 0:
+            # 4x -> 4*x
+            return values[0] * Symbol(values[1])
+
+        # rule: IDENTIFIER NUMBER
+        if option == 1:
+            # x4 -> x^4
+            return Symbol(values[0]) ** values[1]
+
+        # rule: IDENTIFIER IDENTIFIER
+        if option == 2:
+            # a b -> a * b
+            return Symbol(values[0]) * Symbol(values[1])
 
     # -----------------------------------------
     # raw lex script, verbatim here
@@ -155,6 +203,7 @@ class Parser(BisonParser):
     %%
 
     [0-9]+ { returntoken(NUMBER); }
+    [a-zA-Z][a-zA-Z0-9]* { returntoken(IDENTIFIER); }
     "("    { returntoken(LPAREN); }
     ")"    { returntoken(RPAREN); }
     "+"    { returntoken(PLUS); }

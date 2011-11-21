@@ -26,6 +26,7 @@ Dependencies
  - GNU Bison and Flex.
  - GNU GCC (or another decent C compiler).
  - Pyrex <http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/>.
+ - Sympy <https://github.com/sympy/sympy>.
 
 In order to run the unit tests and and see how much coverage the unit tests
 have, please install:
