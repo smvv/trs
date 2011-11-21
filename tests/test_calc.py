@@ -26,8 +26,8 @@ class TestCalc(unittest.TestCase):
         run_expressions(expressions)
 
     def test_infinity(self):
-        expressions = [('2^9999', None),
-                       ('2^-9999', 0.0),
+        expressions = [('2^3000', 2**3000),
+                       ('2^-3000', 0.0),
                        ('2^99999999999', None),
                        ('2^-99999999999', 0.0)]
 

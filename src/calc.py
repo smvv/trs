@@ -3,6 +3,7 @@
 A simple pybison parser program implementing a calculator
 """
 
+from __future__ import division
 from sympy import Symbol
 from logger import filter_non_ascii
 
@@ -48,6 +49,7 @@ class Parser(BisonParser):
     def __init__(self, **kwargs):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
+        self.timeout = kwargs.get('timeout', 0)
 
     # ------------------------------------------------------------------
     # override default read method with a version that prompts for input
@@ -117,8 +119,9 @@ class Parser(BisonParser):
         # rule: NUMBER
         if option == 0:
             # TODO: A bit hacky, this achieves long integers and floats.
-            # return float(values[0]) if '.' in values[0] else long(values[0])
-            return float(values[0])
+            #return float(values[0]) if '.' in values[0] else long(values[0])
+            #return float(values[0])
+            return float(values[0]) if '.' in values[0] else int(values[0])
 
         # rule: IDENTIFIER
         if option == 1:
