@@ -228,3 +228,6 @@ class Parser(BisonParser):
 if __name__ == '__main__':
     p = Parser(verbose=0, keepfiles=1, interactive=1)
     p.run(debug=0)
+
+    # Clear the line, when the shell exits.
+    print

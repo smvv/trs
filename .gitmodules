@@ -1,3 +1,6 @@
 [submodule "external/pybison"]
 	path = external/pybison
 	url = git@kompiler.org:python/pybison
+[submodule "external/graph_drawing"]
+	path = external/graph_drawing
+	url = git@kompiler.org:python/graph_drawing

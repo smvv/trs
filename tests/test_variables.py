@@ -13,8 +13,12 @@ class TestVariables(unittest.TestCase):
         pass
 
     def test_addition(self):
+        expressions = [('5 + 5', 5 + 5)]
+        run_expressions(expressions)
+
+    def test_addition_of_one_term(self):
         a = Symbol('a')
-        expressions = [('a + 5', a + 5)]
+        expressions = [('a + 5', 5 + a)]
         run_expressions(expressions)
 
     def test_addition_of_two_terms(self):

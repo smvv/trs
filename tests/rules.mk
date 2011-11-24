@@ -1,6 +1,6 @@
 TESTS=$(wildcard tests/test_*.py)
 COVERAGE_OUTPUT_DIR := coverage
-OMIT := --omit /usr/share/pyshared/*,/usr/lib64/portage/*
+OMIT := --omit /usr/share/pyshared/*
 
 ifeq ($(findstring python-coverage,$(wildcard /usr/bin/*)), python-coverage)
 COVERAGE=/usr/bin/python-coverage
