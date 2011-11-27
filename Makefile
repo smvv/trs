@@ -1,4 +1,5 @@
 BUILD=build/
+CFLAGS := -g -O3 -pipe -Wall -Wextra -fstrict-aliasing
 
 # Fix pdflatex search path
 TEXINPUTS := "$(TEXINPUTS):docs"
