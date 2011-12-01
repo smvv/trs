@@ -9,3 +9,5 @@
 *.synctex.gz
 /build
 core
+.coverage
+coverage
