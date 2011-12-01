@@ -1,41 +1,44 @@
 import sys
 
-from src.calc import Parser
 
+class ParserWrapper(object):
 
-class TestParser(Parser):
-
-    def __init__(self, **kwargs):
-        Parser.__init__(self, **kwargs)
-
+    def __init__(self, base_class, **kwargs):
         self.input_buffer = []
         self.input_position = 0
 
+        self.verbose = kwargs.get('verbose', False)
+
+        # Overwrite parser read() method
+        def read(nbytes):
+            buf = ''
+
+            try:
+                buf = self.input_buffer[self.input_position]
+
+                if self.verbose:
+                    print 'read:', buf
+            except IndexError:
+                return ''
+
+            self.input_position += 1
+
+            return buf
+
+        self.parser = base_class(**kwargs)
+        self.parser.read = read
+
+
     def run(self, input_buffer, *args, **kwargs):
         map(self.append, input_buffer)
-        return Parser.run(self, *args, **kwargs)
+        return self.parser.run(*args, **kwargs)
 
     def append(self, input):
         self.input_buffer.append(input + '\n')
 
-    def read(self, nbytes):
-        buffer = ''
 
-        try:
-            buffer = self.input_buffer[self.input_position]
-
-            if self.verbose:
-                print 'read:', buffer
-        except IndexError:
-            return ''
-
-        self.input_position += 1
-
-        return buffer
-
-
-def run_expressions(expressions, keepfiles=1, fail=True, silent=False,
-        verbose=0):
+def run_expressions(base_class, expressions, keepfiles=1, fail=True,
+        silent=False, verbose=0):
     """
     Run a list of mathematical expression through the term rewriting system and
     check if the output matches the expected output. The list of EXPRESSIONS
@@ -55,7 +58,7 @@ def run_expressions(expressions, keepfiles=1, fail=True, silent=False,
     higher value will print more types of debug messages.
     """
 
-    parser = TestParser(keepfiles=keepfiles, verbose=verbose)
+    parser = ParserWrapper(base_class, keepfiles=keepfiles, verbose=verbose)
 
     for exp, out in expressions:
         res = None

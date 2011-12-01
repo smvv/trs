@@ -16,6 +16,14 @@ $(b)pybison/bisondynlib-linux.o $(b)pybison/bison_.o: | $(b)pybison
 $(b)pybison/bisondynlib-linux.o: $(d)pybison/src/c/bisondynlib-linux.c
 $(b)pybison/bison_.o: $(b)pybison/bison_.c
 
+PYREX := 1
+
+ifdef PYREX
+py2c := pyrexc
+else
+py2c := cython -Wextra -Werror --fast-fail --line-directives
+endif
+
 $(b)pybison/%.c: $(d)pybison/src/pyrex/%.pyx
-	pyrexc -o $@ $<
+	$(py2c) -o $@ $<
 

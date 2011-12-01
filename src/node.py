@@ -4,124 +4,100 @@ import sys
 sys.path.insert(0, os.path.realpath('external'))
 
 from graph_drawing.graph import generate_graph
+from graph_drawing.line import generate_line
+from graph_drawing.node import Node, Leaf
 
 
-class ExpressionNode(object):
-    def __init__(self, operator, *args):
-        super(ExpressionNode, self).__init__()
-        self.operator, self.args = operator, list(args)
+#NODE_TYPE = 0
+#NODE_
 
-        for a in self.args:
-            a.parent = self
+class ExpressionNode(Node):
+    def __init__(self, *args, **kwargs):
+        super(ExpressionNode, self).__init__(*args, **kwargs)
+        #self.type = NODE_TYPE
 
-    def title(self):
-        return self.operator
+    def __str__(self):
+        return generate_line(self)
 
     def replace(self, node):
-        pos = self.parent.args.index(self)
-        self.parent.args[pos] = node
+        pos = self.parent.nodes.index(self)
+        self.parent.nodes[pos] = node
         node.parent = self.parent
         self.parent = None
 
-    def __iter__(self):
-        return iter(self.args)
+    def graph(self):
+        return generate_graph(self)
 
-    def __len__(self):
-        return len(self.args)
-
-    def __getitem__(self, n):
-        return self.args[n]
-
-    def __setitem__(self, n, arg):
-        self.args[n] = arg
-
-    def __str__(self):
-        return generate_graph(self, ExpressionNode)
-
-class ExpressionLeaf(object):
-    def __init__(self, value):
-        super(ExpressionLeaf, self).__init__()
-        self.value = value
-
+class ExpressionLeaf(Leaf):
     def replace(self, node):
         if not hasattr(self, 'parent'):
             return
 
-        pos = self.parent.args.index(self)
-        self.parent.args[pos] = node
+        pos = self.parent.nodes.index(self)
+        self.parent.nodes[pos] = node
         node.parent = self.parent
         self.parent = None
 
-    def title(self):
-        return str(self.value)
 
-    def __add__(self, b):
-        return self.value + b.value
+if __name__ == '__main__':
+    l0 = ExpressionLeaf(3)
+    l1 = ExpressionLeaf(4)
+    l2 = ExpressionLeaf(5)
+    l3 = ExpressionLeaf(7)
 
-    def __repr__(self):
-        return repr(self.value)
+    n0 = ExpressionNode('+', l0, l1)
+    n1 = ExpressionNode('+', l2, l3)
+    n2 = ExpressionNode('*', n0, n1)
 
-    def __str__(self):
-        return str(self.value)
+    print n2
 
-l0 = ExpressionLeaf(3)
-l1 = ExpressionLeaf(4)
-l2 = ExpressionLeaf(5)
-l3 = ExpressionLeaf(7)
+    N = ExpressionNode
 
-n0 = ExpressionNode('+', l0, l1)
-n1 = ExpressionNode('+', l2, l3)
-n2 = ExpressionNode('*', n0, n1)
+    def rewrite_multiply(node):
+        a, b = node[0]
+        c, d = node[1]
 
-print n2
+        ac = N('*', a, c)
+        ad = N('*', a, d)
+        bc = N('*', b, c)
+        bd = N('*', b, d)
 
-N = ExpressionNode
+        res = N('+', N('+', N('+', ac, ad), bc), bd)
 
-def rewrite_multiply(node):
-    a, b = node[0]
-    c, d = node[1]
+        return res
 
-    ac = N('*', a, c)
-    ad = N('*', a, d)
-    bc = N('*', b, c)
-    bd = N('*', b, d)
+    possibilities = [
+            (n0, lambda (x,y): ExpressionLeaf(x.value + y.value)),
+            (n1, lambda (x,y): ExpressionLeaf(x.value + y.value)),
+            (n2, rewrite_multiply),
+            ]
 
-    res = N('+', N('+', N('+', ac, ad), bc), bd)
+    print '\n--- after rule 2 ---\n'
 
-    return res
+    n_, method = possibilities[2]
+    new = method(n_)
 
-possibilities = [
-        (n0, lambda (x,y): ExpressionLeaf(x + y)),
-        (n1, lambda (x,y): ExpressionLeaf(x + y)),
-        (n2, rewrite_multiply),
-        ]
+    print new
 
-print '\n--- after rule 2 ---\n'
+    print '\n--- original graph ---\n'
 
-n_, method = possibilities[2]
-new = method(n_)
+    print n2
 
-print new
+    print '\n--- apply rule 0 ---\n'
 
-print '\n--- original graph ---\n'
+    n_, method = possibilities[0]
+    new = method(n_)
+    n_.replace(new)
 
-print n2
+    print n2
 
-print '\n--- apply rule 0 ---\n'
+    # Revert rule 0
+    new.replace(n_)
 
-n_, method = possibilities[0]
-new = method(n_)
-n_.replace(new)
+    print '\n--- apply rule 1 ---\n'
 
-print n2
+    n_, method = possibilities[1]
+    new = method(n_)
+    n_.replace(new)
 
-# Revert rule 0
-new.replace(n_)
-
-print '\n--- apply rule 1 ---\n'
-
-n_, method = possibilities[1]
-new = method(n_)
-n_.replace(new)
-
-print n2
+    print n2
