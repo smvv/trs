@@ -1,5 +1,12 @@
 BUILD=build/
-CFLAGS := -g -O3 -pipe -Wall -Wextra -fstrict-aliasing
+
+CFLAGS := -pipe -Wall -Wextra -fstrict-aliasing
+
+ifdef DEBUG
+CFLAGS := -ggdb -g -fno-omit-frame-pointer -O2 ${CFLAGS}
+else
+CFLAGS := -g -fomit-frame-pointer -O3 ${CFLAGS}
+endif
 
 # Fix pdflatex search path
 TEXINPUTS := "$(TEXINPUTS):docs"
