@@ -19,7 +19,11 @@ $(b)pybison/bison_.o: $(b)pybison/bison_.c
 ifdef PYREX
 py2c := pyrexc
 else
+ifdef CYTHON_0_14
+py2c := cython --fast-fail --line-directives
+else
 py2c := cython -Wextra -Werror --fast-fail --line-directives
+endif
 endif
 
 $(b)pybison/%.c: $(d)pybison/src/pyrex/%.pyx
