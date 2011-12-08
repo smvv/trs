@@ -1,55 +1,110 @@
-from node import ExpressionLeaf as Leaf
+from itertools import combinations
 
-def get_factor_constants(operand):
-    op = operand.title()
-    res = []
+from node import ExpressionNode as Node, ExpressionLeaf as Leaf
+from possibilities import Possibility as P
 
-    if operand.type == OP_MUL:
-        if operand[0].type == LEAF_NUM:
-            fn()
 
-        if operand[1].type == LEAF_NUM:
-            res += operand[1]
-
-    return res
-
-def combine_plus_factors(node):
+def match_combine_factors(node):
+    """
+    n + exp + m -> exp + (n + m)
+    k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
+    """
     p = []
 
-    # Check if any numeric factors can be combined
-    def apply_numeric_factors(node, leaves):
-        return Leaf(reduce(lambda a, b: a.value + b.value, leaves))
+    if node.is_nary():
+        # Collect all nodes that can be combined
+        # Numeric leaves
+        numerics = []
 
-    num_nodes = []
+        # Identifier leaves of all orders, tuple format is;
+        # (identifier, exponent, coefficient)
+        orders = []
 
-    for n in node:
-        # NUM + NUM -> NUM
-        if n.type == VAL_NUM:
-            num_nodes.append(n)
+        # Nodes that cannot be combined
+        others = []
 
-    if len(num_nodes) > 1:
-        p.append((node, apply_plus_factors, num_nodes))
+        for n in node.get_scope():
+            if isinstance(n, Leaf):
+                if n.is_numeric():
+                    numerics.append(n)
+                elif n.is_identifier():
+                    orders.append((n.value, 1, 1))
+            else:
+                order = n.get_order()
 
-    # Check if any variable multiplcations/divisions can be combined
-    def apply_identifiers(node, operands):
-        apply_constant(lambda x: )
-        return Leaf(leaves[0].value + leaves[1].value)
+                if order:
+                    orders += order
+                else:
+                    others.append(n)
 
-    id_nodes = []
+        if len(numerics) > 1:
+            for num0, num1 in combinations(numerics, 2):
+                p.append(P(node, combine_numerics, (num0, num1, others)))
 
-    for n in node:
-        # NUM *  + NUM -> NUM
-        if n.type == OP_MUL:
-            consts = get_factor_constants(n)
+        if len(orders) > 1:
+            for order0, order1 in combinations(orders, 2):
+                id0, exponent0, coeff0 = order0
+                id1, exponent1, coeff1 = order1
 
-            if len(consts) > 1:
-                id_nodes += 
-
-    if len(num_nodes) > 1:
-        p.append((node, apply_plus_factors, num_nodes))
+                if id0 == id1 and exponent0 == exponent1:
+                    # Same identifier and exponent -> combine coefficients
+                    args = order0 + (coeff1,) + (others,)
+                    p.append(P(node, combine_orders, args))
 
     return p
 
+
+def combine_numerics(root, args):
+    """
+    Combine two numeric leaves in an n-ary plus.
+
+    Example:
+    3 + 4 -> 7
+    """
+    numerics, others = args
+    value = sum([n.value for n in numerics])
+
+    return nary_node('+', others + [Leaf(value)])
+
+
+def combine_orders(root, args):
+    """
+    Combine two identifier multiplications of any order in an n-ary plus.
+
+    Example:
+    3x + 4x -> 7x
+    """
+    identifier, exponent, coeff0, coeff1, others = args
+
+    coeff = coeff0 + coeff1
+
+    if not exponent:
+        # a ^ 0 -> 1
+        ident = Leaf(1)
+    elif exponent == 1:
+        # a ^ 1 -> a
+        ident = Leaf(identifier)
+    else:
+        # a ^ n -> a ^ n
+        ident = Node('^', Leaf(identifier), Leaf(exponent))
+
+    if coeff == 1:
+        combined = ident
+    else:
+        combined = Node('*', Leaf(coeff), ident)
+
+    return nary_node('+', others + [combined])
+
+
+def nary_node(operator, scope):
+    """
+    Create a binary expression tree for an n-ary operator. Takes the operator
+    and a list of expression nodes as arguments.
+    """
+    return scope[0] if len(scope) == 1 \
+           else Node(operator, nary_node(operator, scope[:-1]), scope[-1])
+
+
 rules = {
-        '+': [combine_plus_factors],
+        '+': [match_combine_factors],
         }
