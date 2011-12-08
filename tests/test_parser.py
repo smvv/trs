@@ -23,6 +23,3 @@ class TestParser(unittest.TestCase):
 
     def test_line(self):
         self.assertEqual(line(Parser, '4a'), '4 * a')
-
-    def test_raise(self):
-        ParserWrapper(Parser).run(['raise'])
