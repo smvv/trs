@@ -28,4 +28,5 @@ endif
 
 $(b)pybison/%.c: $(d)pybison/src/pyrex/%.pyx
 	$(py2c) -o $@ $<
+	$(RM) $(@D)/*.so
 

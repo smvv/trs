@@ -83,7 +83,7 @@ def run_expressions(base_class, expressions, keepfiles=1, fail=True,
         try:
             res = parser.run([exp])
             assert res == out
-        except:
+        except:  # pragma: nocover
             if not silent:
                 print >>sys.stderr, 'error: %s = %s, but expected: %s' \
                                     % (exp, str(res), str(out))
