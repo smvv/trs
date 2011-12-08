@@ -1,39 +1,57 @@
 import sys
 
+from external.graph_drawing.graph import generate_graph
+from external.graph_drawing.line import generate_line
+
 
 class ParserWrapper(object):
 
     def __init__(self, base_class, **kwargs):
         self.input_buffer = []
+        self.last_buffer = ''
         self.input_position = 0
+        self.closed = False
 
         self.verbose = kwargs.get('verbose', False)
 
-        # Overwrite parser read() method
-        def read(nbytes):
-            buf = ''
+        self.parser = base_class(file=self, read=self.read, **kwargs)
 
-            try:
-                buf = self.input_buffer[self.input_position]
+    def readline(self, nbytes=False):
+        return self.read(nbytes)
 
-                if self.verbose:
-                    print 'read:', buf
-            except IndexError:
-                return ''
+    def read(self, nbytes=False):
 
-            self.input_position += 1
-
+        if len(self.last_buffer) >= nbytes:
+            buf = self.last_buffer[:nbytes]
+            self.last_buffer = self.last_buffer[nbytes:]
             return buf
 
-        self.parser = base_class(**kwargs)
-        self.parser.read = read
+        buf = self.last_buffer
 
+        try:
+            buf += self.input_buffer[self.input_position]
+
+            if self.verbose:
+                print 'read:', buf
+
+            self.input_position += 1
+        except IndexError:
+            self.closed = True
+            return ''
+
+        self.last_buffer = buf[nbytes:]
+        return buf
+
+    def close(self):
+        self.closed = True
+        self.input_position = len(self.input_buffer)
 
     def run(self, input_buffer, *args, **kwargs):
         map(self.append, input_buffer)
         return self.parser.run(*args, **kwargs)
 
     def append(self, input):
+        self.closed = False
         self.input_buffer.append(input + '\n')
 
 
@@ -70,5 +88,19 @@ def run_expressions(base_class, expressions, keepfiles=1, fail=True,
                 print >>sys.stderr, 'error: %s = %s, but expected: %s' \
                                     % (exp, str(res), str(out))
 
+            if not silent and hasattr(res, 'nodes'):
+                print >>sys.stderr, 'result graph:'
+                print >>sys.stderr, generate_graph(res)
+                print >>sys.stderr, 'expected graph:'
+                print >>sys.stderr, generate_graph(out)
+
             if fail:
                 raise
+
+
+def graph(parser, *exp, **kwargs):
+    return generate_graph(ParserWrapper(parser, **kwargs).run(exp))
+
+
+def line(parser, *exp, **kwargs):
+    return generate_line(ParserWrapper(parser, **kwargs).run(exp))

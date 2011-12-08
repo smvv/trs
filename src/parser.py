@@ -18,6 +18,11 @@ sys.path.insert(1, PYBISON_PYREX)
 
 from bison import BisonParser, ParserSyntaxError
 
+
+# Check for n-ary operator in child nodes
+def combine(op, n):
+    return n.nodes if n.title() == op else [n]
+
 class Parser(BisonParser):
     """
     Implements the calculator parser. Grammar rules are defined in the method
@@ -34,7 +39,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA',
+              'LPAREN', 'RPAREN', 'COMMA', 'CONCAT_POW',
               'NEWLINE', 'QUIT', 'RAISE']
 
     # ------------------------------
@@ -87,7 +92,7 @@ class Parser(BisonParser):
             # as a shell. In that case, it is useful that the shell prints the
             # output of the evaluation.
             if self.interactive and values[1]:
-                print 'result:', values[1]
+                print values[1]
 
             return values[1]
 
@@ -107,85 +112,101 @@ class Parser(BisonParser):
         """
         exp : NUMBER
             | IDENTIFIER
-            | exp PLUS exp
-            | exp MINUS exp
-            | exp TIMES exp
-            | exp DIVIDE exp
-            | MINUS exp %prec NEG
-            | exp POW exp
             | LPAREN exp RPAREN
-            | symbolic
+            | unary
+            | binary
+            | concat
         """
 
-        # rule: NUMBER
-        if option == 0:
+        if option == 0:  # rule: NUMBER
             # TODO: A bit hacky, this achieves long integers and floats.
             value = float(values[0]) if '.' in values[0] else int(values[0])
             return Leaf(value)
 
-        # rule: IDENTIFIER
-        if option == 1:
+        if option == 1:  # rule: IDENTIFIER
             return Leaf(values[0])
 
-        # rule: LPAREN exp RPAREN
-        if option == 8:
+        if option == 2:  # rule: LPAREN exp RPAREN
             return values[1]
 
-        # rule: symbolic
-        if option == 9:
+        if option in [3, 4, 5]:  # rule: unary | binary | concat
             return values[0]
 
-        # Check for n-ary operator in child nodes
-        combine = lambda op, n: n.nodes if n.title() == op else [n]
+        raise ParserSyntaxError('Unsupported option %d in target "%s".'
+                                % (option, target))
 
-        # rule: exp PLUS exp
-        if option == 2:
-            return Node('+', *(combine('+', values[0]) + combine('+', values[2])))
+    def on_unary(self, target, option, names, values):
+        """
+        unary : MINUS exp %prec NEG
+        """
 
-        # rule: exp MINUS expo
-        if option == 3:
-            return Node('-', *(combine('-', values[0]) + combine('-', values[2])))
-
-        # rule: exp TIMES expo
-        if option == 4:
-            return Node('*', *(combine('*', values[0]) + combine('*', values[2])))
-
-        # rule: exp DIVIDE expo
-        if option == 5:
-            return Node('/', values[0], values[2])
-
-        # rule: NEG expo
-        if option == 6:
+        if option == 0:  # rule: NEG exp
             return Node('-', values[1])
 
-        # rule: exp POW expo
-        if option == 7:
+        raise ParserSyntaxError('Unsupported option %d in target "%s".'
+                                % (option, target))
+
+    def on_binary(self, target, option, names, values):
+        """
+        binary : exp PLUS exp
+               | exp MINUS exp
+               | exp TIMES exp
+               | exp DIVIDE exp
+               | exp POW exp
+        """
+
+        if option == 0:  # rule: exp PLUS exp
+            return Node('+', *(combine('+', values[0])
+                               + combine('+', values[2])))
+
+        if option == 1:  # rule: exp MINUS exp
+            return Node('-', *(combine('-', values[0])
+                               + combine('-', values[2])))
+
+        if option == 2:  # rule: exp TIMES exp
+            return Node('*', *(combine('*', values[0])
+                               + combine('*', values[2])))
+
+        if option == 3:  # rule: exp DIVIDE exp
+            return Node('/', values[0], values[2])
+
+        if option == 4:  # rule: exp POW exp
             return Node('^', values[0], values[2])
 
         raise ParserSyntaxError('Unsupported option %d in target "%s".'
                                 % (option, target))
 
-    def on_symbolic(self, target, option, names, values):
-        """
-        symbolic : NUMBER IDENTIFIER
-                 | IDENTIFIER IDENTIFIER
-                 | symbolic IDENTIFIER
-                 | IDENTIFIER NUMBER
-        """
-        # rule: NUMBER IDENTIFIER
-        # rule: IDENTIFIER IDENTIFIER
-        # rule: symbolic IDENTIFIER
-        if option in [0, 1, 2]:
-            # 4x -> 4*x
-            # a b -> a * b
-            # a b c -> (a * b) * c
-            node = Node('*', Leaf(values[0]), Leaf(values[1]))
-            return node
 
-        # rule: IDENTIFIER NUMBER
+    def on_concat(self, option, target, names, values):
+        """
+        concat : exp IDENTIFIER
+               | exp NUMBER
+               | exp LPAREN exp RPAREN
+               | exp CONCAT_POW
+               | CONCAT_POW
+        """
+
+        if option in [0, 1]:  # rule: exp IDENTIFIER | exp NUMBER
+            # NOTE: xy -> x*y
+            # NOTE: (x)4 -> x*4
+            val = int(values[1]) if option == 1 else values[1]
+            return Node('*', *(combine('*', values[0]) + [Leaf(val)]))
+
+        if option == 2:  # rule: exp LPAREN exp RPAREN
+            # NOTE: x(y) -> x*(y)
+            return Node('*', *(combine('*', values[0])
+                              + combine('*', values[2])))
+
         if option == 3:
-            # x4 -> x^4
-            return Node('^', Leaf(values[0]), Leaf(values[1]))
+            # NOTE: x4 -> x^4
+            identifier, exponent = list(values[1])
+            node = Node('^', Leaf(identifier), Leaf(int(exponent)))
+            return Node('*', values[0], node)
+
+        if option == 4:
+            # NOTE: x4 -> x^4
+            identifier, exponent = list(values[0])
+            return Node('^', Leaf(identifier), Leaf(int(exponent)))
 
         raise ParserSyntaxError('Unsupported option %d in target "%s".'
                                 % (option, target))
@@ -196,19 +217,22 @@ class Parser(BisonParser):
     lexscript = r"""
     %{
     //int yylineno = 0;
-    #include <stdio.h>
-    #include <string.h>
     #include "Python.h"
     #define YYSTYPE void *
     #include "tokens.h"
     extern void *py_parser;
-    extern void (*py_input)(PyObject *parser, char *buf, int *result, int max_size);
-    #define returntoken(tok) yylval = PyString_FromString(strdup(yytext)); return (tok);
-    #define YY_INPUT(buf,result,max_size) { (*py_input)(py_parser, buf, &result, max_size); }
+    extern void (*py_input)(PyObject *parser, char *buf, int *result,
+                            int max_size);
+    #define returntoken(tok) \
+        yylval = PyString_FromString(strdup(yytext)); return (tok);
+    #define YY_INPUT(buf,result,max_size) { \
+        (*py_input)(py_parser, buf, &result, max_size); \
+    }
     %}
 
     %%
 
+    [a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }
     [0-9]+    { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
@@ -224,7 +248,8 @@ class Parser(BisonParser):
 
     [ \t\v\f] {}
     [\n]      {yylineno++; returntoken(NEWLINE); }
-    .         { printf("unknown char %c ignored, yytext=0x%lx\n", yytext[0], yytext); /* ignore bad chars */}
+    .         { printf("unknown char %c ignored, yytext=%p\n",
+                yytext[0], yytext); /* ignore bad chars */}
 
     %%
 

@@ -7,12 +7,6 @@ from sympy import Symbol, symbols
 
 class TestVariables(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_addition(self):
         expressions = [('5 + 5', 5 + 5)]
         run_expressions(Parser, expressions)
