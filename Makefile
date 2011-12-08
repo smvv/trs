@@ -8,6 +8,8 @@ else
 CFLAGS := -g -fomit-frame-pointer -O3 ${CFLAGS}
 endif
 
+-include config.mk
+
 # Fix pdflatex search path
 TEXINPUTS := "$(TEXINPUTS):docs"
 TEXFLAGS  := -halt-on-error -interaction=nonstopmode -file-line-error
