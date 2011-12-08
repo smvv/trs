@@ -63,6 +63,9 @@ class Parser(BisonParser):
     # override default read method with a version that prompts for input
     # ------------------------------------------------------------------
     def read(self, nbytes):
+        if self.file == sys.stdin and self.file.closed:
+            return ''
+
         try:
             return raw_input('>>> ') + '\n'
         except EOFError:
@@ -187,24 +190,24 @@ class Parser(BisonParser):
         """
 
         if option in [0, 1]:  # rule: exp IDENTIFIER | exp NUMBER
-            # NOTE: xy -> x*y
-            # NOTE: (x)4 -> x*4
+            # example: xy -> x*y
+            # example: (x)4 -> x*4
             val = int(values[1]) if option == 1 else values[1]
             return Node('*', *(combine('*', values[0]) + [Leaf(val)]))
 
         if option == 2:  # rule: exp LPAREN exp RPAREN
-            # NOTE: x(y) -> x*(y)
+            # example: x(y) -> x*(y)
             return Node('*', *(combine('*', values[0])
                               + combine('*', values[2])))
 
         if option == 3:
-            # NOTE: x4 -> x^4
+            # example: xy4 -> x*y^4
             identifier, exponent = list(values[1])
             node = Node('^', Leaf(identifier), Leaf(int(exponent)))
             return Node('*', values[0], node)
 
         if option == 4:
-            # NOTE: x4 -> x^4
+            # example: x4 -> x^4
             identifier, exponent = list(values[0])
             return Node('^', Leaf(identifier), Leaf(int(exponent)))
 
