@@ -136,7 +136,7 @@ class Parser(BisonParser):
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))
+                               % (option, target))  # pragma: nocover
 
     def on_unary(self, target, option, names, values):
         """
@@ -147,7 +147,7 @@ class Parser(BisonParser):
             return Node('-', values[1])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))
+                               % (option, target))  # pragma: nocover
 
     def on_binary(self, target, option, names, values):
         """
@@ -177,7 +177,7 @@ class Parser(BisonParser):
             return Node('^', values[0], values[2])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))
+                               % (option, target))  # pragma: nocover
 
     def on_concat(self, option, target, names, values):
         """
@@ -211,7 +211,7 @@ class Parser(BisonParser):
             return Node('^', Leaf(identifier), Leaf(int(exponent)))
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))
+                               % (option, target))  # pragma: nocover
 
     # -----------------------------------------
     # raw lex script, verbatim here
