@@ -8,7 +8,8 @@
 *.toc
 *.synctex.gz
 /build
-core
-.coverage
-coverage
-config.mk
+/core
+/.coverage
+/coverage
+/config.mk
+/profiles

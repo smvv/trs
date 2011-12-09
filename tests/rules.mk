@@ -1,5 +1,6 @@
 TESTS=$(wildcard tests/test_*.py)
 COVERAGE_OUTPUT_DIR := coverage
+PROFILER_OUTPUT_DIR := profiles
 OMIT := /usr/share/pyshared/*,/usr/lib/pymodules/python2.7/sympy/*
 
 ifeq ($(findstring python-coverage,$(wildcard /usr/bin/*)), python-coverage)
@@ -9,7 +10,8 @@ else
 COVERAGE=/usr/bin/coverage
 endif
 
-CLEAN := $(CLEAN) $(COVERAGE_OUTPUT_DIR)
+CLEAN := $(CLEAN) $(COVERAGE_OUTPUT_DIR) $(PROFILER_OUTPUT_DIR)
+TGT_DIR := $(TGT_DIR) $(PROFILER_OUTPUT_DIR)
 
 .PHONY: test coverage $(TESTS)
 
@@ -43,3 +45,17 @@ ${COVERAGE}:
 	@echo "On Debian/Ubuntu use: sudo apt-get install python-coverage"; false
 
 $(TESTS): build; @python -m testrunner $@
+
+profile-test-%: $(PROFILER_OUTPUT_DIR) build
+	 python -m cProfile -s cumulative \
+	 	 -o $(PROFILER_OUTPUT_DIR)/tests_test_$*.py.profile test.py tests/test_$*.py
+
+profile-test-view-%: $(PROFILER_OUTPUT_DIR) build
+	python utils/view_profile.py "$(PROFILER_OUTPUT_DIR)/tests_test_$*.py.profile"
+
+profile-view-%: $(PROFILER_OUTPUT_DIR) build
+	python utils/view_profile.py "$(PROFILER_OUTPUT_DIR)/src_$*.py.profile"
+
+profile-%: $(PROFILER_OUTPUT_DIR) build
+	 python -m cProfile -s cumulative \
+	 	 -o $(PROFILER_OUTPUT_DIR)/src_$*.py.profile src/$*.py
