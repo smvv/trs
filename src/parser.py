@@ -10,13 +10,13 @@ import argparse
 
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
-PYBISON_PYREX = os.path.realpath('external/pybison/src/pyrex')
+EXTERNAL_MODS = os.path.realpath('external')
 
 import sys
 sys.path.insert(0, PYBISON_BUILD)
-sys.path.insert(1, PYBISON_PYREX)
+sys.path.insert(1, EXTERNAL_MODS)
 
-from bison import BisonParser, ParserSyntaxError
+from pybison import BisonParser, BisonSyntaxError
 
 
 # Check for n-ary operator in child nodes
@@ -135,8 +135,8 @@ class Parser(BisonParser):
         if option in [3, 4, 5]:  # rule: unary | binary | concat
             return values[0]
 
-        raise ParserSyntaxError('Unsupported option %d in target "%s".'
-                                % (option, target))
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))
 
     def on_unary(self, target, option, names, values):
         """
@@ -146,8 +146,8 @@ class Parser(BisonParser):
         if option == 0:  # rule: NEG exp
             return Node('-', values[1])
 
-        raise ParserSyntaxError('Unsupported option %d in target "%s".'
-                                % (option, target))
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))
 
     def on_binary(self, target, option, names, values):
         """
@@ -176,9 +176,8 @@ class Parser(BisonParser):
         if option == 4:  # rule: exp POW exp
             return Node('^', values[0], values[2])
 
-        raise ParserSyntaxError('Unsupported option %d in target "%s".'
-                                % (option, target))
-
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))
 
     def on_concat(self, option, target, names, values):
         """
@@ -211,8 +210,8 @@ class Parser(BisonParser):
             identifier, exponent = list(values[0])
             return Node('^', Leaf(identifier), Leaf(int(exponent)))
 
-        raise ParserSyntaxError('Unsupported option %d in target "%s".'
-                                % (option, target))
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))
 
     # -----------------------------------------
     # raw lex script, verbatim here

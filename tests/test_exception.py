@@ -2,7 +2,7 @@
 import unittest
 
 from src.parser import Parser
-from tests.parser import ParserWrapper, run_expressions
+from tests.parser import ParserWrapper
 
 
 class TestException(unittest.TestCase):
@@ -12,5 +12,4 @@ class TestException(unittest.TestCase):
         except RuntimeError:
             return
 
-        # pragma: nocover
-        raise AssertionError('Expected a raised RuntimeError!')
+        raise AssertionError('Expected raised RuntimeError!') # pragma: nocover

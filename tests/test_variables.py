@@ -18,7 +18,7 @@ class TestVariables(unittest.TestCase):
 
     def test_addition_of_two_terms(self):
         a, b = symbols('a,b')
-        expressions = [('4*a + 5*b', 4*a + 5*b)]
+        expressions = [('4*a + 5*b', 4 * a + 5 * b)]
         run_expressions(Parser, expressions)
 
     #def test_short_addition_of_two_terms(self):

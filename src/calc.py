@@ -8,13 +8,13 @@ from sympy import Symbol
 
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
-PYBISON_PYREX = os.path.realpath('external/pybison/src/pyrex')
+EXTERNAL_MODS = os.path.realpath('external')
 
 import sys
 sys.path.insert(0, PYBISON_BUILD)
-sys.path.insert(1, PYBISON_PYREX)
+sys.path.insert(1, EXTERNAL_MODS)
 
-from bison import BisonParser
+from pybison import BisonParser
 
 class Parser(BisonParser):
     """
