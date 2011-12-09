@@ -32,7 +32,7 @@ class ParserWrapper(object):
             buf += self.input_buffer[self.input_position]
 
             if self.verbose:
-                print 'read:', buf
+                print 'read:', buf  # pragma: nocover
 
             self.input_position += 1
         except IndexError:
