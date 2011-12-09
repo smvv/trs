@@ -53,6 +53,17 @@ class TestCalc(unittest.TestCase):
                        ('ab(c)d',   N('*', L('a'), L('b'), L('c'), L('d'))),
                        #('ab(c)d',   N('*', L('a'), N('*', L('b'),
                        #                              N('*', L('c'), L('d'))))),
+                       ('ab*(c)*d',   N('*', L('a'), L('b'), L('c'), L('d'))),
+                       ('ab*(c)^d',   N('*', L('a'), L('b'),
+                                        N('^', L('c'), L('d')))),
+                      ]
+
+        run_expressions(Parser, expressions)
+
+    def test_pow_nested(self):
+        # a^b^c = a^(b^c) != (a^b)^c
+        expressions = [
+                       ('a^b^c', N('^', L('a'), N('^', L('b'), L('c')))),
                       ]
 
         run_expressions(Parser, expressions)
