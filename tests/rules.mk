@@ -9,6 +9,8 @@ else
 COVERAGE=/usr/bin/coverage
 endif
 
+CLEAN := $(CLEAN) $(COVERAGE_OUTPUT_DIR)
+
 .PHONY: test coverage $(TESTS)
 
 test: $(TESTS) build
