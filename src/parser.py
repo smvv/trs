@@ -39,8 +39,8 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA', 'CONCAT_POW',
-              'NEWLINE', 'QUIT', 'RAISE']
+              'LPAREN', 'RPAREN', 'COMMA',  #'CONCAT_POW',
+              'NEWLINE', 'QUIT', 'RAISE', 'GRAPH']
 
     # ------------------------------
     # precedences
@@ -70,6 +70,64 @@ class Parser(BisonParser):
             return raw_input('>>> ') + '\n'
         except EOFError:
             return ''
+
+    def hook_read(self, data):
+        """
+        This hook will be called when the read() method returned. The data
+        argument points to the data read by the read() method. This hook
+        function should return the data to be used by the parser.
+        """
+        import re
+
+        # TODO: remove this quick preprocesing hack. This hack enabled
+        # concatenated expressions, since the grammar currently does not
+        # support those. This workaround will replace:
+        #   - ")(" with ")*(".
+        #   - "a(" with "a*(".
+        #   - ")a" with ")*a".
+        #   - "ab" with "a*b".
+        #   - "4a" with "4*a".
+        #   - "a4" with "a^4".
+
+        pattern = ('(?:(\))\s*(\()'       # match: )(
+                + '|([a-z0-9])\s*(\()'    # match: a(
+                + '|(\))\s*([a-z0-9])'    # match: )a
+                + '|([a-z])\s*([a-z]+)'   # match: ab
+                + '|([0-9])\s*([a-z])'    # match: 4a
+                + '|([a-z])\s*([0-9]))')  # match: a4
+
+        def preprocess_data(match):
+            left, right = filter(None, match.groups())
+
+            # Filter words (otherwise they will be preprocessed as well)
+            if left + right in ['graph', 'raise']:
+                return left + right
+
+            # If all characters on the right are numbers. e.g. "a4", the
+            # expression implies exponentiation. Make sure ")4" is not
+            # converted into an exponentiation, because that's multipliciation.
+            if left != ')' \
+                    and all(map(lambda x: 48 <= ord(x) < 58, list(right))):
+                return '%s^%s' % (left, right)
+
+            # match: ab | abc | abcd (where left = "a")
+            return '*'.join([left] + list(right))
+
+        # Iteratively replace all matches.
+        while True:
+            data_after = re.sub(pattern, preprocess_data, data)
+
+            if data == data_after:
+                break
+
+            if self.verbose:
+                print 'hook_read() modified the input data:'
+                print 'before:', data.replace('\n', '\\n')
+                print 'after :', data_after.replace('\n', '\\n')
+
+            data = data_after
+
+        return data
 
     # ---------------------------------------------------------------
     # These methods are the python handlers for the bison targets.
@@ -103,13 +161,26 @@ class Parser(BisonParser):
         """
         line : NEWLINE
              | exp NEWLINE
+             | debug NEWLINE
              | RAISE NEWLINE
         """
-        if option == 1:
+        if option in [1, 2]:
             return values[0]
 
-        if option == 2:
+        if option == 3:
             raise RuntimeError('on_line: exception raised')
+
+    def on_debug(self, target, option, names, values):
+        """
+        debug : GRAPH exp
+        """
+
+        if option == 0:
+            print generate_graph(values[1])
+            return values[1]
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
 
     def on_exp(self, target, option, names, values):
         """
@@ -118,8 +189,8 @@ class Parser(BisonParser):
             | LPAREN exp RPAREN
             | unary
             | binary
-            | concat
         """
+        #    | concat
 
         if option == 0:  # rule: NUMBER
             # TODO: A bit hacky, this achieves long integers and floats.
@@ -132,8 +203,11 @@ class Parser(BisonParser):
         if option == 2:  # rule: LPAREN exp RPAREN
             return values[1]
 
-        if option in [3, 4, 5]:  # rule: unary | binary | concat
+        if option in [3, 4]:  # rule: unary | binary
             return values[0]
+
+        #if option in [3, 4, 5]:  # rule: unary | binary | concat
+        #    return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -179,39 +253,39 @@ class Parser(BisonParser):
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
-    def on_concat(self, option, target, names, values):
-        """
-        concat : exp IDENTIFIER
-               | exp NUMBER
-               | exp LPAREN exp RPAREN
-               | exp CONCAT_POW
-               | CONCAT_POW
-        """
+    #def on_concat(self, option, target, names, values):
+    #    """
+    #    concat : exp IDENTIFIER %prec TIMES
+    #           | exp NUMBER %prec TIMES
+    #           | exp LPAREN exp RPAREN %prec TIMES
+    #           | exp CONCAT_POW %prec TIMES
+    #           | CONCAT_POW
+    #    """
 
-        if option in [0, 1]:  # rule: exp IDENTIFIER | exp NUMBER
-            # example: xy -> x*y
-            # example: (x)4 -> x*4
-            val = int(values[1]) if option == 1 else values[1]
-            return Node('*', *(combine('*', values[0]) + [Leaf(val)]))
+    #    if option in [0, 1]:  # rule: exp IDENTIFIER | exp NUMBER
+    #        # example: xy -> x*y
+    #        # example: (x)4 -> x*4
+    #        val = int(values[1]) if option == 1 else values[1]
+    #        return Node('*', *(combine('*', values[0]) + [Leaf(val)]))
 
-        if option == 2:  # rule: exp LPAREN exp RPAREN
-            # example: x(y) -> x*(y)
-            return Node('*', *(combine('*', values[0])
-                              + combine('*', values[2])))
+    #    if option == 2:  # rule: exp LPAREN exp RPAREN
+    #        # example: x(y) -> x*(y)
+    #        return Node('*', *(combine('*', values[0])
+    #                          + combine('*', values[2])))
 
-        if option == 3:
-            # example: xy4 -> x*y^4
-            identifier, exponent = list(values[1])
-            node = Node('^', Leaf(identifier), Leaf(int(exponent)))
-            return Node('*', values[0], node)
+    #    if option == 3:
+    #        # example: xy4 -> x*y^4
+    #        identifier, exponent = list(values[1])
+    #        node = Node('^', Leaf(identifier), Leaf(int(exponent)))
+    #        return Node('*', values[0], node)
 
-        if option == 4:
-            # example: x4 -> x^4
-            identifier, exponent = list(values[0])
-            return Node('^', Leaf(identifier), Leaf(int(exponent)))
+    #    if option == 4:
+    #        # example: x4 -> x^4
+    #        identifier, exponent = list(values[0])
+    #        return Node('^', Leaf(identifier), Leaf(int(exponent)))
 
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
+    #    raise BisonSyntaxError('Unsupported option %d in target "%s".'
+    #                           % (option, target))  # pragma: nocover
 
     # -----------------------------------------
     # raw lex script, verbatim here
@@ -230,11 +304,11 @@ class Parser(BisonParser):
     #define YY_INPUT(buf,result,max_size) { \
         (*py_input)(py_parser, buf, &result, max_size); \
     }
+    /*[a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }*/
     %}
 
     %%
 
-    [a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }
     [0-9]+    { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
@@ -247,6 +321,7 @@ class Parser(BisonParser):
     ","       { returntoken(COMMA); }
     "quit"    { printf("lex: got QUIT\n"); yyterminate(); returntoken(QUIT); }
     "raise"   { returntoken(RAISE); }
+    "graph"   { returntoken(GRAPH); }
 
     [ \t\v\f] {}
     [\n]      {yylineno++; returntoken(NEWLINE); }
