@@ -17,6 +17,7 @@ sys.path.insert(0, PYBISON_BUILD)
 sys.path.insert(1, EXTERNAL_MODS)
 
 from pybison import BisonParser, BisonSyntaxError
+from graph_drawing.graph import generate_graph
 
 
 # Check for n-ary operator in child nodes
@@ -39,7 +40,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA',  #'CONCAT_POW',
+              'LPAREN', 'RPAREN', 'COMMA',  # 'CONCAT_POW',
               'NEWLINE', 'QUIT', 'RAISE', 'GRAPH']
 
     # ------------------------------
