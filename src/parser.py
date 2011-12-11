@@ -239,8 +239,7 @@ class Parser(BisonParser):
                                + combine('+', values[2])))
 
         if option == 1:  # rule: exp MINUS exp
-            return Node('-', *(combine('-', values[0])
-                               + combine('-', values[2])))
+            return Node('-', values[0], values[2])
 
         if option == 2:  # rule: exp TIMES exp
             return Node('*', *(combine('*', values[0])

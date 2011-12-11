@@ -79,3 +79,10 @@ class TestCalc(unittest.TestCase):
                       ]
 
         run_expressions(Parser, expressions)
+
+    def test_negation(self):
+        run_expressions(Parser, [
+            ('-9', N('-', L(9))),
+            ('--9', N('-', N('-', L(9)))),
+            ('a--9', N('-', L('a'), N('-', L(9)))),
+            ])
