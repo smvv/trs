@@ -90,12 +90,13 @@ class Parser(BisonParser):
         #   - "4a" with "4*a".
         #   - "a4" with "a^4".
 
-        pattern = ('(?:(\))\s*(\()'       # match: )(
-                + '|([a-z0-9])\s*(\()'    # match: a(
-                + '|(\))\s*([a-z0-9])'    # match: )a
-                + '|([a-z])\s*([a-z]+)'   # match: ab
-                + '|([0-9])\s*([a-z])'    # match: 4a
-                + '|([a-z])\s*([0-9]))')  # match: a4
+        pattern = ('(?:(\))\s*(\()'       # match: )(  result: ) * (
+                + '|([a-z0-9])\s*(\()'    # match: a(  result: a * (
+                + '|(\))\s*([a-z0-9])'    # match: )a  result: ) * a
+                + '|([a-z])\s*([a-z]+)'   # match: ab  result: a * b
+                + '|([0-9])\s*([a-z])'    # match: 4a  result: 4 * a
+                + '|([a-z])\s*([0-9])'    # match: a4  result: a ^ 4
+                + '|([0-9])\s+([0-9]))')  # match: 4 4 result: 4 * 4
 
         def preprocess_data(match):
             left, right = filter(None, match.groups())
@@ -107,7 +108,7 @@ class Parser(BisonParser):
             # If all characters on the right are numbers. e.g. "a4", the
             # expression implies exponentiation. Make sure ")4" is not
             # converted into an exponentiation, because that's multiplication.
-            if left != ')' \
+            if left != ')' and not 48 <= ord(left) < 58 \
                     and all(map(lambda x: 48 <= ord(x) < 58, list(right))):
                 return '%s^%s' % (left, right)
 
