@@ -80,7 +80,7 @@ class Parser(BisonParser):
         """
         import re
 
-        # TODO: remove this quick preprocesing hack. This hack enabled
+        # TODO: remove this quick preprocessing hack. This hack enables
         # concatenated expressions, since the grammar currently does not
         # support those. This workaround will replace:
         #   - ")(" with ")*(".
@@ -106,7 +106,7 @@ class Parser(BisonParser):
 
             # If all characters on the right are numbers. e.g. "a4", the
             # expression implies exponentiation. Make sure ")4" is not
-            # converted into an exponentiation, because that's multipliciation.
+            # converted into an exponentiation, because that's multiplication.
             if left != ')' \
                     and all(map(lambda x: 48 <= ord(x) < 58, list(right))):
                 return '%s^%s' % (left, right)
