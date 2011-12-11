@@ -55,8 +55,8 @@ class ParserWrapper(object):
         self.input_buffer.append(input + '\n')
 
 
-def run_expressions(base_class, expressions, keepfiles=1, fail=True,
-        silent=False, verbose=0):
+def run_expressions(base_class, expressions, fail=True, silent=False,
+        **kwargs):
     """
     Run a list of mathematical expression through the term rewriting system and
     check if the output matches the expected output. The list of EXPRESSIONS
@@ -76,7 +76,7 @@ def run_expressions(base_class, expressions, keepfiles=1, fail=True,
     higher value will print more types of debug messages.
     """
 
-    parser = ParserWrapper(base_class, keepfiles=keepfiles, verbose=verbose)
+    parser = ParserWrapper(base_class, **kwargs)
 
     for exp, out in expressions:
         res = None
@@ -85,7 +85,7 @@ def run_expressions(base_class, expressions, keepfiles=1, fail=True,
             assert res == out
         except:  # pragma: nocover
             if not silent:
-                print >>sys.stderr, 'error: %s = %s, but expected: %s' \
+                print >>sys.stderr, 'error: %s gives %s, but expected: %s' \
                                     % (exp, str(res), str(out))
 
             if not silent and hasattr(res, 'nodes'):
