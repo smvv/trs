@@ -12,7 +12,6 @@ TYPE_OPERATOR = 1
 TYPE_IDENTIFIER = 2
 TYPE_INTEGER = 4
 TYPE_FLOAT = 8
-TYPE_NUMERIC = TYPE_INTEGER | TYPE_FLOAT
 
 
 # Unary
@@ -39,7 +38,7 @@ TYPE_MAP = {
 
 OP_MAP = {
         '+': OP_ADD,
-        # Either substitution or negation. Skip the operator sign in 'x' (= 2).
+        # Either substraction or negation. Skip the operator sign in 'x' (= 2).
         '-': lambda x: OP_SUB if len(x) > 2 else OP_NEG,
         '*': OP_MUL,
         '/': OP_DIV,
@@ -131,7 +130,7 @@ class ExpressionLeaf(Leaf):
         return self.type & TYPE_FLOAT
 
     def is_numeric(self):
-        return self.type & TYPE_NUMERIC
+        return self.type & (TYPE_FLOAT | TYPE_INTEGER)
 
 
 if __name__ == '__main__':  # pragma: nocover
