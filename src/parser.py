@@ -310,8 +310,11 @@ class Parser(BisonParser):
     # raw lex script, verbatim here
     # -----------------------------------------
     lexscript = r"""
-    %{
+    %top{
     #include "Python.h"
+    }
+
+    %{
     #define YYSTYPE void *
     #include "tokens.h"
     extern void *py_parser;
