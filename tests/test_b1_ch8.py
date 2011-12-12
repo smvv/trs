@@ -2,7 +2,7 @@ import unittest
 
 from src.parser import Parser
 from src.node import ExpressionNode as N, ExpressionLeaf as L
-from tests.parser import ParserWrapper, run_expressions
+from tests.parser import run_expressions
 
 
 class TestB1Ch8(unittest.TestCase):

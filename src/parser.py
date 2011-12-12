@@ -19,7 +19,7 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_ADD, OP_MUL, OP_SUB, OP_NEG
+from node import TYPE_OPERATOR, OP_ADD, OP_MUL, OP_SUB
 
 
 # Check for n-ary operator in child nodes
@@ -28,13 +28,6 @@ def combine(op, op_type, *nodes):
     res = [op]
 
     for n in nodes:
-        try:
-            assert n.type != TYPE_OPERATOR or n.op != OP_NEG or len(n.nodes) == 1
-            assert n.type != TYPE_OPERATOR or n.op != OP_SUB or len(n.nodes) > 1
-        except AssertionError:
-            print n, type(n), n.type, OP_NEG, OP_SUB, n.nodes, len(n.nodes)
-            raise
-
         # Merge the children for all nodes which have the same operator.
         if n.type == TYPE_OPERATOR and n.op == op_type:
             res += n.nodes
@@ -367,14 +360,20 @@ class Parser(BisonParser):
 
 def get_args():
     parser = argparse.ArgumentParser(prog='parser', description=__doc__)
-    parser.add_argument('--debug', '-d', action='store_true', default=False,
+
+    parser.add_argument('--debug', '-d', action='store_true',
+            default=False,
             help='Enable debug mode in bison and flex.')
-    parser.add_argument('--verbose', '-v', action='store_true', default=False,
+    parser.add_argument('--verbose', '-v', action='store_true',
+            default=False,
             help='Enable verbose output messages (printed to stdout).')
-    parser.add_argument('--keepfiles', '-k', action='store_true', default=False,
+    parser.add_argument('--keepfiles', '-k', action='store_true',
+            default=False,
             help='Keep temporary generated bison and lex files.')
     parser.add_argument('--batch', '-b', action='store_true', default=False,
-            help='Disable interactive mode and execute expressions in batch mode.')
+            help='Disable interactive mode and execute expressions in batch' \
+                 ' mode.')
+
     return parser.parse_args()
 
 

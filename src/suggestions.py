@@ -5,6 +5,7 @@ from rules import rules
 
 # (node, funcptr, (args...))
 
+
 def get_node_possibilities(node):
     """
     Get all possible rewrite steps for this node.
@@ -18,6 +19,7 @@ def get_node_possibilities(node):
 
     return possibilities
 
+
 def get_possibilities(node):
     """
     Get all possible rewrite steps for this node and its children.
@@ -28,6 +30,7 @@ def get_possibilities(node):
         possibilities += [get_possibilities(n) for n in node]
 
     return possibilities
+
 
 if __name__ == '__main__':
     node = main()

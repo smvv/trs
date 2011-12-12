@@ -3,16 +3,16 @@ import logging.config
 import sys
 
 try:
-    import config
+    import config as cfg
 except ImportError:
-    config = object()
+    cfg = object()
 
 import default_config as default
 
 try:
     logging.basicConfig(level=logging.DEBUG,
-                        format=getattr(config, 'LOG_FORMAT', default.LOG_FORMAT),
-                        filename=getattr(config, 'LOG_FILE', default.LOG_FILE),
+                        format=getattr(cfg, 'LOG_FORMAT', default.LOG_FORMAT),
+                        filename=getattr(cfg, 'LOG_FILE', default.LOG_FILE),
                         filemode='a')
 except IOError as e:  # pragma: no cover
     print >>sys.stderr, 'warning: IOError raised: "%s"' % str(e)
