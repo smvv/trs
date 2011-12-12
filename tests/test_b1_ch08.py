@@ -5,7 +5,7 @@ from src.node import ExpressionNode as N, ExpressionLeaf as L
 from tests.parser import run_expressions
 
 
-class TestB1Ch8(unittest.TestCase):
+class TestB1Ch08(unittest.TestCase):
 
     def test_diagnostic_test(self):
         run_expressions(Parser, [

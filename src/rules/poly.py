@@ -1,57 +1,91 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, TYPE_OPERATOR
+from ..node import ExpressionLeaf as Leaf, TYPE_OPERATOR, OP_ADD
 from ..possibilities import Possibility as P
+
+
+def match_expand(node):
+    """
+    a * (b + c) -> ab + ac
+    """
+    if node.type != TYPE_OPERATOR or not node.op & OP_MUL:
+        return []
+
+    p = []
+
+    # 'a' parts
+    left = []
+
+    # '(b + c)' parts
+    right = []
+
+    for n in node.get_scope():
+        if node.type == TYPE_OPERATOR:
+            if n.op & OP_ADD:
+                right.append(n)
+        else:
+            left.append(n)
+
+    if len(left) and len(right):
+        for l in left:
+            for r in right:
+                p.append(P(node, expand_single, l, r))
+
+    return p
+
+def expand_single(root, args):
+    """
+    Combine a leaf (left) multiplied with an addition of two expressions
+    (right) to an addition of two multiplications.
+
+    >>> a * (b + c) -> a * b + a * c
+    """
+    left, right = args
+    others = list(set(root.get_scope()) - {left, right})
 
 def match_combine_factors(node):
     """
     n + exp + m -> exp + (n + m)
     k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
     """
-    if node.type != TYPE_OPERATOR:
+    if node.type != TYPE_OPERATOR or not node.op & OP_ADD:
         return []
 
     p = []
 
-    if node.is_nary():
-        # Collect all nodes that can be combined
-        # Numeric leaves
-        numerics = []
+    # Collect all nodes that can be combined
+    # Numeric leaves
+    numerics = []
 
-        # Identifier leaves of all orders, tuple format is;
-        # (identifier, exponent, coefficient)
-        orders = []
+    # Identifier leaves of all orders, tuple format is;
+    # (identifier, exponent, coefficient)
+    orders = []
 
-        # Nodes that cannot be combined
-        others = []
+    for n in node.get_scope():
+        if node.type == TYPE_OPERATOR:
+            order = n.get_order()
 
-        for n in node.get_scope():
-            if isinstance(n, Leaf):
-                if n.is_numeric():
-                    numerics.append(n)
-                elif n.is_identifier():
-                    orders.append((n.value, 1, 1))
-            else:
-                order = n.get_order()
+            if order:
+                orders += order
+        else:
+            if n.is_numeric():
+                numerics.append(n)
+            elif n.is_identifier():
+                orders.append((n.value, 1, 1))
 
-                if order:
-                    orders += order
-                else:
-                    others.append(n)
+    if len(numerics) > 1:
+        for num0, num1 in combinations(numerics, 2):
+            p.append(P(node, combine_numerics, (num0, num1)))
 
-        if len(numerics) > 1:
-            for num0, num1 in combinations(numerics, 2):
-                p.append(P(node, combine_numerics, (num0, num1, others)))
+    if len(orders) > 1:
+        for order0, order1 in combinations(orders, 2):
+            id0, exponent0, coeff0 = order0
+            id1, exponent1, coeff1 = order1
 
-        if len(orders) > 1:
-            for order0, order1 in combinations(orders, 2):
-                id0, exponent0, coeff0 = order0
-                id1, exponent1, coeff1 = order1
-
-                if id0 == id1 and exponent0 == exponent1:
-                    # Same identifier and exponent -> combine coefficients
-                    args = order0 + (coeff1,) + (others,)
-                    p.append(P(node, combine_orders, args))
+            if id0 == id1 and exponent0 == exponent1:
+                # Same identifier and exponent -> combine coefficients
+                args = order0 + (coeff1,)
+                p.append(P(node, combine_orders, args))
 
     return p
 
@@ -63,8 +97,8 @@ def combine_numerics(root, args):
     Example:
     >>> 3 + 4 -> 7
     """
-    numerics, others = args
-    value = sum([n.value for n in numerics])
+    others = list(set(root.get_scope()) - set(args))
+    value = sum([n.value for n in args])
 
     return nary_node('+', others + [Leaf(value)])
 

@@ -23,15 +23,15 @@ class TestRules(unittest.TestCase):
         l0, l1 = L(1), L(2)
         plus = N('+', l0, l1)
         p = match_combine_factors(plus)
-        self.assertEqualPos(p, [P(plus, combine_numerics, (l0, l1, []))])
+        self.assertEqualPos(p, [P(plus, combine_numerics, (l0, l1))])
 
     def test_match_combine_factors_numeric_combinations(self):
         l0, l1, l2 = L(1), L(2), L(2)
         plus = N('+', N('+', l0, l1), l2)
         p = match_combine_factors(plus)
-        self.assertEqualPos(p, [P(plus, combine_numerics, (l0, l1, [])),
-                                P(plus, combine_numerics, (l0, l2, [])),
-                                P(plus, combine_numerics, (l1, l2, []))])
+        self.assertEqualPos(p, [P(plus, combine_numerics, (l0, l1)),
+                                P(plus, combine_numerics, (l0, l2)),
+                                P(plus, combine_numerics, (l1, l2))])
 
     def assertEqualPos(self, possibilities, expected):
         for p, e in zip(possibilities, expected):

@@ -1,8 +1,8 @@
-from ..node import ExpressionNode as Node, OP_ADD
-from .poly import match_combine_factors#, match_combine_parentheses
+from ..node import ExpressionNode as Node, OP_ADD, OP_MUL
+from .poly import match_combine_factors, match_expand
 
 
 RULES = {
         OP_ADD: [match_combine_factors],
-        #OP_MUL: [match_combine_parentheses],
+        OP_MUL: [match_expand],
         }
