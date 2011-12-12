@@ -1,7 +1,9 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, TYPE_OPERATOR, OP_ADD, OP_MUL
+from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
+        TYPE_OPERATOR, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P
+from .utils import nary_node
 
 
 def match_expand(node):
@@ -11,6 +13,7 @@ def match_expand(node):
     assert node.type == TYPE_OPERATOR
     assert node.op & OP_MUL
 
+    return []
     p = []
 
     # 'a' parts
@@ -44,7 +47,8 @@ def expand_single(root, args):
     left, right = args
     scope = root.get_scope_except(right)
 
-    replacement = Node('+', Node('*', left, right[0]), Node('*', left, right[1]))
+    replacement = Node('+', Node('*', left, right[0]), \
+                            Node('*', left, right[1]))
 
     for i, n in enumerate(scope):
         if n == left:
@@ -73,18 +77,16 @@ def match_combine_factors(node):
     orders = []
 
     for n in node.get_scope():
-        if n.type == TYPE_OPERATOR:
+        if not n.is_leaf():
             order = n.get_order()
 
             if order:
                 orders.append(order)
-        else:
-            if n.is_numeric():
-                numerics.append(n)
-            elif n.is_identifier():
-                orders.append((n.value, 1, 1))
+        elif n.is_numeric():
+            numerics.append(n)
+        elif n.is_identifier():
+            orders.append((n.value, 1, 1))
 
-    print 'numerics:', numerics
     if len(numerics) > 1:
         for num0, num1 in combinations(numerics, 2):
             p.append(P(node, combine_numerics, (num0, num1)))
