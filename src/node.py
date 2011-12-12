@@ -49,7 +49,30 @@ OP_MAP = {
         }
 
 
-class ExpressionNode(Node):
+class ExpressionBase(object):
+    def is_leaf(self):
+        return self.type != TYPE_OPERATOR
+
+    def is_power(self):
+        return not self.is_leaf() and self.op == OP_POW
+
+    def is_nary(self):
+        return not self.is_leaf() and self.op in [OP_ADD, OP_SUB, OP_MUL]
+
+    def is_identifier(self):
+        return self.is_leaf() and self.type & TYPE_IDENTIFIER
+
+    def is_int(self):
+        return self.is_leaf() and self.type & TYPE_INTEGER
+
+    def is_float(self):
+        return self.is_leaf() and self.type & TYPE_FLOAT
+
+    def is_numeric(self):
+        return self.is_leaf() and self.type & (TYPE_FLOAT | TYPE_INTEGER)
+
+
+class ExpressionNode(Node, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionNode, self).__init__(*args, **kwargs)
         self.type = TYPE_OPERATOR
@@ -70,24 +93,25 @@ class ExpressionNode(Node):
         node.parent = self.parent
         self.parent = None
 
-    def is_power(self):
-        return self.op == OP_POW
-
-    def is_nary(self):
-        return self.op in [OP_ADD, OP_SUB, OP_MUL]
-
     def get_order(self):
-        if self.is_power() and self[0].is_identifier() \
-                and isinstance(self[1], Leaf):
+        if self.is_power() and self[0].is_identifier() and self[1].is_leaf():
+            # a ^ 3
             return (self[0].value, self[1].value, 1)
 
-        for n0, n1 in [(0, 1), (1, 0)]:
-            if self[n0].is_numeric() and not isinstance(self[n1], Leaf) \
-                    and self[n1].is_power():
-                coeff, power = self
+        if not self.op & OP_MUL:
+            return
 
-                if power[0].is_identifier() and isinstance(power[1], Leaf):
-                    return (power[0].value, power[1].value, coeff.value)
+        for n0, n1 in [(0, 1), (1, 0)]:
+            if self[n0].is_numeric():
+                if self[n1].is_identifier():
+                    # 2 * a
+                    return (self[n1].value, 1, self[n0].value)
+                elif self[n1].is_power():
+                    # 2 * a ^ 3
+                    coeff, power = self
+
+                    if power[0].is_identifier() and power[1].is_leaf():
+                        return (power[0].value, power[1].value, coeff.value)
 
     def get_scope(self):
         scope = []
@@ -100,8 +124,11 @@ class ExpressionNode(Node):
 
         return scope
 
+    def get_scope_except(self, *args):
+        return list(set(self.get_scope()) - set(args))
 
-class ExpressionLeaf(Leaf):
+
+class ExpressionLeaf(Leaf, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
 
@@ -119,18 +146,6 @@ class ExpressionLeaf(Leaf):
         self.parent.nodes[pos] = node
         node.parent = self.parent
         self.parent = None
-
-    def is_identifier(self):
-        return self.type & TYPE_IDENTIFIER
-
-    def is_int(self):
-        return self.type & TYPE_INTEGER
-
-    def is_float(self):
-        return self.type & TYPE_FLOAT
-
-    def is_numeric(self):
-        return self.type & (TYPE_FLOAT | TYPE_INTEGER)
 
 
 if __name__ == '__main__':  # pragma: nocover

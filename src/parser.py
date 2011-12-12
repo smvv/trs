@@ -19,8 +19,9 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_ADD, OP_MUL, OP_SUB
+from node import TYPE_OPERATOR
 from rules import RULES
+from possibilities import filter_duplicates
 
 
 ## Check for n-ary operator in child nodes
@@ -90,7 +91,10 @@ class Parser(BisonParser):
     def hook_read_before(self):
         if self.interactive and self.possibilities:
             print 'possibilities:'
-            print self.possibilities
+            items = filter_duplicates(self.possibilities)
+            print '  ' + '\n  '.join(map(str, items))
+
+        self.possibilities = []
 
     def hook_read_after(self, data):
         """
@@ -152,16 +156,17 @@ class Parser(BisonParser):
         return data
 
     def hook_handler(self, target, option, names, values, retval):
-        if not retval or retval.type not in RULES:
+        if target in ['exp', 'line', 'input'] or not retval \
+                or retval.type != TYPE_OPERATOR or retval.op not in RULES:
             return retval
 
-        for handler in RULES[retval.type]:
+        for handler in RULES[retval.op]:
             self.possibilities.extend(handler(retval))
 
         return retval
 
-    def hook_run(self, filename, retval):
-        return retval
+    #def hook_run(self, filename, retval):
+    #    return retval
 
     # ---------------------------------------------------------------
     # These methods are the python handlers for the bison targets.
@@ -397,6 +402,5 @@ def main():
     # Clear the line, when the shell exits.
     if interactive:
         print
-
 
     return node

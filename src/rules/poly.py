@@ -1,6 +1,6 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, TYPE_OPERATOR, OP_ADD
+from ..node import ExpressionLeaf as Leaf, TYPE_OPERATOR, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P
 
 
@@ -8,8 +8,8 @@ def match_expand(node):
     """
     a * (b + c) -> ab + ac
     """
-    if node.type != TYPE_OPERATOR or not node.op & OP_MUL:
-        return []
+    assert node.type == TYPE_OPERATOR
+    assert node.op & OP_MUL
 
     p = []
 
@@ -33,6 +33,7 @@ def match_expand(node):
 
     return p
 
+
 def expand_single(root, args):
     """
     Combine a leaf (left) multiplied with an addition of two expressions
@@ -41,15 +42,25 @@ def expand_single(root, args):
     >>> a * (b + c) -> a * b + a * c
     """
     left, right = args
-    others = list(set(root.get_scope()) - {left, right})
+    scope = root.get_scope_except(right)
+
+    replacement = Node('+', Node('*', left, right[0]), Node('*', left, right[1]))
+
+    for i, n in enumerate(scope):
+        if n == left:
+            scope[i] = replacement
+            break
+
+    return nary_node('*', scope)
+
 
 def match_combine_factors(node):
     """
     n + exp + m -> exp + (n + m)
     k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
     """
-    if node.type != TYPE_OPERATOR or not node.op & OP_ADD:
-        return []
+    assert node.type == TYPE_OPERATOR
+    assert node.op & OP_ADD
 
     p = []
 
@@ -62,17 +73,18 @@ def match_combine_factors(node):
     orders = []
 
     for n in node.get_scope():
-        if node.type == TYPE_OPERATOR:
+        if n.type == TYPE_OPERATOR:
             order = n.get_order()
 
             if order:
-                orders += order
+                orders.append(order)
         else:
             if n.is_numeric():
                 numerics.append(n)
             elif n.is_identifier():
                 orders.append((n.value, 1, 1))
 
+    print 'numerics:', numerics
     if len(numerics) > 1:
         for num0, num1 in combinations(numerics, 2):
             p.append(P(node, combine_numerics, (num0, num1)))
