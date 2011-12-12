@@ -20,21 +20,22 @@ from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
 from node import TYPE_OPERATOR, OP_ADD, OP_MUL, OP_SUB
+from rules import RULES
 
 
-# Check for n-ary operator in child nodes
-def combine(op, op_type, *nodes):
-    # At least return the operator.
-    res = [op]
-
-    for n in nodes:
-        # Merge the children for all nodes which have the same operator.
-        if n.type == TYPE_OPERATOR and n.op == op_type:
-            res += n.nodes
-        else:
-            res.append(n)
-
-    return res
+## Check for n-ary operator in child nodes
+#def combine(op, op_type, *nodes):
+#    # At least return the operator.
+#    res = [op]
+#
+#    for n in nodes:
+#        # Merge the children for all nodes which have the same operator.
+#        if n.type == TYPE_OPERATOR and n.op == op_type:
+#            res += n.nodes
+#        else:
+#            res.append(n)
+#
+#    return res
 
 
 class Parser(BisonParser):
@@ -72,6 +73,7 @@ class Parser(BisonParser):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
+        self.possibilities = []
 
     # ------------------------------------------------------------------
     # override default read method with a version that prompts for input
@@ -143,6 +145,15 @@ class Parser(BisonParser):
             data = data_after
 
         return data
+
+    def hook_handler(self, target, option, names, values, retval):
+        if not retval or retval.type not in RULES:
+            return retval
+
+        for handler in RULES[retval.type]:
+            self.possibilities.extend(handler(retval))
+
+        return retval
 
     # ---------------------------------------------------------------
     # These methods are the python handlers for the bison targets.
@@ -247,20 +258,8 @@ class Parser(BisonParser):
                | exp POW exp
         """
 
-        if option == 0:  # rule: exp PLUS exp
-            return Node(*(combine('+', OP_ADD, values[0], values[2])))
-
-        if option == 1:  # rule: exp MINUS exp
-            return Node(*(combine('-', OP_SUB, values[0], values[2])))
-
-        if option == 2:  # rule: exp TIMES exp
-            return Node(*(combine('*', OP_MUL, values[0], values[2])))
-
-        if option == 3:  # rule: exp DIVIDE exp
-            return Node('/', values[0], values[2])
-
-        if option == 4:  # rule: exp POW exp
-            return Node('^', values[0], values[2])
+        if 0 <= option < 5:  # rule: exp PLUS exp
+            return Node(values[1], values[0], values[2])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover

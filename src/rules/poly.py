@@ -1,14 +1,16 @@
 from itertools import combinations
 
-from node import ExpressionNode as Node, ExpressionLeaf as Leaf
-from possibilities import Possibility as P
-
+from ..node import ExpressionLeaf as Leaf, TYPE_OPERATOR
+from ..possibilities import Possibility as P
 
 def match_combine_factors(node):
     """
     n + exp + m -> exp + (n + m)
     k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
     """
+    if node.type != TYPE_OPERATOR:
+        return []
+
     p = []
 
     if node.is_nary():
@@ -59,7 +61,7 @@ def combine_numerics(root, args):
     Combine two numeric leaves in an n-ary plus.
 
     Example:
-    3 + 4 -> 7
+    >>> 3 + 4 -> 7
     """
     numerics, others = args
     value = sum([n.value for n in numerics])
@@ -94,17 +96,3 @@ def combine_orders(root, args):
         combined = Node('*', Leaf(coeff), ident)
 
     return nary_node('+', others + [combined])
-
-
-def nary_node(operator, scope):
-    """
-    Create a binary expression tree for an n-ary operator. Takes the operator
-    and a list of expression nodes as arguments.
-    """
-    return scope[0] if len(scope) == 1 \
-           else Node(operator, nary_node(operator, scope[:-1]), scope[-1])
-
-
-rules = {
-        '+': [match_combine_factors],
-        }

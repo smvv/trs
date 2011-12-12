@@ -1,8 +1,9 @@
 import unittest
 
 from src.node import ExpressionNode as N, ExpressionLeaf as L
-from src.rules import match_combine_factors, combine_numerics, \
-        combine_orders, nary_node
+from src.rules.poly import match_combine_factors, combine_numerics, \
+        combine_orders
+from src.rules.utils import nary_node
 from src.possibilities import Possibility as P
 
 
