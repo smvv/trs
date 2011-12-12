@@ -39,21 +39,21 @@ def match_expand(node):
 
 def expand_single(root, args):
     """
-    Combine a leaf (left) multiplied with an addition of two expressions
-    (right) to an addition of two multiplications.
+    Combine a leaf (a) multiplied with an addition of two expressions
+    (b + c) to an addition of two multiplications.
 
     >>> a * (b + c) -> a * b + a * c
     """
-    left, right = args
-    scope = root.get_scope_except(right)
+    a, bc = args
+    b, c = bc
+    scope = root.get_scope()
 
-    replacement = Node('+', Node('*', left, right[0]), \
-                            Node('*', left, right[1]))
+    # Replace 'a' with the new expression
+    scope[scope.index(a)] = Node('+', Node('*', a, b), \
+                                      Node('*', a, c))
 
-    for i, n in enumerate(scope):
-        if n == left:
-            scope[i] = replacement
-            break
+    # Remove the old addition
+    scope.remove(bc)
 
     return nary_node('*', scope)
 
