@@ -144,6 +144,13 @@ class Parser(BisonParser):
 
             data = data_after
 
+        if self.interactive:
+            if not self.possibilities:
+                print 'possibilities: None'
+            else:
+                print 'possibilities:'
+                print self.possibilities
+
         return data
 
     def hook_handler(self, target, option, names, values, retval):
@@ -153,6 +160,9 @@ class Parser(BisonParser):
         for handler in RULES[retval.type]:
             self.possibilities.extend(handler(retval))
 
+        return retval
+
+    def hook_run(self, filename, retval):
         return retval
 
     # ---------------------------------------------------------------
@@ -390,8 +400,5 @@ def main():
     if interactive:
         print
 
+
     return node
-
-
-if __name__ == '__main__':
-    main()
