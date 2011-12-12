@@ -51,23 +51,23 @@ class TestNode(unittest.TestCase):
         self.assertTrue(L(1.5).is_numeric())
         self.assertFalse(L('a').is_numeric())
 
-    def test_get_order_identifier(self):
-        self.assertEqual(L('a').get_order(), ('a', 1, 1))
+    def test_get_polynome_identifier(self):
+        self.assertEqual(L('a').get_polynome(), (L('a'), L(1), L(1), False))
 
-    def test_get_order_None(self):
-        self.assertIsNone(L(1).get_order())
+    def test_get_polynome_None(self):
+        self.assertIsNone(N('+').get_polynome())
 
-    def test_get_order_power(self):
+    def test_get_polynome_power(self):
         power = N('^', L('a'), L(2))
-        self.assertEqual(power.get_order(), ('a', 2, 1))
+        self.assertEqual(power.get_polynome(), (L('a'), L(2), L(1), True))
 
-    def test_get_order_coefficient_exponent_int(self):
+    def test_get_polynome_coefficient_exponent_int(self):
         times = N('*', L(3), N('^', L('a'), L(2)))
-        self.assertEqual(times.get_order(), ('a', 2, 3))
+        self.assertEqual(times.get_polynome(), (L('a'), L(2), L(3), True))
 
-    def test_get_order_coefficient_exponent_id(self):
+    def test_get_polynome_coefficient_exponent_id(self):
         times = N('*', L(3), N('^', L('a'), L('b')))
-        self.assertEqual(times.get_order(), ('a', 'b', 3))
+        self.assertEqual(times.get_polynome(), (L('a'), L('b'), L(3), True))
 
     def test_get_scope_binary(self):
         plus = N('+', *self.l[:2])

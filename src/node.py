@@ -93,25 +93,29 @@ class ExpressionNode(Node, ExpressionBase):
         node.parent = self.parent
         self.parent = None
 
-    def get_order(self):
-        if self.is_power() and self[0].is_identifier() and self[1].is_leaf():
-            # a ^ 3
-            return (self[0].value, self[1].value, 1)
+    def get_polynome(self):
+        """
+        Identifier nodes of all polynomes, tuple format is:
+        (identifier, exponent, coefficient, literal_exponent)
+        """
+        if self.is_power():
+            # a ^ e
+            return (self[0], self[1], ExpressionLeaf(1), True)
 
-        if not self.op & OP_MUL:
+        if self.op != OP_MUL:
             return
 
         for n0, n1 in [(0, 1), (1, 0)]:
             if self[n0].is_numeric():
                 if self[n1].is_identifier():
-                    # 2 * a
-                    return (self[n1].value, 1, self[n0].value)
+                    # c * a
+                    return (self[n1], ExpressionLeaf(1), self[n0], False)
                 elif self[n1].is_power():
-                    # 2 * a ^ 3
+                    # c * a ^ e
                     coeff, power = self
+                    root, exponent = power
 
-                    if power[0].is_identifier() and power[1].is_leaf():
-                        return (power[0].value, power[1].value, coeff.value)
+                    return (root, exponent, coeff, True)
 
     def get_scope(self):
         """"""
@@ -119,7 +123,7 @@ class ExpressionNode(Node, ExpressionBase):
         #op = OP_ADD | OP_SUB if self.op & (OP_ADD | OP_SUB) else self.op
 
         for child in self:
-            if not child.is_leaf() and child.op & self.op:
+            if not child.is_leaf() and child.op == self.op:
                 scope += child.get_scope()
             else:
                 scope.append(child)
@@ -133,9 +137,13 @@ class ExpressionLeaf(Leaf, ExpressionBase):
 
         self.type = TYPE_MAP[type(args[0])]
 
-    def get_order(self):
-        if self.is_identifier():
-            return (self.value, 1, 1)
+    def get_polynome(self):
+        """
+        Identifier nodes of all polynomes, tuple format is:
+        (identifier, exponent, coefficient, literal_exponent)
+        """
+        # a = 1 * a ^ 1
+        return (self, ExpressionLeaf(1), ExpressionLeaf(1), False)
 
     def replace(self, node):
         if not hasattr(self, 'parent'):

@@ -11,28 +11,25 @@ def match_expand(node):
     a * (b + c) -> ab + ac
     """
     assert node.type == TYPE_OPERATOR
-    assert node.op & OP_MUL
+    assert node.op == OP_MUL
 
+    # TODO: fix!
     return []
+
     p = []
-
-    # 'a' parts
-    left = []
-
-    # '(b + c)' parts
-    right = []
+    a = []
+    bc = []
 
     for n in node.get_scope():
-        if node.type == TYPE_OPERATOR:
-            if n.op & OP_ADD:
-                right.append(n)
-        else:
-            left.append(n)
+        if n.is_leaf():
+            a.append(n)
+        elif n.op == OP_ADD:
+            bc.append(n)
 
-    if len(left) and len(right):
-        for l in left:
-            for r in right:
-                p.append(P(node, expand_single, l, r))
+    if a and bc:
+        for a_node in a:
+            for bc_node in bc:
+                p.append(P(node, expand_single, a_node, bc_node))
 
     return p
 
@@ -64,83 +61,77 @@ def match_combine_factors(node):
     k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
     """
     assert node.type == TYPE_OPERATOR
-    assert node.op & OP_ADD
+    assert node.op == OP_ADD
 
     p = []
 
-    # Collect all nodes that can be combined
-    # Numeric leaves
-    numerics = []
-
-    # Identifier leaves of all orders, tuple format is;
-    # (identifier, exponent, coefficient)
-    orders = []
+    # Collect all nodes that can be combined:
+    # a ^ e     = 1 * a ^ e
+    # c * a     = c * a ^ 1
+    # c * a ^ e
+    # a         = 1 * a ^ 1
+    #
+    # Identifier nodes of all polynomes, tuple format is:
+    #   (identifier, exponent, coefficient, literal_coefficient)
+    polys = []
 
     for n in node.get_scope():
-        if not n.is_leaf():
-            order = n.get_order()
+        polynome = n.get_polynome()
 
-            if order:
-                orders.append(order)
-        elif n.is_numeric():
-            numerics.append(n)
-        elif n.is_identifier():
-            orders.append((n.value, 1, 1))
+        if polynome:
+            polys.append((n, polynome))
 
-    if len(numerics) > 1:
-        for num0, num1 in combinations(numerics, 2):
-            p.append(P(node, combine_numerics, (num0, num1)))
+    # Each combination of powers of the same value and polynome can be added
+    if len(polys) >= 2:
+        for left, right in combinations(polys, 2):
+            r0, e0, c0 = left[1][:3]
+            r1, e1, c1 = right[1][:3]
 
-    if len(orders) > 1:
-        for order0, order1 in combinations(orders, 2):
-            id0, exponent0, coeff0 = order0
-            id1, exponent1, coeff1 = order1
-
-            if id0 == id1 and exponent0 == exponent1:
+            if (r0.is_numeric() and r1.is_numeric() and e0 == e1 == Leaf(1)) \
+                    or (r0 == r1 and e0 == e1):
+                # Both numeric and same exponent -> combine coefficients and
+                # roots, or:
                 # Same identifier and exponent -> combine coefficients
-                args = order0 + (coeff1,)
-                p.append(P(node, combine_orders, args))
+                p.append(P(node, combine_polynomes, (left, right)))
 
     return p
 
 
-def combine_numerics(root, args):
+def combine_polynomes(root, args):
     """
-    Combine two numeric leaves in an n-ary plus.
+    Combine two identifier multiplications of any polynome in an n-ary plus.
 
     Example:
-    >>> 3 + 4 -> 7
+    c * a ^ b + d * a ^ b -> (c + d) * a ^ b
     """
-    others = list(set(root.get_scope()) - set(args))
-    value = sum([n.value for n in args])
+    left, right = args
+    nl, pl = left
+    nr, pr = right
+    c0, r0, e0 = pl
+    c1, r1, e1 = pr
 
-    return nary_node('+', others + [Leaf(value)])
+    scope = root.get_scope()
 
-
-def combine_orders(root, args):
-    """
-    Combine two identifier multiplications of any order in an n-ary plus.
-
-    Example:
-    3x + 4x -> 7x
-    """
-    identifier, exponent, coeff0, coeff1, others = args
-
-    coeff = coeff0 + coeff1
-
-    if not exponent:
-        # a ^ 0 -> 1
-        ident = Leaf(1)
-    elif exponent == 1:
-        # a ^ 1 -> a
-        ident = Leaf(identifier)
+    if r0.is_numeric() and r1.is_numeric() and e0 == e1 == 1:
+        new_root = Leaf(r0.value + r1.value)
     else:
-        # a ^ n -> a ^ n
-        ident = Node('^', Leaf(identifier), Leaf(exponent))
+        new_root = r0
 
-    if coeff == 1:
-        combined = ident
+    if pl[3] or pr[3]:
+        # literal a ^ 1 -> a ^ 1
+        power = Node('^', pl[0], pl[1])
     else:
-        combined = Node('*', Leaf(coeff), ident)
+        # nonliteral a ^ 1 -> a
+        power = pl[0]
 
-    return nary_node('+', others + [combined])
+    # replacement: (c + d) * a ^ b
+    # a, b and c are from 'left', d is from 'right'.
+    replacement = Node('*', Node('+', pl[2], pr[2]), power)
+
+    # Replace the left node with the new expression
+    scope[scope.index(nl)] = replacement
+
+    # Remove the right node
+    scope.remove(nr)
+
+    return nary_node('+', scope)
