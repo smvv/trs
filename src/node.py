@@ -37,10 +37,10 @@ TYPE_MAP = {
         str: TYPE_IDENTIFIER,
         }
 
-
-OPT_MAP = {
+OP_MAP = {
         '+': OP_ADD,
-        '-': OP_SUB,
+        # Either substitution or negation. Skip the operator sign in 'x' (= 2).
+        '-': lambda x: OP_SUB if len(x) > 2 else OP_NEG,
         '*': OP_MUL,
         '/': OP_DIV,
         '^': OP_POW,
@@ -54,7 +54,10 @@ class ExpressionNode(Node):
     def __init__(self, *args, **kwargs):
         super(ExpressionNode, self).__init__(*args, **kwargs)
         self.type = TYPE_OPERATOR
-        self.opt = OPT_MAP[args[0]]
+        self.op = OP_MAP[args[0]]
+
+        if hasattr(self.op, '__call__'):
+            self.op = self.op(args)
 
     def __str__(self):  # pragma: nocover
         return generate_line(self)
@@ -69,10 +72,10 @@ class ExpressionNode(Node):
         self.parent = None
 
     def is_power(self):
-        return self.opt == OP_POW
+        return self.op == OP_POW
 
     def is_nary(self):
-        return self.opt in [OP_ADD, OP_SUB, OP_MUL]
+        return self.op in [OP_ADD, OP_SUB, OP_MUL]
 
     def get_order(self):
         if self.is_power() and self[0].is_identifier() \
@@ -91,7 +94,7 @@ class ExpressionNode(Node):
         scope = []
 
         for child in self:
-            if not isinstance(child, Leaf) and child.opt == self.opt:
+            if not isinstance(child, Leaf) and child.op == self.op:
                 scope += child.get_scope()
             else:
                 scope.append(child)
@@ -103,10 +106,7 @@ class ExpressionLeaf(Leaf):
     def __init__(self, *args, **kwargs):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
 
-        for data_type, type_repr in TYPE_MAP.iteritems():
-            if isinstance(args[0], data_type):
-                self.type = type_repr
-                break
+        self.type = TYPE_MAP[type(args[0])]
 
     def get_order(self):
         if self.is_identifier():

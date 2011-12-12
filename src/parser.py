@@ -19,10 +19,30 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
+from node import TYPE_OPERATOR, OP_ADD, OP_MUL, OP_SUB, OP_NEG
+
 
 # Check for n-ary operator in child nodes
-def combine(op, n):
-    return n.nodes if n.title() == op else [n]
+def combine(op, op_type, *nodes):
+    # At least return the operator.
+    res = [op]
+
+    for n in nodes:
+        try:
+            assert n.type != TYPE_OPERATOR or n.op != OP_NEG or len(n.nodes) == 1
+            assert n.type != TYPE_OPERATOR or n.op != OP_SUB or len(n.nodes) > 1
+        except AssertionError:
+            print n, type(n), n.type, OP_NEG, OP_SUB, n.nodes, len(n.nodes)
+            raise
+
+        # Merge the children for all nodes which have the same operator.
+        if n.type == TYPE_OPERATOR and n.op == op_type:
+            res += n.nodes
+        else:
+            res.append(n)
+
+    return res
+
 
 class Parser(BisonParser):
     """
@@ -68,7 +88,7 @@ class Parser(BisonParser):
             return ''
 
         try:
-            return raw_input('>>> ') + '\n'
+            return raw_input('>>> ' if self.interactive else '') + '\n'
         except EOFError:
             return ''
 
@@ -235,15 +255,13 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: exp PLUS exp
-            return Node('+', *(combine('+', values[0])
-                               + combine('+', values[2])))
+            return Node(*(combine('+', OP_ADD, values[0], values[2])))
 
         if option == 1:  # rule: exp MINUS exp
-            return Node('-', values[0], values[2])
+            return Node(*(combine('-', OP_SUB, values[0], values[2])))
 
         if option == 2:  # rule: exp TIMES exp
-            return Node('*', *(combine('*', values[0])
-                               + combine('*', values[2])))
+            return Node(*(combine('*', OP_MUL, values[0], values[2])))
 
         if option == 3:  # rule: exp DIVIDE exp
             return Node('/', values[0], values[2])
@@ -293,7 +311,6 @@ class Parser(BisonParser):
     # -----------------------------------------
     lexscript = r"""
     %{
-    //int yylineno = 0;
     #include "Python.h"
     #define YYSTYPE void *
     #include "tokens.h"
@@ -301,12 +318,23 @@ class Parser(BisonParser):
     extern void (*py_input)(PyObject *parser, char *buf, int *result,
                             int max_size);
     #define returntoken(tok) \
-        yylval = PyString_FromString(strdup(yytext)); return (tok);
+            yylval = PyString_FromString(strdup(yytext)); return (tok);
     #define YY_INPUT(buf,result,max_size) { \
-        (*py_input)(py_parser, buf, &result, max_size); \
+            (*py_input)(py_parser, buf, &result, max_size); \
     }
+
+    int yycolumn = 0;
+
+    #define YY_USER_ACTION \
+            yylloc.first_line = yylloc.last_line = yylineno; \
+            yylloc.first_column = yycolumn; \
+            yylloc.last_column = yycolumn + yyleng; \
+            yycolumn += yyleng;
+
     /*[a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }*/
     %}
+
+    %option yylineno
 
     %%
 
@@ -320,14 +348,13 @@ class Parser(BisonParser):
     "^"       { returntoken(POW); }
     "/"       { returntoken(DIVIDE); }
     ","       { returntoken(COMMA); }
-    "quit"    { printf("lex: got QUIT\n"); yyterminate(); returntoken(QUIT); }
+    "quit"    { yyterminate(); returntoken(QUIT); }
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
 
-    [ \t\v\f] {}
-    [\n]      {yylineno++; returntoken(NEWLINE); }
-    .         { printf("unknown char %c ignored, yytext=%p\n",
-                yytext[0], yytext); /* ignore bad chars */}
+    [ \t\v\f] { }
+    [\n]      { yycolumn = 0; returntoken(NEWLINE); }
+    .         { printf("unknown char %c ignored.\n", yytext[0]); }
 
     %%
 
@@ -350,15 +377,16 @@ def get_args():
 
 def main():
     args = get_args()
+    interactive = not args.batch and sys.stdin.isatty()
 
     p = Parser(verbose=args.verbose,
                keepfiles=args.keepfiles,
-               interactive=not args.batch)
+               interactive=interactive)
 
     node = p.run(debug=args.debug)
 
     # Clear the line, when the shell exits.
-    if not args.batch:
+    if interactive:
         print
 
     return node
