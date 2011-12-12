@@ -87,7 +87,12 @@ class Parser(BisonParser):
         except EOFError:
             return ''
 
-    def hook_read(self, data):
+    def hook_read_before(self):
+        if self.interactive and self.possibilities:
+            print 'possibilities:'
+            print self.possibilities
+
+    def hook_read_after(self, data):
         """
         This hook will be called when the read() method returned. The data
         argument points to the data read by the read() method. This hook
@@ -138,18 +143,11 @@ class Parser(BisonParser):
                 break
 
             if self.verbose:
-                print 'hook_read() modified the input data:'
+                print 'hook_read_after() modified the input data:'
                 print 'before:', data.replace('\n', '\\n')
                 print 'after :', data_after.replace('\n', '\\n')
 
             data = data_after
-
-        if self.interactive:
-            if not self.possibilities:
-                print 'possibilities: None'
-            else:
-                print 'possibilities:'
-                print self.possibilities
 
         return data
 
