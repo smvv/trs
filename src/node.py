@@ -1,3 +1,4 @@
+# vim: set fileencoding=utf-8 :
 import os.path
 import sys
 
@@ -96,26 +97,38 @@ class ExpressionNode(Node, ExpressionBase):
     def get_polynome(self):
         """
         Identifier nodes of all polynomes, tuple format is:
-        (identifier, exponent, coefficient, literal_exponent)
+        (root, exponent, coefficient, literal_exponent)
         """
+        # TODO: change "get_polynome" -> "extract_polynome".
+        # TODO: change retval of c * r ^ e to (c, r, e).
+
+        # TODO: normalize c * r and r * c -> c * r. Otherwise, the tuple will
+        # not match if the order of the expression is different. Example:
+        #   r ^ e * c == c * r ^ e
+        # without normalization, those expressions will not match.
+
+        # rule: r ^ e
         if self.is_power():
-            # a ^ e
             return (self[0], self[1], ExpressionLeaf(1), True)
 
         if self.op != OP_MUL:
             return
 
-        for n0, n1 in [(0, 1), (1, 0)]:
-            if self[n0].is_numeric():
-                if self[n1].is_identifier():
-                    # c * a
-                    return (self[n1], ExpressionLeaf(1), self[n0], False)
-                elif self[n1].is_power():
-                    # c * a ^ e
-                    coeff, power = self
-                    root, exponent = power
+        # expression: c * r ^ e ; tree:
+        #
+        #    *
+        #   ╭┴───╮
+        #   c    ^
+        #      ╭─┴╮
+        #      r  e
+        #
+        # rule: c * r ^ e | (r ^ e) * c
+        for i, j in [(0, 1), (1, 0)]:
+            if self[j].is_power():
+                return (self[j][0], self[j][1], self[i], True)
 
-                    return (root, exponent, coeff, True)
+        # rule: c * r | r * c
+        return (self[0], ExpressionLeaf(1), self[1], False)
 
     def get_scope(self):
         """"""

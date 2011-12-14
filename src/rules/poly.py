@@ -72,11 +72,14 @@ def match_combine_factors(node):
     # a         = 1 * a ^ 1
     #
     # Identifier nodes of all polynomes, tuple format is:
-    #   (identifier, exponent, coefficient, literal_coefficient)
+    #   (root, exponent, coefficient, literal_coefficient)
     polys = []
+
+    print 'match combine factors:', node
 
     for n in node.get_scope():
         polynome = n.get_polynome()
+        print 'n:', n, 'polynome:', polynome
 
         if polynome:
             polys.append((n, polynome))
@@ -107,8 +110,13 @@ def combine_polynomes(root, args):
     left, right = args
     nl, pl = left
     nr, pr = right
-    c0, r0, e0 = pl
-    c1, r1, e1 = pr
+
+    # TODO: verify that the two commented expression below are invalid and the
+    # following two expressions are right.
+    r0, e0, c0 = pl
+    r1, e1, c1 = pr
+    #c0, r0, e0 = pl
+    #c1, r1, e1 = pr
 
     scope = root.get_scope()
 
