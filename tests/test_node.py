@@ -51,23 +51,27 @@ class TestNode(unittest.TestCase):
         self.assertTrue(L(1.5).is_numeric())
         self.assertFalse(L('a').is_numeric())
 
-    def test_get_polynome_identifier(self):
-        self.assertEqual(L('a').get_polynome(), (L('a'), L(1), L(1), False))
+    def test_extract_polynome_properties_identifier(self):
+        self.assertEqual(L('a').extract_polynome_properties(),
+                         (L(1), L('a'), L(1)))
 
-    def test_get_polynome_None(self):
-        self.assertIsNone(N('+').get_polynome())
+    def test_extract_polynome_properties_None(self):
+        self.assertIsNone(N('+').extract_polynome_properties())
 
-    def test_get_polynome_power(self):
+    def test_extract_polynome_properties_power(self):
         power = N('^', L('a'), L(2))
-        self.assertEqual(power.get_polynome(), (L('a'), L(2), L(1), True))
+        self.assertEqual(power.extract_polynome_properties(),
+                         (L(1), L('a'), L(2)))
 
-    def test_get_polynome_coefficient_exponent_int(self):
+    def test_extract_polynome_properties_coefficient_exponent_int(self):
         times = N('*', L(3), N('^', L('a'), L(2)))
-        self.assertEqual(times.get_polynome(), (L('a'), L(2), L(3), True))
+        self.assertEqual(times.extract_polynome_properties(),
+                         (L(3), L('a'), L(2)))
 
-    def test_get_polynome_coefficient_exponent_id(self):
+    def test_extract_polynome_properties_coefficient_exponent_id(self):
         times = N('*', L(3), N('^', L('a'), L('b')))
-        self.assertEqual(times.get_polynome(), (L('a'), L('b'), L(3), True))
+        self.assertEqual(times.extract_polynome_properties(),
+                         (L(3), L('a'), L('b')))
 
     def test_get_scope_binary(self):
         plus = N('+', *self.l[:2])

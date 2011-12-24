@@ -1,7 +1,6 @@
 from itertools import combinations
 
-from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
-        TYPE_OPERATOR, OP_ADD, OP_MUL
+from ..node import ExpressionNode as Node, TYPE_OPERATOR, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P
 from .utils import nary_node
 
@@ -55,7 +54,7 @@ def expand_single(root, args):
     return nary_node('*', scope)
 
 
-def match_combine_factors(node):
+def match_combine_polynomes(node, verbose=False):
     """
     n + exp + m -> exp + (n + m)
     k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
@@ -75,11 +74,14 @@ def match_combine_factors(node):
     #   (root, exponent, coefficient, literal_coefficient)
     polys = []
 
-    print 'match combine factors:', node
+    if verbose:
+        print 'match combine factors:', node
 
     for n in node.get_scope():
-        polynome = n.get_polynome()
-        print 'n:', n, 'polynome:', polynome
+        polynome = n.extract_polynome_properties()
+
+        if verbose:
+            print 'n:', n, 'polynome:', polynome
 
         if polynome:
             polys.append((n, polynome))
@@ -87,14 +89,13 @@ def match_combine_factors(node):
     # Each combination of powers of the same value and polynome can be added
     if len(polys) >= 2:
         for left, right in combinations(polys, 2):
-            r0, e0, c0 = left[1][:3]
-            r1, e1, c1 = right[1][:3]
+            c0, r0, e0 = left[1]
+            c1, r1, e1 = right[1]
 
-            if (r0.is_numeric() and r1.is_numeric() and e0 == e1 == Leaf(1)) \
-                    or (r0 == r1 and e0 == e1):
-                # Both numeric and same exponent -> combine coefficients and
-                # roots, or:
-                # Same identifier and exponent -> combine coefficients
+            # Both numeric root and same exponent -> combine coefficients and
+            # roots, or: same root and exponent -> combine coefficients.
+            if ((r0.is_numeric() and r1.is_numeric()) or r0 == r1) \
+                    and e0 == e1:
                 p.append(P(node, combine_polynomes, (left, right)))
 
     return p
@@ -102,7 +103,7 @@ def match_combine_factors(node):
 
 def combine_polynomes(root, args):
     """
-    Combine two identifier multiplications of any polynome in an n-ary plus.
+    Combine two multiplications of any polynome in an n-ary plus.
 
     Example:
     c * a ^ b + d * a ^ b -> (c + d) * a ^ b
@@ -113,17 +114,13 @@ def combine_polynomes(root, args):
 
     # TODO: verify that the two commented expression below are invalid and the
     # following two expressions are right.
-    r0, e0, c0 = pl
-    r1, e1, c1 = pr
-    #c0, r0, e0 = pl
-    #c1, r1, e1 = pr
+    c0, r0, e0 = pl
+    c1, r1, e1 = pr
 
-    scope = root.get_scope()
-
-    if r0.is_numeric() and r1.is_numeric() and e0 == e1 == 1:
-        new_root = Leaf(r0.value + r1.value)
-    else:
-        new_root = r0
+    #if r0.is_numeric() and r1.is_numeric() and e0 == e1 == 1:
+    #    new_root = Leaf(r0.value + r1.value)
+    #else:
+    #    new_root = r0
 
     if pl[3] or pr[3]:
         # literal a ^ 1 -> a ^ 1
@@ -135,6 +132,8 @@ def combine_polynomes(root, args):
     # replacement: (c + d) * a ^ b
     # a, b and c are from 'left', d is from 'right'.
     replacement = Node('*', Node('+', pl[2], pr[2]), power)
+
+    scope = root.get_scope()
 
     # Replace the left node with the new expression
     scope[scope.index(nl)] = replacement

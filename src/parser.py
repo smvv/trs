@@ -19,24 +19,24 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR
+from node import TYPE_OPERATOR, OP_COMMA
 from rules import RULES
 from possibilities import filter_duplicates
 
 
-## Check for n-ary operator in child nodes
-#def combine(op, op_type, *nodes):
-#    # At least return the operator.
-#    res = [op]
-#
-#    for n in nodes:
-#        # Merge the children for all nodes which have the same operator.
-#        if n.type == TYPE_OPERATOR and n.op == op_type:
-#            res += n.nodes
-#        else:
-#            res.append(n)
-#
-#    return res
+# Check for n-ary operator in child nodes
+def combine(op, op_type, *nodes):
+    # At least return the operator.
+    res = [op]
+
+    for n in nodes:
+        # Merge the children for all nodes which have the same operator.
+        if n.type == TYPE_OPERATOR and n.op == op_type:
+            res += n.nodes
+        else:
+            res.append(n)
+
+    return res
 
 
 class Parser(BisonParser):
@@ -62,6 +62,7 @@ class Parser(BisonParser):
     # precedences
     # ------------------------------
     precedences = (
+        ('left', ('COMMA', )),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
         ('left', ('NEG', )),
@@ -228,6 +229,7 @@ class Parser(BisonParser):
             | LPAREN exp RPAREN
             | unary
             | binary
+            | nary
         """
         #    | concat
 
@@ -242,11 +244,8 @@ class Parser(BisonParser):
         if option == 2:  # rule: LPAREN exp RPAREN
             return values[1]
 
-        if option in [3, 4]:  # rule: unary | binary
+        if option in [3, 4, 5]:  # rule: unary | binary | nary
             return values[0]
-
-        #if option in [3, 4, 5]:  # rule: unary | binary | concat
-        #    return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -273,6 +272,17 @@ class Parser(BisonParser):
 
         if 0 <= option < 5:  # rule: exp PLUS exp
             return Node(values[1], values[0], values[2])
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_nary(self, target, option, names, values):
+        """
+        nary : exp COMMA exp
+        """
+
+        if option == 0:  # rule: exp COMMA exp
+            return Node(*combine(',', OP_COMMA, values[0], values[2]))
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
