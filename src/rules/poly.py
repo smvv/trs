@@ -74,13 +74,13 @@ def match_combine_polynomes(node, verbose=False):
     #   (root, exponent, coefficient, literal_coefficient)
     polys = []
 
-    if verbose:
+    if verbose:  # pragma: nocover
         print 'match combine factors:', node
 
     for n in node.get_scope():
         polynome = n.extract_polynome_properties()
 
-        if verbose:
+        if verbose:  # pragma: nocover
             print 'n:', n, 'polynome:', polynome
 
         if polynome:
