@@ -91,7 +91,6 @@ class ExpressionBase(object):
 
         return s_root < o_root or s_exp < o_exp or s_coeff < o_coeff
 
-
     def is_leaf(self):
         return self.type != TYPE_OPERATOR
 

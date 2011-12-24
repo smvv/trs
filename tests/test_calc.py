@@ -55,7 +55,7 @@ class TestCalc(unittest.TestCase):
                                            L('c')), L('d'))),
                        ('ab(c)d', N('*', N('*', N('*', L('a'), L('b')),
                                            L('c')), L('d'))),
-                       ('ab*(c)*d', N('*', N('*', N('*', L('a'), L('b')), 
+                       ('ab*(c)*d', N('*', N('*', N('*', L('a'), L('b')),
                                            L('c')), L('d'))),
                        ('ab*(c)^d', N('*', N('*', L('a'), L('b')),
                                            N('^', L('c'), L('d')))),

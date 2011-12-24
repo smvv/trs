@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 def init_readline():
     import os
     try:
@@ -17,8 +18,8 @@ def init_readline():
     import atexit
     atexit.register(readline.write_history_file, histfile)
 
-from src.parser import main
 
 if __name__ == '__main__':
+    from src.parser import main
     init_readline()
     main()

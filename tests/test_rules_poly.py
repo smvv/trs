@@ -65,7 +65,6 @@ class TestRulesPoly(unittest.TestCase):
                 [P(root, combine_polynomes, ((a1, (l1, a1[0], l2)),
                                              (a2, (l1, a2[0], l2))))])
 
-
     def test_basic_subexpressions(self):
         a_b, c, d, l1, l5, l7 = tree('a+b,c,d,1,5,7')
         left, right = root = tree('(a+b)^d + (a+b)^d')
