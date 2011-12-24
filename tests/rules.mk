@@ -1,7 +1,7 @@
 TESTS=$(wildcard tests/test_*.py)
 COVERAGE_OUTPUT_DIR := coverage
 PROFILER_OUTPUT_DIR := profiles
-OMIT := /usr/share/pyshared/*,/usr/lib/pymodules/python2.7/sympy/*
+OMIT := /usr/share/pyshared/*,external/*
 
 ifeq ($(findstring python-coverage,$(wildcard /usr/bin/*)), python-coverage)
 COVERAGE=/usr/bin/python-coverage
