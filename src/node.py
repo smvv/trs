@@ -89,7 +89,7 @@ class ExpressionBase(object):
         s_coeff, s_root, s_exp = self.extract_polynome_properties()
         o_coeff, o_root, o_exp = other.extract_polynome_properties()
 
-        return s_root < o_root or s_exp < or_exp or s_coeff < or_coeff
+        return s_root < o_root or s_exp < o_exp or s_coeff < o_coeff
 
 
     def is_leaf(self):
