@@ -1,6 +1,5 @@
 import unittest
 
-from src.node import ExpressionNode as N, ExpressionLeaf as L
 from src.rules.poly import match_combine_polynomes, combine_polynomes
 from src.possibilities import Possibility as P
 from src.parser import Parser
