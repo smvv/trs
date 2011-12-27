@@ -53,9 +53,16 @@ profile-test-%: $(PROFILER_OUTPUT_DIR) build
 profile-test-view-%: $(PROFILER_OUTPUT_DIR) build
 	python utils/view_profile.py "$(PROFILER_OUTPUT_DIR)/tests_test_$*.py.profile"
 
-profile-view-%: $(PROFILER_OUTPUT_DIR) build
+profile-src%: $(PROFILER_OUTPUT_DIR) build
+	 python -m cProfile -s cumulative \
+	 	 -o $(PROFILER_OUTPUT_DIR)/src_$*.py.profile src/$*.py
+
+profile-src-view-%: $(PROFILER_OUTPUT_DIR) build
 	python utils/view_profile.py "$(PROFILER_OUTPUT_DIR)/src_$*.py.profile"
 
 profile-%: $(PROFILER_OUTPUT_DIR) build
 	 python -m cProfile -s cumulative \
-	 	 -o $(PROFILER_OUTPUT_DIR)/src_$*.py.profile src/$*.py
+	 	 -o $(PROFILER_OUTPUT_DIR)/$*.py.profile $*.py
+
+profile-view-%: $(PROFILER_OUTPUT_DIR) build
+	python utils/view_profile.py "$(PROFILER_OUTPUT_DIR)/$*.py.profile"
