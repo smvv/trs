@@ -55,7 +55,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA',  # 'CONCAT_POW',
+              'LPAREN', 'RPAREN', 'COMMA',
               'NEWLINE', 'QUIT', 'RAISE', 'GRAPH']
 
     # ------------------------------
@@ -286,40 +286,6 @@ class Parser(BisonParser):
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
-
-    #def on_concat(self, option, target, names, values):
-    #    """
-    #    concat : exp IDENTIFIER %prec TIMES
-    #           | exp NUMBER %prec TIMES
-    #           | exp LPAREN exp RPAREN %prec TIMES
-    #           | exp CONCAT_POW %prec TIMES
-    #           | CONCAT_POW
-    #    """
-
-    #    if option in [0, 1]:  # rule: exp IDENTIFIER | exp NUMBER
-    #        # example: xy -> x*y
-    #        # example: (x)4 -> x*4
-    #        val = int(values[1]) if option == 1 else values[1]
-    #        return Node('*', *(combine('*', values[0]) + [Leaf(val)]))
-
-    #    if option == 2:  # rule: exp LPAREN exp RPAREN
-    #        # example: x(y) -> x*(y)
-    #        return Node('*', *(combine('*', values[0])
-    #                          + combine('*', values[2])))
-
-    #    if option == 3:
-    #        # example: xy4 -> x*y^4
-    #        identifier, exponent = list(values[1])
-    #        node = Node('^', Leaf(identifier), Leaf(int(exponent)))
-    #        return Node('*', values[0], node)
-
-    #    if option == 4:
-    #        # example: x4 -> x^4
-    #        identifier, exponent = list(values[0])
-    #        return Node('^', Leaf(identifier), Leaf(int(exponent)))
-
-    #    raise BisonSyntaxError('Unsupported option %d in target "%s".'
-    #                           % (option, target))  # pragma: nocover
 
     # -----------------------------------------
     # raw lex script, verbatim here
