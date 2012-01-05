@@ -112,6 +112,21 @@ class ExpressionBase(object):
     def is_numeric(self):
         return self.is_leaf() and self.type & (TYPE_FLOAT | TYPE_INTEGER)
 
+    def __add__(self, other):
+        return ExpressionNode('+', self, other)
+
+    def __sub__(self, other):
+        return ExpressionNode('-', self, other)
+
+    def __mul__(self, other):
+        return ExpressionNode('*', self, other)
+
+    def __div__(self, other):
+        return ExpressionNode('-', self, other)
+
+    def __pow__(self, other):
+        return ExpressionNode('^', self, other)
+
 
 class ExpressionNode(Node, ExpressionBase):
     def __init__(self, *args, **kwargs):
