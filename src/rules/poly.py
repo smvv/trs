@@ -90,23 +90,24 @@ def match_combine_polynomes(node, verbose=False):
     # Each combination of powers of the same value and polynome can be added
     if len(polys) >= 2:
         for left, right in combinations(polys, 2):
-            c0, r0, e0 = left[1]
-            c1, r1, e1 = right[1]
+            n0, p0 = left
+            n1, p1 = right
+            c0, r0, e0 = p0
+            c1, r1, e1 = p1
 
             # Both numeric root and same exponent -> combine coefficients and
             # roots, or: same root and exponent -> combine coefficients.
+            # TODO: Addition with zero, e.g. a + 0 -> a
             if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
                     and r0.is_numeric() and r1.is_numeric():
                 # 2 + 3 -> 5
-                p.append(P(node, combine_numerics, \
-                           (left[0], right[0], r0, r1)))
+                p.append(P(node, combine_numerics, (n0, n1, r0.value, r1.value)))
             elif c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
                 # 2a + 2a -> 4a
                 # a + 2a -> 3a
                 # 2a + a -> 3a
                 # a + a -> 2a
-                p.append(P(node, combine_polynomes, \
-                           (left[0], right[0], c0, c1, r0, e0)))
+                p.append(P(node, combine_polynomes, (n0, n1, c0, c1, r0, e0)))
 
     return p
 
@@ -118,9 +119,17 @@ def combine_numerics(root, args):
     Synopsis:
     c0 + c1 -> eval(c1 + c2)
     """
-    c0, c1 = args
+    n0, n1, c0, c1 = args
 
-    return Leaf(c0.value + c1.value)
+    scope = root.get_scope()
+
+    # Replace the left node with the new expression
+    scope[scope.index(n0)] = Leaf(c0 + c1)
+
+    # Remove the right node
+    scope.remove(n1)
+
+    return nary_node('+', scope)
 
 
 def combine_polynomes(root, args):

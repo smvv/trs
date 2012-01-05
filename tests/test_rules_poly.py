@@ -3,6 +3,7 @@ import unittest
 from src.rules.poly import match_combine_polynomes, combine_polynomes, \
         combine_numerics
 from src.possibilities import Possibility as P
+from src.node import ExpressionNode, ExpressionLeaf as L
 from src.parser import Parser
 from tests.parser import ParserWrapper
 
@@ -23,15 +24,6 @@ class TestRulesPoly(unittest.TestCase):
                 self.assertEqual(*pair)
 
             self.assertEqual(p, e)
-
-    def test_numbers(self):
-        return
-        # TODO: Move to combine numeric test
-        l1, l2 = root = tree('1+2')
-        possibilities = match_combine_polynomes(root)
-        self.assertEqualPos(possibilities,
-                [P(root, combine_numerics, ((l1, (l1, l1, l1)),
-                                             (l2, (l1, l2, l1))))])
 
     def test_identifiers_basic(self):
         a1, a2 = root = tree('a+a')
@@ -96,16 +88,67 @@ class TestRulesPoly(unittest.TestCase):
         #self.assertEqualPos(possibilities,
         #        [P(root, combine_polynomes, (left, right, c, c, a_b, d))])
 
-    def test_match_combine_polynomes_numeric_combinations(self):
-        return
-        root = tree('0+1+2')
-        # TODO: this test fails with this code: l0, l1, l2 = tree('0,1,2')
-        l0, l1, l2 = root[0][0], root[0][1], root[1]
+    def test_match_combine_numerics(self):
+        l0, l1, l2 = tree('0,1,2')
+        root = l0 + l1 + l2
+
         possibilities = match_combine_polynomes(root)
         self.assertEqualPos(possibilities,
-                [P(root, combine_polynomes, ((l0, (l1, l0, l1)),
-                                             (l1, (l1, l1, l1)))),
-                 P(root, combine_polynomes, ((l0, (l1, l0, l1)),
-                                             (l2, (l1, l2, l1)))),
-                 P(root, combine_polynomes, ((l1, (l1, l1, l1)),
-                                             (l2, (l1, l2, l1))))])
+                [P(root, combine_numerics, (l0, l1, l0, l1)),
+                 P(root, combine_numerics, (l0, l2, l0, l2)),
+                 P(root, combine_numerics, (l1, l2, l1, l2))])
+
+    def test_match_combine_numerics_explicit_powers(self):
+        l0, l1, l2 = tree('0^1,1*1,1*2^1')
+        root = l0 + l1 + l2
+
+        possibilities = match_combine_polynomes(root)
+        self.assertEqualPos(possibilities,
+                [P(root, combine_numerics, (l0, l1, l0[0], l1[1])),
+                 P(root, combine_numerics, (l0, l2, l0[0], l2[1][0])),
+                 P(root, combine_numerics, (l1, l2, l1[1], l2[1][0]))])
+
+    def test_combine_numerics(self):
+        l0, l1 = tree('1,2')
+        self.assertEqual(combine_numerics(l0 + l1, (l0, l1, 1, 2)), 3)
+
+    def test_combine_numerics_nary(self):
+        l0, a, l1 = tree('1,a,2')
+        self.assertEqual(combine_numerics(l0 + a + l1, (l0, l1, 1, 2)),
+                         L(3) + a)
+
+    def test_combine_polynomes(self):
+        # 2a + 3a -> (2 + 3) * a
+        l0, a, l1, l2 = tree('2,a,3,1')
+        root = l0 * a + l1 * a
+        left, right = root
+        replacement = combine_polynomes(root, (left, right, l0, l1, a, 1))
+        self.assertEqualNodes(replacement, (l0 + l1) * a)
+
+        # a + 3a -> (1 + 3) * a
+        root = a + l1 * a
+        left, right = root
+        replacement = combine_polynomes(root, (left, right, l2, l1, a, 1))
+        self.assertEqualNodes(replacement, (l2 + l1) * a)
+
+        # 2a + a -> (2 + 1) * a
+        root = l0 * a + a
+        left, right = root
+        replacement = combine_polynomes(root, (left, right, l0, l2, a, 1))
+        self.assertEqualNodes(replacement, (l0 + 1) * a)
+
+        # a + a -> (1 + 1) * a
+        root = a + a
+        left, right = root
+        replacement = combine_polynomes(root, (left, right, l2, l2, a, 1))
+        self.assertEqualNodes(replacement, (l2 + 1) * a)
+
+    def assertEqualNodes(self, a, b):
+        if not isinstance(a, ExpressionNode):
+            return self.assertEqual(a, b)
+
+        self.assertIsInstance(b, ExpressionNode)
+        self.assertEqual(a.op, b.op)
+
+        for ca, cb in zip(a, b):
+            self.assertEqualNodes(ca, cb)
