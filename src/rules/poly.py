@@ -114,40 +114,24 @@ def combine_polynomes(root, args):
     """
     Combine two multiplications of any polynome in an n-ary plus.
 
-    Example:
-    c * a ^ b + d * a ^ b -> (c + d) * a ^ b
+    Synopsis:
+    c0 * a ^ b + c1 * a ^ b -> (c0 + c1) * a ^ b
     """
-    left, right = args
-    nl, pl = left
-    nr, pr = right
+    n0, n1, c0, c1, r, e = args
 
-    # TODO: verify that the two commented expression below are invalid and the
-    # following two expressions are right.
-    c0, r0, e0 = pl
-    c1, r1, e1 = pr
+    # a ^ 1 -> a
+    power = r if e == 1 else r ^ e
 
-    #if r0.is_numeric() and r1.is_numeric() and e0 == e1 == 1:
-    #    new_root = Leaf(r0.value + r1.value)
-    #else:
-    #    new_root = r0
-
-    if pl[3] or pr[3]:
-        # literal a ^ 1 -> a ^ 1
-        power = Node('^', pl[0], pl[1])
-    else:
-        # nonliteral a ^ 1 -> a
-        power = pl[0]
-
-    # replacement: (c + d) * a ^ b
+    # replacement: (c0 + c1) * a ^ b
     # a, b and c are from 'left', d is from 'right'.
-    replacement = Node('*', Node('+', pl[2], pr[2]), power)
+    replacement = (c0 + c1) * power
 
     scope = root.get_scope()
 
     # Replace the left node with the new expression
-    scope[scope.index(nl)] = replacement
+    scope[scope.index(n0)] = replacement
 
     # Remove the right node
-    scope.remove(nr)
+    scope.remove(n1)
 
     return nary_node('+', scope)
