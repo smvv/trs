@@ -13,10 +13,10 @@ class TestCalc(unittest.TestCase):
 
     def test_basic_on_exp(self):
         expressions = [('4',   L(4)),
-                       ('3+4', N('+', L(3), L(4))),
-                       ('3-4', N('-', L(3), L(4))),
-                       ('3/4', N('/', L(3), L(4))),
-                       ('-4',  N('-', L(4))),
+                       ('3+4', L(3) + L(4)),
+                       ('3-4', L(3) + -L(4)),
+                       ('3/4', L(3) / L(4)),
+                       ('-4',  -L(4)),
                        ('3^4', N('^', L(3), L(4))),
                        ('(2)', L(2))]
 
@@ -83,7 +83,7 @@ class TestCalc(unittest.TestCase):
 
     def test_negation(self):
         run_expressions(Parser, [
-            ('-9', N('-', L(9))),
-            ('--9', N('-', N('-', L(9)))),
-            ('a--9', N('-', L('a'), N('-', L(9)))),
+            ('-9', -L(9)),
+            ('--9', --L(9)),
+            ('a--9', L('a') + -(-L(9))),
             ])
