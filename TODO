@@ -1,0 +1,14 @@
+ - Build expression tree (consisting of expression nodes).
+ - Define all rules in src/rules.py.
+
+ - Fix BisonSyntaxError location tracking.
+
+ - Sort polynom on its exponents.
+
+
+ - No possibilities found for:
+
+   >>> a2b3 + a2b3
+   a ^ 2 * b ^ 3 + a ^ 2 * b ^ 3
+
+ - Pretty printing of "abc" is currently printed as "ab * c" instead of "abc".
