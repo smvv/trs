@@ -2,10 +2,10 @@ TESTS=$(wildcard tests/test_*.py)
 COVERAGE_OUTPUT_DIR := coverage
 PROFILER_OUTPUT_DIR := profiles
 OMIT := /usr/share/pyshared/*,external/*
+RM=rm -rf
 
 ifeq ($(findstring python-coverage,$(wildcard /usr/bin/*)), python-coverage)
 COVERAGE=/usr/bin/python-coverage
-RM=rm -rf
 else
 COVERAGE=/usr/bin/coverage
 endif
