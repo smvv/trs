@@ -13,12 +13,9 @@ class Possibility(object):
 
     # TODO: Add unit tests
     def __eq__(self, other):
-        self_arg0, self_arg1 = zip(*self.args)
-        other_arg0, other_arg1 = zip(*other.args)
-
         return self.handler == other.handler \
-               and self_arg1 == other_arg1 \
-               and map(hash, self_arg0) == map(hash, other_arg0)
+               and hash(self.root) == hash(other.root) \
+               and self.args == other.args
 
 
 def filter_duplicates(items):

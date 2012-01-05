@@ -125,6 +125,15 @@ class ExpressionNode(Node, ExpressionBase):
     def __str__(self):  # pragma: nocover
         return generate_line(self)
 
+    def __eq__(self, other):
+        """
+        Check strict equivalence.
+        """
+        if isinstance(other, ExpressionNode):
+            return self.op == other.op and self.nodes == other.nodes
+
+        return False
+
     def graph(self):  # pragma: nocover
         return generate_graph(self)
 
@@ -204,6 +213,16 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
 
         self.type = TYPE_MAP[type(args[0])]
+
+    def __eq__(self, other):
+        if isinstance(other, int) or isinstance(other, float) \
+                or isinstance(other, str):
+            return self.value == other
+
+        if other.is_leaf():
+            return self.value == other.value
+
+        return False
 
     def extract_polynome_properties(self):
         """

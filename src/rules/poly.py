@@ -94,9 +94,18 @@ def match_combine_polynomes(node, verbose=False):
 
             # Both numeric root and same exponent -> combine coefficients and
             # roots, or: same root and exponent -> combine coefficients.
-            if ((r0.is_numeric() and r1.is_numeric()) or r0 == r1) \
-                    and e0 == e1:
-                p.append(P(node, combine_polynomes, (left, right)))
+            if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
+                    and r0.is_numeric() and r1.is_numeric():
+                # 2 + 3 -> 5
+                p.append(P(node, combine_numerics, \
+                           (left[0], right[0], r0, r1)))
+            elif c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
+                # 2a + 2a -> 4a
+                # a + 2a -> 3a
+                # 2a + a -> 3a
+                # a + a -> 2a
+                p.append(P(node, combine_polynomes, \
+                           (left[0], right[0], c0, c1, r0, e0)))
 
     return p
 
