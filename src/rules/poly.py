@@ -1,6 +1,7 @@
 from itertools import combinations
 
-from ..node import ExpressionNode as Node, TYPE_OPERATOR, OP_ADD, OP_MUL
+from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
+        TYPE_OPERATOR, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P
 from .utils import nary_node
 
@@ -108,6 +109,18 @@ def match_combine_polynomes(node, verbose=False):
                            (left[0], right[0], c0, c1, r0, e0)))
 
     return p
+
+
+def combine_numerics(root, args):
+    """
+    Combine two constants to a single constant in an n-ary plus.
+
+    Synopsis:
+    c0 + c1 -> eval(c1 + c2)
+    """
+    c0, c1 = args
+
+    return Leaf(c0.value + c1.value)
 
 
 def combine_polynomes(root, args):
