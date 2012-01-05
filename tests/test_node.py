@@ -8,20 +8,6 @@ class TestNode(unittest.TestCase):
     def setUp(self):
         self.l = [L(1), N('*', L(2), L(3)), L(4), L(5)]
 
-    def test_replace_node(self):
-        inner = N('+', L(1), L(2))
-        node = N('+', inner, L(3))
-        replacement = N('-', L(4), L(5))
-        inner.replace(replacement)
-        self.assertEqual(str(node), '4 - 5 + 3')
-
-    def test_replace_leaf(self):
-        inner = N('+', L(1), L(2))
-        node = N('+', inner, L(3))
-        replacement = L(4)
-        inner.replace(replacement)
-        self.assertEqual(str(node), '4 + 3')
-
     def test_is_power_true(self):
         self.assertTrue(N('^', *self.l[:2]).is_power())
         self.assertFalse(N('+', *self.l[:2]).is_power())
