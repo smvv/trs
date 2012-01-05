@@ -52,6 +52,10 @@ OP_MAP = {
         }
 
 
+def to_expression(obj):
+    return obj if isinstance(obj, ExpressionBase) else ExpressionLeaf(obj)
+
+
 class ExpressionBase(object):
     def __lt__(self, other):
         """
@@ -116,19 +120,22 @@ class ExpressionBase(object):
         return self.is_leaf() and self.type & (TYPE_FLOAT | TYPE_INTEGER)
 
     def __add__(self, other):
-        return ExpressionNode('+', self, other)
+        return ExpressionNode('+', self, to_expression(other))
 
     def __sub__(self, other):
-        return ExpressionNode('-', self, other)
+        return ExpressionNode('-', self, to_expression(other))
 
     def __mul__(self, other):
-        return ExpressionNode('*', self, other)
+        return ExpressionNode('*', self, to_expression(other))
 
     def __div__(self, other):
-        return ExpressionNode('-', self, other)
+        return ExpressionNode('-', self, to_expression(other))
 
     def __pow__(self, other):
-        return ExpressionNode('^', self, other)
+        return ExpressionNode('^', self, to_expression(other))
+
+    def __neg__(self):
+        return ExpressionNode('-', to_expression(self))
 
 
 class ExpressionNode(Node, ExpressionBase):
