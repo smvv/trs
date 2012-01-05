@@ -128,12 +128,6 @@ class ExpressionNode(Node, ExpressionBase):
     def graph(self):  # pragma: nocover
         return generate_graph(self)
 
-    def replace(self, node):
-        pos = self.parent.nodes.index(self)
-        self.parent.nodes[pos] = node
-        node.parent = self.parent
-        self.parent = None
-
     def extract_polynome_properties(self):
         """
         Extract polynome properties into tuple format: (coefficient, root,
@@ -219,12 +213,3 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         """
         # rule: 1 * r ^ 1 -> (1, r, 1)
         return (ExpressionLeaf(1), self, ExpressionLeaf(1))
-
-    def replace(self, node):
-        if not hasattr(self, 'parent'):
-            return
-
-        pos = self.parent.nodes.index(self)
-        self.parent.nodes[pos] = node
-        node.parent = self.parent
-        self.parent = None

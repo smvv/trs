@@ -1,12 +1,9 @@
-#!/usr/bin/env python
 """
 This parser will parse the given input and build an expression tree. Grammar
 file for the supported mathematical expressions.
 """
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf
-
-import argparse
 
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
@@ -21,7 +18,7 @@ from graph_drawing.graph import generate_graph
 
 from node import TYPE_OPERATOR, OP_COMMA
 from rules import RULES
-from possibilities import filter_duplicates
+from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
 
 # Check for n-ary operator in child nodes
@@ -55,7 +52,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA',
+              'LPAREN', 'RPAREN', 'COMMA', 'HINT', 'REWRITE',
               'NEWLINE', 'QUIT', 'RAISE', 'GRAPH']
 
     # ------------------------------
@@ -75,11 +72,9 @@ class Parser(BisonParser):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
-        self.possibilities = []
+        self.possibilities = self.last_possibilities = []
 
-    # ------------------------------------------------------------------
-    # override default read method with a version that prompts for input
-    # ------------------------------------------------------------------
+    # Override default read method with a version that prompts for input.
     def read(self, nbytes):
         if self.file == sys.stdin and self.file.closed:
             return ''
@@ -90,10 +85,15 @@ class Parser(BisonParser):
             return ''
 
     def hook_read_before(self):
-        if self.interactive and self.possibilities:
-            print 'possibilities:'
+        if self.possibilities:
+            if self.interactive:  # pragma: nocover
+                print 'possibilities:'
+
             items = filter_duplicates(self.possibilities)
-            print '  ' + '\n  '.join(map(str, items))
+            self.last_possibilities = self.possibilities
+
+            if self.interactive:  # pragma: nocover
+                print '  ' + '\n  '.join(map(str, items))
 
         self.possibilities = []
 
@@ -147,7 +147,7 @@ class Parser(BisonParser):
             if data == data_after:
                 break
 
-            if self.verbose:
+            if self.verbose:  # pragma: nocover
                 print 'hook_read_after() modified the input data:'
                 print 'before:', data.replace('\n', '\\n')
                 print 'after :', data_after.replace('\n', '\\n')
@@ -192,7 +192,7 @@ class Parser(BisonParser):
             # Interactive mode is enabled if the term rewriting system is used
             # as a shell. In that case, it is useful that the shell prints the
             # output of the evaluation.
-            if self.interactive and values[1]:
+            if self.interactive and values[1]:  # pragma: nocover
                 print values[1]
 
             return values[1]
@@ -202,12 +202,22 @@ class Parser(BisonParser):
         line : NEWLINE
              | exp NEWLINE
              | debug NEWLINE
+             | HINT NEWLINE
+             | REWRITE NEWLINE
              | RAISE NEWLINE
         """
         if option in [1, 2]:
             return values[0]
 
         if option == 3:
+            print pick_suggestion(self.last_possibilities)
+            return
+
+        if option == 4:
+            suggestion = pick_suggestion(self.last_possibilities)
+            return apply_suggestion(suggestion)
+
+        if option == 5:
             raise RuntimeError('on_line: exception raised')
 
     def on_debug(self, target, option, names, values):
@@ -332,6 +342,8 @@ class Parser(BisonParser):
     "^"       { returntoken(POW); }
     "/"       { returntoken(DIVIDE); }
     ","       { returntoken(COMMA); }
+    "?"       { returntoken(HINT); }
+    "@"       { returntoken(REWRITE); }
     "quit"    { yyterminate(); returntoken(QUIT); }
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
@@ -344,39 +356,3 @@ class Parser(BisonParser):
 
     yywrap() { return(1); }
     """
-
-
-def get_args():
-    parser = argparse.ArgumentParser(prog='parser', description=__doc__)
-
-    parser.add_argument('--debug', '-d', action='store_true',
-            default=False,
-            help='Enable debug mode in bison and flex.')
-    parser.add_argument('--verbose', '-v', action='store_true',
-            default=False,
-            help='Enable verbose output messages (printed to stdout).')
-    parser.add_argument('--keepfiles', '-k', action='store_true',
-            default=False,
-            help='Keep temporary generated bison and lex files.')
-    parser.add_argument('--batch', '-b', action='store_true', default=False,
-            help='Disable interactive mode and execute expressions in batch' \
-                 ' mode.')
-
-    return parser.parse_args()
-
-
-def main():
-    args = get_args()
-    interactive = not args.batch and sys.stdin.isatty()
-
-    p = Parser(verbose=args.verbose,
-               keepfiles=args.keepfiles,
-               interactive=interactive)
-
-    node = p.run(debug=args.debug)
-
-    # Clear the line, when the shell exits.
-    if interactive:
-        print
-
-    return node

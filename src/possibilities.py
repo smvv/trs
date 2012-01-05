@@ -36,3 +36,13 @@ def filter_duplicates(items):
             unique.append(item)
 
     return unique
+
+
+def pick_suggestion(possibilities):
+    # TODO: pick the best suggestion.
+    suggestion = 0
+    return possibilities[suggestion]
+
+
+def apply_suggestion(suggestion):
+    return suggestion.handler(suggestion.root, suggestion.args)
