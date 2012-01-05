@@ -274,14 +274,17 @@ class Parser(BisonParser):
     def on_binary(self, target, option, names, values):
         """
         binary : exp PLUS exp
-               | exp MINUS exp
                | exp TIMES exp
                | exp DIVIDE exp
                | exp POW exp
+               | exp MINUS exp
         """
 
-        if 0 <= option < 5:  # rule: exp PLUS exp
+        if 0 <= option < 4:  # rule: exp {PLUS,TIMES,DIVIDES,POW} exp
             return Node(values[1], values[0], values[2])
+
+        if option == 4:  # rule: exp MINUS exp
+            return Node('+', values[0], Node('-', values[2]))
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover

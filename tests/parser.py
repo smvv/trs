@@ -98,6 +98,28 @@ def run_expressions(base_class, expressions, fail=True, silent=False,
                 raise
 
 
+def apply_expressions(base_class, expressions, fail=True, silent=False,
+        **kwargs):
+    parser = ParserWrapper(base_class, **kwargs)
+
+    for exp, times, out in expressions:
+        res = None
+        try:
+            res = parser.run([exp] + list('@' * times))
+            assert res == out
+        except:  # pragma: nocover
+            if not silent:
+                print >>sys.stderr, 'error: %s gives %s, but expected: %s' \
+                                    % (exp, str(res), str(out))
+
+            if not silent and hasattr(res, 'nodes'):
+                print >>sys.stderr, 'result graph:'
+                print >>sys.stderr, generate_graph(res)
+                print >>sys.stderr, 'expected graph:'
+                print >>sys.stderr, generate_graph(out)
+
+            if fail:
+                raise
 def graph(parser, *exp, **kwargs):
     return generate_graph(ParserWrapper(parser, **kwargs).run(exp))
 

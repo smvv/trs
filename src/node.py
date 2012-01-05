@@ -129,7 +129,7 @@ class ExpressionBase(object):
         return ExpressionNode('*', self, to_expression(other))
 
     def __div__(self, other):
-        return ExpressionNode('-', self, to_expression(other))
+        return ExpressionNode('/', self, to_expression(other))
 
     def __pow__(self, other):
         return ExpressionNode('^', self, to_expression(other))
