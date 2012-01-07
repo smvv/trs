@@ -30,6 +30,7 @@ OP_MOD = 7
 OP_INT = 8
 OP_EXPAND = 9
 OP_COMMA = 10
+OP_SQRT = 11
 
 
 TYPE_MAP = {
@@ -48,6 +49,7 @@ OP_MAP = {
         'mod': OP_MOD,
         'int': OP_INT,
         'expand': OP_EXPAND,
+        'sqrt': OP_SQRT,
         ',': OP_COMMA,
         }
 
