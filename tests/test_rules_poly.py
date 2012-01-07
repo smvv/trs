@@ -1,29 +1,17 @@
-import unittest
-
 from src.rules.poly import match_combine_polynomes, combine_polynomes, \
         combine_numerics
 from src.possibilities import Possibility as P
-from src.node import ExpressionNode, ExpressionLeaf as L
+from src.node import ExpressionLeaf as L
 from src.parser import Parser
 from tests.parser import ParserWrapper
+from tests.rulestestcase import RulesTestCase
 
 
 def tree(exp, **kwargs):
     return ParserWrapper(Parser, **kwargs).run([exp])
 
 
-class TestRulesPoly(unittest.TestCase):
-
-    def assertEqualPos(self, possibilities, expected):
-        self.assertEqual(len(possibilities), len(expected))
-
-        for p, e in zip(possibilities, expected):
-            self.assertEqual(p.root, e.root)
-
-            for pair in zip(p.args, e.args):
-                self.assertEqual(*pair)
-
-            self.assertEqual(p, e)
+class TestRulesPoly(RulesTestCase):
 
     def test_identifiers_basic(self):
         a1, a2 = root = tree('a+a')
@@ -142,13 +130,3 @@ class TestRulesPoly(unittest.TestCase):
         left, right = root
         replacement = combine_polynomes(root, (left, right, l2, l2, a, 1))
         self.assertEqualNodes(replacement, (l2 + 1) * a)
-
-    def assertEqualNodes(self, a, b):
-        if not isinstance(a, ExpressionNode):
-            return self.assertEqual(a, b)
-
-        self.assertIsInstance(b, ExpressionNode)
-        self.assertEqual(a.op, b.op)
-
-        for ca, cb in zip(a, b):
-            self.assertEqualNodes(ca, cb)
