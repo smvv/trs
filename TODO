@@ -10,6 +10,3 @@
 
    >>> a2b3 + a2b3
    a ^ 2 * b ^ 3 + a ^ 2 * b ^ 3
-
- - Pretty printing of "ab/cd" is currently printed as "((ab) / f) * g". This
-   means that equal precedence generates an unwanted precedence conflict.
