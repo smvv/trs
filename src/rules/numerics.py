@@ -1,4 +1,4 @@
-from ..node import ExpressionLeaf as Leaf, TYPE_INTEGER, TYPE_FLOAT, OP_DIV
+from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL
 from ..possibilities import Possibility as P
 from .utils import nary_node
 
@@ -20,19 +20,15 @@ def match_divide_numerics(node):
     assert node.is_op(OP_DIV)
 
     n, d = node
-    n_int = n.type == TYPE_INTEGER
-    n_float = n.type == TYPE_FLOAT
-    d_int = d.type == TYPE_INTEGER
-    d_float = d.type == TYPE_FLOAT
-    nv, dv = n.value, d.value
     divide = False
+    dv = d.value
 
-    if n_int and d_int:
+    if n.is_int() and d.is_int():
         # 6 / 2  ->  3
         # 3 / 2  ->  3 / 2
-        divide = not divmod(nv, dv)[1]
-    else:
-        if d_float and dv == 1.0:
+        divide = not divmod(n.value, dv)[1]
+    elif n.is_numeric() and d.is_numeric():
+        if d == 1.0:
             # 3 / 1.0  ->  3
             dv = 1
 
@@ -41,7 +37,29 @@ def match_divide_numerics(node):
         # 3.0 / 2.0  ->  1.5
         divide = True
 
-    return [P(node, divide_numerics, (nv, dv))] if divide else []
+    return [P(node, divide_numerics, (n.value, dv))] if divide else []
+
+
+def match_multiply_numerics(node):
+    """
+    3 * 2      ->  6
+    3.0 * 2    ->  6.0  # FIXME: is this correct?
+    3 * 2.0    ->  6.0  # FIXME: is this correct?
+    3.0 * 2.0  ->  6.0
+    """
+    # TODO: Finish
+    assert node.is_op(OP_MUL)
+
+
+def match_subtract_numerics(node):
+    """
+    3 - 2      ->  2.0
+    3.0 - 2    ->  1.0  # FIXME: is this correct?
+    3 - 2.0    ->  1.0  # FIXME: is this correct?
+    3.0 - 2.0  ->  1.0
+    """
+    # TODO: Finish
+    assert node.is_op(OP_MUL)
 
 
 def divide_numerics(root, args):

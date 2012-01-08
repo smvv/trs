@@ -10,8 +10,8 @@ class TestRulesNumerics(RulesTestCase):
 
     def test_match_divide_numerics(self):
         # FIXME: Parser does not recognize floats
-        #i2, i3, i6, f1, f2, f3 = tree('2,3,6,1.0,2.0,3.0')
-        i2, i3, i6 = tree('2,3,6')
+        #a, b, i2, i3, i6, f1, f2, f3 = tree('a,b,2,3,6,1.0,2.0,3.0')
+        a, b, i2, i3, i6 = tree('a,b,2,3,6')
         f1, f2, f3 = L(1.0), L(2.0), L(3.0)
 
         root = i6 / i2
@@ -42,6 +42,10 @@ class TestRulesNumerics(RulesTestCase):
         possibilities = match_divide_numerics(root)
         self.assertEqualPos(possibilities,
                 [P(root, divide_numerics, (3, 1))])
+
+        root = a / b
+        possibilities = match_divide_numerics(root)
+        self.assertEqualPos(possibilities, [])
 
     def test_divide_numerics(self):
         # FIXME: Parser does not recognize floats
