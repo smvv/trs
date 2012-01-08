@@ -110,16 +110,16 @@ class ExpressionBase(object):
         return not self.is_leaf() and self.op in [OP_ADD, OP_SUB, OP_MUL]
 
     def is_identifier(self):
-        return self.is_leaf() and self.type & TYPE_IDENTIFIER
+        return self.type == TYPE_IDENTIFIER
 
     def is_int(self):
-        return self.is_leaf() and self.type & TYPE_INTEGER
+        return self.type == TYPE_INTEGER
 
     def is_float(self):
-        return self.is_leaf() and self.type & TYPE_FLOAT
+        return self.type == TYPE_FLOAT
 
     def is_numeric(self):
-        return self.is_leaf() and self.type & (TYPE_FLOAT | TYPE_INTEGER)
+        return self.type & (TYPE_FLOAT | TYPE_INTEGER)
 
     def __add__(self, other):
         return ExpressionNode('+', self, to_expression(other))
