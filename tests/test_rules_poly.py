@@ -1,5 +1,5 @@
-from src.rules.poly import match_combine_polynomes, combine_polynomes, \
-        combine_numerics
+from src.rules.poly import match_combine_polynomes, combine_polynomes
+from src.rules.numerics import add_numerics
 from src.possibilities import Possibility as P
 from src.node import ExpressionLeaf as L
 from src.parser import Parser
@@ -76,34 +76,25 @@ class TestRulesPoly(RulesTestCase):
         #self.assertEqualPos(possibilities,
         #        [P(root, combine_polynomes, (left, right, c, c, a_b, d))])
 
-    def test_match_combine_numerics(self):
+    def test_match_add_numerics(self):
         l0, l1, l2 = tree('0,1,2')
         root = l0 + l1 + l2
 
         possibilities = match_combine_polynomes(root)
         self.assertEqualPos(possibilities,
-                [P(root, combine_numerics, (l0, l1, l0, l1)),
-                 P(root, combine_numerics, (l0, l2, l0, l2)),
-                 P(root, combine_numerics, (l1, l2, l1, l2))])
+                [P(root, add_numerics, (l0, l1, l0, l1)),
+                 P(root, add_numerics, (l0, l2, l0, l2)),
+                 P(root, add_numerics, (l1, l2, l1, l2))])
 
-    def test_match_combine_numerics_explicit_powers(self):
+    def test_match_add_numerics_explicit_powers(self):
         l0, l1, l2 = tree('0^1,1*1,1*2^1')
         root = l0 + l1 + l2
 
         possibilities = match_combine_polynomes(root)
         self.assertEqualPos(possibilities,
-                [P(root, combine_numerics, (l0, l1, l0[0], l1[1])),
-                 P(root, combine_numerics, (l0, l2, l0[0], l2[1][0])),
-                 P(root, combine_numerics, (l1, l2, l1[1], l2[1][0]))])
-
-    def test_combine_numerics(self):
-        l0, l1 = tree('1,2')
-        self.assertEqual(combine_numerics(l0 + l1, (l0, l1, 1, 2)), 3)
-
-    def test_combine_numerics_nary(self):
-        l0, a, l1 = tree('1,a,2')
-        self.assertEqual(combine_numerics(l0 + a + l1, (l0, l1, 1, 2)),
-                         L(3) + a)
+                [P(root, add_numerics, (l0, l1, l0[0], l1[1])),
+                 P(root, add_numerics, (l0, l2, l0[0], l2[1][0])),
+                 P(root, add_numerics, (l1, l2, l1[1], l2[1][0]))])
 
     def test_combine_polynomes(self):
         # 2a + 3a -> (2 + 3) * a

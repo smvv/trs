@@ -1,17 +1,17 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
-        TYPE_OPERATOR, OP_ADD, OP_MUL
+        OP_ADD, OP_MUL
 from ..possibilities import Possibility as P
 from .utils import nary_node
+from .numerics import add_numerics
 
 
 def match_expand(node):
     """
     a * (b + c) -> ab + ac
     """
-    assert node.type == TYPE_OPERATOR
-    assert node.op == OP_MUL
+    assert node.is_op(OP_MUL)
 
     # TODO: fix!
     return []
@@ -60,8 +60,7 @@ def match_combine_polynomes(node, verbose=False):
     n + exp + m -> exp + (n + m)
     k0 * v ^ n + exp + k1 * v ^ n -> exp + (k0 + k1) * v ^ n
     """
-    assert node.type == TYPE_OPERATOR
-    assert node.op == OP_ADD
+    assert node.is_op(OP_ADD)
 
     p = []
 
@@ -101,7 +100,7 @@ def match_combine_polynomes(node, verbose=False):
             if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
                     and r0.is_numeric() and r1.is_numeric():
                 # 2 + 3 -> 5
-                p.append(P(node, combine_numerics, (n0, n1, r0.value, r1.value)))
+                p.append(P(node, add_numerics, (n0, n1, r0.value, r1.value)))
             elif c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
                 # 2a + 2a -> 4a
                 # a + 2a -> 3a
@@ -110,26 +109,6 @@ def match_combine_polynomes(node, verbose=False):
                 p.append(P(node, combine_polynomes, (n0, n1, c0, c1, r0, e0)))
 
     return p
-
-
-def combine_numerics(root, args):
-    """
-    Combine two constants to a single constant in an n-ary plus.
-
-    Synopsis:
-    c0 + c1 -> eval(c1 + c2)
-    """
-    n0, n1, c0, c1 = args
-
-    scope = root.get_scope()
-
-    # Replace the left node with the new expression
-    scope[scope.index(n0)] = Leaf(c0 + c1)
-
-    # Remove the right node
-    scope.remove(n1)
-
-    return nary_node('+', scope)
 
 
 def combine_polynomes(root, args):
