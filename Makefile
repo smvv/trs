@@ -40,7 +40,10 @@ include $(d)/rules.mk
 all: doc build
 
 clean:
-	rm -rf $(CLEAN) `find -name \*.pyc`
+	rm -rf $(CLEAN)
+
+distclean:
+	rm -rf $(CLEAN) `find . -name \*.pyc`
 
 $(TGT_DIR):
 	mkdir -p $(TGT_DIR)
