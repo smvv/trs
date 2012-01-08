@@ -77,7 +77,7 @@ class TestRulesPowers(RulesTestCase):
 
         possibilities = match_duplicate_exponent(root)
         self.assertEqualPos(possibilities,
-                [P(root, duplicate_exponent, (a, b, p))])
+                [P(root, duplicate_exponent, ([a, b], p))])
 
     def test_match_remove_negative_exponent(self):
         a, p = tree('a,p')
@@ -121,11 +121,15 @@ class TestRulesPowers(RulesTestCase):
                               a ** (p * q))
 
     def test_duplicate_exponent(self):
-        a, b, p = tree('a,b,p')
-        root = (a * b) ** p
+        a, b, c, p = tree('a,b,c,p')
 
-        self.assertEqualNodes(duplicate_exponent(root, (a, b, p)),
+        root = (a * b) ** p
+        self.assertEqualNodes(duplicate_exponent(root, ([a, b], p)),
                               a ** p * b ** p)
+
+        root = (a * b * c) ** p
+        self.assertEqualNodes(duplicate_exponent(root, ([a, b, c], p)),
+                              a ** p * b ** p * c ** p)
 
     def test_remove_negative_exponent(self):
         a, p, l1 = tree('a,p,1')

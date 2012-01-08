@@ -85,7 +85,7 @@ def match_duplicate_exponent(node):
     left, right = node
 
     if left.is_op(OP_MUL):
-        return [P(node, duplicate_exponent, tuple(left) + (right,))]
+        return [P(node, duplicate_exponent, (left.get_scope(), right))]
 
     return []
 
@@ -157,11 +157,16 @@ def multiply_exponents(root, args):
 
 def duplicate_exponent(root, args):
     """
-    (ab)^p  ->  a^p * b^p
+    (ab)^p   ->  a^p * b^p
+    (abc)^p  ->  a^p * b^p * c^p
     """
-    a, b, p = args
+    ab, p = args
+    result = ab[0] ** p
 
-    return a ** p * b ** p
+    for b in ab[1:]:
+        result *= b ** p
+
+    return result
 
 
 def remove_negative_exponent(root, args):
