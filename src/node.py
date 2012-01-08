@@ -242,13 +242,12 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         self.type = TYPE_MAP[type(args[0])]
 
     def __eq__(self, other):
-        if type(other) in (int, float, str):
-            return self.value == other
+        other_type = type(other)
 
-        if other.is_leaf():
-            return self.value == other.value
+        if other_type in TYPE_MAP:
+            return TYPE_MAP[other_type] == self.type and self.value == other
 
-        return False
+        return other.type == self.type and self.value == other.value
 
     def extract_polynome_properties(self):
         """
