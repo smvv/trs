@@ -4,13 +4,17 @@ PYBISON_INC := -Iexternal/pybison/src/c -I/usr/include/python2.7
 
 build: $(b)pybison/bison_.so
 
-$(b)pybison/bison_.so: $(b)pybison/bison_.o $(b)pybison/bisondynlib-linux.o
+BISON_OBJ := $(b)pybison/bison_.o $(b)pybison/bison_callback.o \
+	$(b)pybison/bisondynlib-linux.o
+
+$(b)pybison/bison_.so: $(BISON_OBJ)
 	$(CC) $(CFLAGS) -shared -pthread -o $@ $^
 
-$(b)pybison/bisondynlib-linux.o $(b)pybison/bison_.o: | $(b)pybison
+$(BISON_OBJ): | $(b)pybison
 	$(CC) $(CFLAGS) -o $@ -c $< -pthread -fPIC $(PYBISON_INC)
 
 $(b)pybison/bisondynlib-linux.o: $(d)pybison/src/c/bisondynlib-linux.c
+$(b)pybison/bison_callback.o: $(d)pybison/src/c/bison_callback.c
 $(b)pybison/bison_.o: $(b)pybison/bison_.c
 
 ifdef PYREX
@@ -24,6 +28,5 @@ endif
 endif
 
 $(b)pybison/%.c: $(d)pybison/src/pyrex/%.pyx
-	$(py2c) -o $@ $<
+	$(py2c) $(py2c_OPTS) -o $@ $<
 	$(RM) $(@D)/*.so
-
