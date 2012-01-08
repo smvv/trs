@@ -137,7 +137,7 @@ class ExpressionBase(object):
         return ExpressionNode('^', self, to_expression(other))
 
     def __neg__(self):
-        return ExpressionNode('-', to_expression(self))
+        return ExpressionNode('-', self)
 
 
 class ExpressionNode(Node, ExpressionBase):
@@ -205,7 +205,7 @@ class ExpressionNode(Node, ExpressionBase):
         #      r  e
         #
         # rule: c * r ^ e | (r ^ e) * c
-        for i, j in [(0, 1), (1, 0)]:
+        for i, j in ((0, 1), (1, 0)):
             if self[j].is_power():
                 return (self[i], self[j][0], self[j][1])
 
@@ -242,8 +242,7 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         self.type = TYPE_MAP[type(args[0])]
 
     def __eq__(self, other):
-        if isinstance(other, int) or isinstance(other, float) \
-                or isinstance(other, str):
+        if type(other) in (int, float, str):
             return self.value == other
 
         if other.is_leaf():
