@@ -1,5 +1,5 @@
 from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL
-from ..possibilities import Possibility as P
+from ..possibilities import Possibility as P, MESSAGES
 from .utils import nary_node
 
 

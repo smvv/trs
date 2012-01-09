@@ -2,8 +2,9 @@ from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, \
                    OP_NEG, OP_MUL, OP_DIV, OP_POW
-from ..possibilities import Possibility as P
+from ..possibilities import Possibility as P, MESSAGES
 from .utils import nary_node
+from ..translate import _
 
 
 def match_add_exponents(node):
@@ -135,6 +136,12 @@ def add_exponents(root, args):
     scope.remove(n1)
 
     return nary_node('*', scope)
+
+
+#MESSAGES[add_exponents] = _('Add the exponents of {1[0]} and {1[1]}, which'
+#        ' will reduce to {1[0][0]}^({1[0][1]} + {1[1][1]}).')
+MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}, which'
+        ' will reduce to {1[0]}^({1[1]} + {2[1]}).')
 
 
 def subtract_exponents(root, args):

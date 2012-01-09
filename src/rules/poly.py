@@ -1,8 +1,7 @@
 from itertools import combinations
 
-from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
-        OP_ADD, OP_MUL
-from ..possibilities import Possibility as P
+from ..node import ExpressionNode as Node, OP_ADD, OP_MUL
+from ..possibilities import Possibility as P, MESSAGES
 from .utils import nary_node
 from .numerics import add_numerics
 
