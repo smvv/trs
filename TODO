@@ -3,12 +3,19 @@
 
  - Fix BisonSyntaxError location tracking.
 
- - Sort polynom on its exponents.
+ - Sort polynom by its exponents?
 
 
  - No possibilities found for:
-
    >>> a2b3 + a2b3
    a ^ 2 * b ^ 3 + a ^ 2 * b ^ 3
 
  - 2 + 3 + 4 rewrites to 5 instead of 5 + 4
+   -> the problem is that the 'root' of the application is actually a subtree
+   of the entire expression. This means that the parent of each possibility
+   root (or 'subtree') must me stored to be able to replace the subtree.
+
+ - MESSAGES needs to be expanded.
+
+ - rewrite match_combine_polynomes to an even more generic form:
+   match_combine_factors.
