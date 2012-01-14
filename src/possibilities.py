@@ -28,30 +28,26 @@ class Possibility(object):
                and self.args == other.args
 
 
-def filter_duplicates(items):
+def filter_duplicates(possibilities):
     """
     Filter duplicated possibilities. Duplicated possibilities occur in n-ary
     nodes, the root-level node and a lower-level node will both recognize a
-    reqrite possibility within their sscope, whereas only the root-level one
+    rewrite possibility within their sscope, whereas only the root-level one
     matters.
 
     Example: 1 + 2 + 3
     The addition of 1 and 2 is recognized bij n-ary additions "1 + 2" and
     "1 + 2 + 3". The "1 + 2" addition should be removed by this function.
     """
-    # TODO: Finish according to docstrings
+    features = []
     unique = []
 
-    for item in items:
-        found = False
+    for p in reversed(possibilities):
+        feature = (p.handler, p.args)
 
-        for compare in unique:
-            if item == compare:
-                found = True
-                break
-
-        if not found:
-            unique.append(item)
+        if feature not in features:
+            features.append(feature)
+            unique.insert(0, p)
 
     return unique
 
