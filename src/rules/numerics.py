@@ -1,6 +1,39 @@
+from itertools import combinations
+
+from .utils import nary_node
 from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
-from .utils import nary_node
+
+
+def add_numerics(root, args):
+    """
+    Combine two constants to a single constant in an n-ary addition.
+
+    Example:
+    2 + 3  ->  5
+    """
+    n0, n1, c0, c1 = args
+
+    scope = root.get_scope()
+
+    # Replace the left node with the new expression
+    scope[scope.index(n0)] = Leaf(c0 + c1)
+
+    # Remove the right node
+    scope.remove(n1)
+
+    return nary_node('+', scope)
+
+
+#def match_subtract_numerics(node):
+#    """
+#    3 - 2      ->  2.0
+#    3.0 - 2    ->  1.0
+#    3 - 2.0    ->  1.0
+#    3.0 - 2.0  ->  1.0
+#    """
+#    # TODO: This should be handled by match_combine_polynomes
+#    assert node.is_op(OP_MUL)
 
 
 def match_divide_numerics(node):
@@ -40,28 +73,6 @@ def match_divide_numerics(node):
     return [P(node, divide_numerics, (n.value, dv))] if divide else []
 
 
-def match_multiply_numerics(node):
-    """
-    3 * 2      ->  6
-    3.0 * 2    ->  6.0  # FIXME: is this correct?
-    3 * 2.0    ->  6.0  # FIXME: is this correct?
-    3.0 * 2.0  ->  6.0
-    """
-    # TODO: Finish
-    assert node.is_op(OP_MUL)
-
-
-def match_subtract_numerics(node):
-    """
-    3 - 2      ->  2.0
-    3.0 - 2    ->  1.0  # FIXME: is this correct?
-    3 - 2.0    ->  1.0  # FIXME: is this correct?
-    3.0 - 2.0  ->  1.0
-    """
-    # TODO: Finish
-    assert node.is_op(OP_MUL)
-
-
 def divide_numerics(root, args):
     """
     Combine two constants to a single constant in a division.
@@ -78,21 +89,42 @@ def divide_numerics(root, args):
     return Leaf(n / d)
 
 
-def add_numerics(root, args):
+def match_multiply_numerics(node):
     """
-    Combine two constants to a single constant in an n-ary plus.
+    3 * 2      ->  6
+    3.0 * 2    ->  6.0
+    3 * 2.0    ->  6.0
+    3.0 * 2.0  ->  6.0
+    """
+    assert node.is_op(OP_MUL)
+
+    p = []
+    scope = node.get_scope()
+    numerics = filter(lambda n: n.is_numeric(), scope)
+
+    for args in combinations(numerics, 2):
+        p.append(P(node, multiply_numerics, args))
+
+    return p
+
+
+def multiply_numerics(root, args):
+    """
+    Combine two constants to a single constant in an n-ary multiplication.
 
     Example:
-    2 + 3  ->  5
+    2 * 3  ->  6
     """
-    n0, n1, c0, c1 = args
+    n0, n1 = args
+    scope = []
 
-    scope = root.get_scope()
+    for n in root.get_scope():
+        if hash(n) == hash(n0):
+            # Replace the left node with the new expression
+            scope.append(Leaf(n0.value * n1.value))
+            #scope.append(n)
+        elif hash(n) != hash(n1):
+            # Remove the right node
+            scope.append(n)
 
-    # Replace the left node with the new expression
-    scope[scope.index(n0)] = Leaf(c0 + c1)
-
-    # Remove the right node
-    scope.remove(n1)
-
-    return nary_node('+', scope)
+    return nary_node('*', scope)
