@@ -53,7 +53,7 @@ class Parser(BisonParser):
     tokens = ['NUMBER', 'IDENTIFIER', 'POSSIBILITIES',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
               'LPAREN', 'RPAREN', 'COMMA', 'HINT', 'REWRITE',
-              'NEWLINE', 'QUIT', 'RAISE', 'GRAPH']
+              'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', 'SQRT']
 
     # ------------------------------
     # precedences
@@ -356,6 +356,7 @@ class Parser(BisonParser):
     "quit"    { yyterminate(); returntoken(QUIT); }
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
+    "sqrt"    { returntoken(SQRT); }
 
     [ \t\v\f] { }
     [\n]      { yycolumn = 0; returntoken(NEWLINE); }
