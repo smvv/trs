@@ -10,8 +10,13 @@ class RulesTestCase(unittest.TestCase):
         for p, e in zip(possibilities, expected):
             self.assertEqual(p.root, e.root)
 
-            for pair in zip(p.args, e.args):
-                self.assertEqual(*pair)
+            if p.args == None:
+                self.assertIsNone(e.args)
+            elif e.args == None:
+                self.assertIsNone(p.args)
+            else:
+                for pair in zip(p.args, e.args):
+                    self.assertEqual(*pair)
 
             self.assertEqual(p, e)
 
