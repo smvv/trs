@@ -4,12 +4,12 @@ from src.possibilities import MESSAGES, Possibility as P, filter_duplicates
 from tests.test_rules_poly import tree
 
 
-def dummy_handler(root, args):
-    return root
+def dummy_handler(root, args):  # pragma: nocover
+    pass
 
 
-def dummy_handler_msg(root, args):
-    return root
+def dummy_handler_msg(root, args):  # pragma: nocover
+    pass
 
 
 MESSAGES[dummy_handler_msg] = 'foo {1} + {2} bar'
