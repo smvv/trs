@@ -14,12 +14,6 @@ class TestRulesNumerics(RulesTestCase):
         self.assertEqual(add_numerics(l0 + l1, (l0, l1, 1, 2)), 3)
         self.assertEqual(add_numerics(l0 + a + l1, (l0, l1, 1, 2)), L(3) + a)
 
-    def test_add_numerics(self):
-        l0, a, l1 = tree('1,a,2')
-
-        self.assertEqual(add_numerics(l0 + l1, (l0, l1, 1, 2)), 3)
-        self.assertEqual(add_numerics(l0 + a + l1, (l0, l1, 1, 2)), L(3) + a)
-
     def test_match_divide_numerics(self):
         a, b, i2, i3, i6, f1, f2, f3 = tree('a,b,2,3,6,1.0,2.0,3.0')
 
