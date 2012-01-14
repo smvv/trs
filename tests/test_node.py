@@ -8,6 +8,20 @@ class TestNode(unittest.TestCase):
     def setUp(self):
         self.l = [L(1), N('*', L(2), L(3)), L(4), L(5)]
 
+    def test___lt__(self):
+        self.assertTrue(L(1) < L(2))
+        self.assertFalse(L(1) < L(1))
+        self.assertFalse(L(2) < L(1))
+
+        self.assertTrue(L(2) < N('+', L(1), L(2)))
+        self.assertFalse(N('+', L(1), L(2)) < L(1))
+
+        self.assertTrue(N('^', L('a'), L(2)) < N('^', L('a'), L(3)))
+        self.assertTrue(N('^', L(2), L('a')) < N('^', L(3), L('a')))
+        self.assertTrue(N('*', L(2), N('^', L('a'), L('b')))
+                        < N('*', L(3), N('^', L('a'), L('b'))))
+        self.assertFalse(N('^', L('a'), L(3)) < N('^', L('a'), L(2)))
+
     def test_is_power_true(self):
         self.assertTrue(N('^', *self.l[:2]).is_power())
         self.assertFalse(N('+', *self.l[:2]).is_power())
