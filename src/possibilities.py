@@ -22,7 +22,6 @@ class Possibility(object):
         return '<Possibility root="%s" handler=%s args=%s>' \
                 % (self.root, self.handler.func_name, self.args)
 
-    # TODO: Add unit tests
     def __eq__(self, other):
         return self.handler == other.handler \
                and hash(self.root) == hash(other.root) \
