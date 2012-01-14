@@ -29,6 +29,17 @@ class Possibility(object):
 
 
 def filter_duplicates(items):
+    """
+    Filter duplicated possibilities. Duplicated possibilities occur in n-ary
+    nodes, the root-level node and a lower-level node will both recognize a
+    reqrite possibility within their sscope, whereas only the root-level one
+    matters.
+
+    Example: 1 + 2 + 3
+    The addition of 1 and 2 is recognized bij n-ary additions "1 + 2" and
+    "1 + 2 + 3". The "1 + 2" addition should be removed by this function.
+    """
+    # TODO: Finish according to docstrings
     unique = []
 
     for item in items:
