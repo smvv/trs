@@ -12,7 +12,9 @@ class TestRulesFractions(RulesTestCase):
         a, zero = tree('a,0')
 
         root = a / zero
-        self.assertRaises(ZeroDivisionError, match_constant_division, root)
+        with self.assertRaises(ZeroDivisionError) as cm:
+            match_constant_division(root)
+        self.assertEqual(cm.exception.message, 'Division by zero: a / 0.')
 
         root = a / 1
         possibilities = match_constant_division(root)

@@ -19,9 +19,8 @@ def match_constant_division(node):
     nominator, denominator = node
 
     # a / 0
-    # TODO: move to parser
     if denominator == 0:
-        raise ZeroDivisionError()
+        raise ZeroDivisionError('Division by zero: %s.' % node)
 
     # a / 1
     if denominator == 1:
