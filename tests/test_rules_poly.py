@@ -25,8 +25,6 @@ class TestRulesPoly(RulesTestCase):
                 [P(root, combine_polynomes, (a1, a2, 1, 2, 'a', 1))])
 
     def test_identifiers_reverse(self):
-        return
-        # TODO: Move to normalisation test
         a1, a2 = root = tree('a+a*2')
         possibilities = match_combine_polynomes(root)
         self.assertEqualPos(possibilities,
