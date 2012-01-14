@@ -340,7 +340,7 @@ class Parser(BisonParser):
 
     %%
 
-    [0-9]+    { returntoken(NUMBER); }
+    [0-9]+"."?[0-9]* { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
