@@ -50,7 +50,7 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
-    tokens = ['NUMBER', 'IDENTIFIER',
+    tokens = ['NUMBER', 'IDENTIFIER', 'POSSIBILITIES',
               'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
               'LPAREN', 'RPAREN', 'COMMA', 'HINT', 'REWRITE',
               'NEWLINE', 'QUIT', 'RAISE', 'GRAPH']
@@ -203,6 +203,7 @@ class Parser(BisonParser):
              | exp NEWLINE
              | debug NEWLINE
              | HINT NEWLINE
+             | POSSIBILITIES NEWLINE
              | REWRITE NEWLINE
              | RAISE NEWLINE
         """
@@ -214,10 +215,14 @@ class Parser(BisonParser):
             return
 
         if option == 4:
+            print '\n'.join(map(str, self.last_possibilities))
+            return
+
+        if option == 5:
             suggestion = pick_suggestion(self.last_possibilities)
             return apply_suggestion(suggestion)
 
-        if option == 5:
+        if option == 6:
             raise RuntimeError('on_line: exception raised')
 
     def on_debug(self, target, option, names, values):
@@ -345,6 +350,7 @@ class Parser(BisonParser):
     "^"       { returntoken(POW); }
     "/"       { returntoken(DIVIDE); }
     ","       { returntoken(COMMA); }
+    "??"      { returntoken(POSSIBILITIES); }
     "?"       { returntoken(HINT); }
     "@"       { returntoken(REWRITE); }
     "quit"    { yyterminate(); returntoken(QUIT); }
