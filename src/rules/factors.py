@@ -1,31 +1,35 @@
+from itertools import product, combinations
+
+from .utils import nary_node
 from ..node import OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
-from .utils import nary_node
 
 
 def match_expand(node):
     """
     a * (b + c) -> ab + ac
+    (b + c) * a -> ab + ac
+    (a + b) * (c + d) -> ac + ad + bc + bd
     """
     assert node.is_op(OP_MUL)
 
-    # TODO: fix!
-    return []
+    scope = node.get_scope()
 
     p = []
-    a = []
-    bc = []
+    leaves = []
+    additions = []
 
     for n in node.get_scope():
         if n.is_leaf():
-            a.append(n)
+            leaves.append(n)
         elif n.op == OP_ADD:
-            bc.append(n)
+            additions.append(n)
 
-    if a and bc:
-        for a_node in a:
-            for bc_node in bc:
-                p.append(P(node, expand_single, a_node, bc_node))
+    for args in product(leaves, additions):
+        p.append(P(node, expand_single, args))
+
+    for args in combinations(additions, 2):
+        p.append(P(node, expand_double, args))
 
     return p
 
@@ -35,7 +39,8 @@ def expand_single(root, args):
     Combine a leaf (a) multiplied with an addition of two expressions
     (b + c) to an addition of two multiplications.
 
-    >>> a * (b + c) -> a * b + a * c
+    a * (b + c) -> ab + ac
+    (b + c) * a -> ab + ac
     """
     a, bc = args
     b, c = bc
@@ -44,7 +49,25 @@ def expand_single(root, args):
     # Replace 'a' with the new expression
     scope[scope.index(a)] = a * b + a * c
 
-    # Remove the old addition
+    # Remove the addition
     scope.remove(bc)
+
+    return nary_node('*', scope)
+
+
+def expand_double(root, args):
+    """
+    Rewrite two multiplied additions to an addition of four multiplications.
+
+    (a + b) * (c + d) -> ac + ad + bc + bd
+    """
+    (a, b), (c, d) = ab, cd = args
+    scope = root.get_scope()
+
+    # Replace 'b + c' with the new expression
+    scope[scope.index(ab)] = a * c + a * d + b * c + b * d
+
+    # Remove the right addition
+    scope.remove(cd)
 
     return nary_node('*', scope)
