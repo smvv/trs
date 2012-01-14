@@ -4,6 +4,9 @@ from src.possibilities import MESSAGES, Possibility as P, filter_duplicates
 from src.rules.numerics import add_numerics
 from tests.test_rules_poly import tree
 
+from src.parser import Parser
+from tests.parser import ParserWrapper
+
 
 def dummy_handler(root, args):  # pragma: nocover
     pass
@@ -35,6 +38,36 @@ class TestPossibilities(unittest.TestCase):
     def test___eq__(self):
         assert self.p0 == P(self.n, dummy_handler, (self.l1, self.l2))
         assert self.p0 != self.p1
+
+    def test_multiple_input(self):
+        parser = ParserWrapper(Parser)
+        parser.run(['1+2', '3+4'])
+        possibilities = parser.parser.possibilities
+        self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
+                    '<Possibility root="3 + 4" handler=add_numerics' \
+                    ' args=(3, 4, 3, 4)>')
+
+    def test_multiple_runs(self):
+        parser = ParserWrapper(Parser)
+        parser.run(['1+2'])
+        possibilities = parser.parser.possibilities
+        self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
+                    '<Possibility root="1 + 2" handler=add_numerics' \
+                    ' args=(1, 2, 1, 2)>')
+
+        # Keep previous possibilities (skip whitespace lines)
+        parser.run(['', ' '])
+        possibilities = parser.parser.possibilities
+        self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
+                    '<Possibility root="1 + 2" handler=add_numerics' \
+                    ' args=(1, 2, 1, 2)>')
+
+        # Overwrite previous possibilities with new ones
+        parser.run(['3+4'])
+        possibilities = parser.parser.possibilities
+        self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
+                    '<Possibility root="3 + 4" handler=add_numerics' \
+                    ' args=(3, 4, 3, 4)>')
 
     def test_filter_duplicates(self):
         a, b = ab = tree('a + b')

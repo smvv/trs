@@ -20,6 +20,8 @@ from node import TYPE_OPERATOR, OP_COMMA
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
+import Queue
+
 
 # Check for n-ary operator in child nodes
 def combine(op, op_type, *nodes):
@@ -74,15 +76,30 @@ class Parser(BisonParser):
         self.timeout = kwargs.get('timeout', 0)
         self.possibilities = self.last_possibilities = []
 
+        self.read_buffer = ''
+        self.read_queue = Queue.Queue()
+
     # Override default read method with a version that prompts for input.
     def read(self, nbytes):
         if self.file == sys.stdin and self.file.closed:
             return ''
 
+        if not self.read_buffer and not self.read_queue.empty():
+            self.read_buffer = self.read_queue.get_nowait() + '\n'
+
+        if self.read_buffer:
+            read_buffer = self.read_buffer[:nbytes]
+
+            self.read_buffer = self.read_buffer[nbytes:]
+            return read_buffer
+
         try:
-            return raw_input('>>> ' if self.interactive else '') + '\n'
+            read_buffer = raw_input('>>> ' if self.interactive else '') + '\n'
         except EOFError:
             return ''
+
+        self.read_buffer = read_buffer[nbytes:]
+        return read_buffer[:nbytes]
 
     def hook_read_before(self):
         if self.possibilities:
@@ -95,14 +112,17 @@ class Parser(BisonParser):
             if self.interactive:  # pragma: nocover
                 print '  ' + '\n  '.join(map(str, items))
 
-        self.possibilities = []
-
     def hook_read_after(self, data):
         """
         This hook will be called when the read() method returned. The data
         argument points to the data read by the read() method. This hook
         function should return the data to be used by the parser.
         """
+        if not data.strip():
+            return data
+
+        self.possibilities = []
+
         import re
 
         # TODO: remove this quick preprocessing hack. This hack enables
@@ -187,7 +207,6 @@ class Parser(BisonParser):
         input :
               | input line
         """
-
         if option == 1:
             # Interactive mode is enabled if the term rewriting system is used
             # as a shell. In that case, it is useful that the shell prints the
@@ -207,20 +226,22 @@ class Parser(BisonParser):
              | REWRITE NEWLINE
              | RAISE NEWLINE
         """
-        if option in [1, 2]:
+        if option in [1, 2]:  # rule: EXP NEWLINE | DEBUG NEWLINE
             return values[0]
 
-        if option == 3:
+        if option == 3:  # rule: HINT NEWLINE
             print pick_suggestion(self.last_possibilities)
             return
 
-        if option == 4:
+        if option == 4:  # rule: POSSIBILITIES NEWLINE
             print '\n'.join(map(str, self.last_possibilities))
             return
 
-        if option == 5:
+        if option == 5:  # rule: REWRITE NEWLINE
             suggestion = pick_suggestion(self.last_possibilities)
-            return apply_suggestion(suggestion)
+            expression = apply_suggestion(suggestion)
+            self.read_queue.put_nowait(str(expression))
+            return expression
 
         if option == 6:
             raise RuntimeError('on_line: exception raised')
