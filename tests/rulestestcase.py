@@ -10,9 +10,9 @@ class RulesTestCase(unittest.TestCase):
         for p, e in zip(possibilities, expected):
             self.assertEqual(p.root, e.root)
 
-            if p.args == None:
+            if p.args == None:  # pragma: nocover
                 self.assertIsNone(e.args)
-            elif e.args == None:
+            elif e.args == None:  # pragma: nocover
                 self.assertIsNone(p.args)
             else:
                 for pair in zip(p.args, e.args):

@@ -59,9 +59,7 @@ class TestRulesNumerics(RulesTestCase):
         self.assertEqual(divide_numerics(f3 / f2, (3.0, 2.0)), 1.5)
 
     def test_add_numerics(self):
-        l0, l1 = tree('1,2')
-        self.assertEqual(add_numerics(l0 + l1, (l0, l1, 1, 2)), 3)
-
-    def test_add_numerics(self):
         l0, a, l1 = tree('1,a,2')
+
+        self.assertEqual(add_numerics(l0 + l1, (l0, l1, 1, 2)), 3)
         self.assertEqual(add_numerics(l0 + a + l1, (l0, l1, 1, 2)), L(3) + a)
