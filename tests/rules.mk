@@ -23,7 +23,6 @@ coverage: ${COVERAGE} build
 	${RM} ${COVERAGE_OUTPUT_DIR}/*
 	mkdir ${COVERAGE_OUTPUT_DIR} 2>/dev/null || true
 	for t in ${TESTS}; do \
-		echo $$t; \
 		${COVERAGE} -x test.py $$t; \
 		${COVERAGE} combine; \
 	done
@@ -33,7 +32,6 @@ coverage: ${COVERAGE} build
 	mkdir ${COVERAGE_OUTPUT_DIR} 2>/dev/null || true
 	${COVERAGE} erase
 	for t in ${TESTS}; do \
-		echo $$t; \
 		${COVERAGE} --omit ${OMIT} -x test.py $$t; \
 		${COVERAGE} --omit ${OMIT} -c; \
 	done
