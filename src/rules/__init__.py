@@ -1,5 +1,6 @@
 from ..node import OP_ADD, OP_MUL, OP_DIV, OP_POW
-from .poly import match_combine_polynomes, match_expand
+from .poly import match_combine_polynomes
+from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
         match_multiply_exponents, match_duplicate_exponent, \
         match_remove_negative_exponent, match_exponent_to_root
