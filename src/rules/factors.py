@@ -13,8 +13,6 @@ def match_expand(node):
     """
     assert node.is_op(OP_MUL)
 
-    scope = node.get_scope()
-
     p = []
     leaves = []
     additions = []
