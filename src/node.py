@@ -220,7 +220,9 @@ class ExpressionNode(Node, ExpressionBase):
         return (self[1], self[0], ExpressionLeaf(1))
 
     def get_scope(self):
-        """"""
+        """
+        Find all n nodes within the n-ary scope of this operator.
+        """
         scope = []
         #op = OP_ADD | OP_SUB if self.op & (OP_ADD | OP_SUB) else self.op
 
@@ -234,6 +236,41 @@ class ExpressionNode(Node, ExpressionBase):
 
         return scope
 
+    def equals(self, other):
+        """
+        Perform a non-strict equivalence check between two nodes:
+        - If the other node is a leaf, it cannot be equal to this node.
+        - If their operators differ, the nodes are not equal.
+        - If both nodes are additions or both are multiplications, match each
+          node in one scope to one in the other (an injective relationship).
+          Any difference in order of the scopes is irrelevant.
+        - If both nodes are divisions, the nominator and denominator have to be
+          non-strictly equal.
+        """
+        if not other.is_op(self.op):
+            return False
+
+        if self.op in (OP_ADD, OP_MUL):
+            s0 = self.get_scope()
+            s1 = set(other.get_scope())
+            matched = set()
+
+            for n0 in s0:
+                found = False
+
+                for n1 in s1 - matched:
+                    if n0.equals(n1):
+                        found = True
+                        matched.add(n1)
+                        break
+
+                if not found:
+                    return False
+        elif self.op == OP_DIV:
+            return self[0].equals(other[0]) and self[1].equals(other[1])
+
+        return True
+
 
 class ExpressionLeaf(Leaf, ExpressionBase):
     def __init__(self, *args, **kwargs):
@@ -242,12 +279,22 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         self.type = TYPE_MAP[type(args[0])]
 
     def __eq__(self, other):
+        """
+        Check strict equivalence.
+        """
         other_type = type(other)
 
         if other_type in TYPE_MAP:
             return TYPE_MAP[other_type] == self.type and self.value == other
 
         return other.type == self.type and self.value == other.value
+
+    def equals(self, other):
+        """
+        Check non-strict equivalence.
+        Between leaves, this is the same as strict equivalence.
+        """
+        return self == other
 
     def extract_polynome_properties(self):
         """

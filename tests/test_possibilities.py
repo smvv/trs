@@ -2,7 +2,7 @@ import unittest
 
 from src.possibilities import MESSAGES, Possibility as P, filter_duplicates
 from src.rules.numerics import add_numerics
-from tests.test_rules_poly import tree
+from tests.rulestestcase import tree
 
 from src.parser import Parser
 from tests.parser import ParserWrapper

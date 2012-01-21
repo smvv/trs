@@ -2,8 +2,7 @@ from src.rules.numerics import add_numerics, match_divide_numerics, \
         divide_numerics, match_multiply_numerics, multiply_numerics
 from src.possibilities import Possibility as P
 from src.node import ExpressionLeaf as L
-from tests.rulestestcase import RulesTestCase
-from tests.test_rules_poly import tree
+from tests.rulestestcase import RulesTestCase, tree
 
 
 class TestRulesNumerics(RulesTestCase):

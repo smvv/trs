@@ -2,8 +2,7 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_constant_fractions, \
         equalize_denominators, add_nominators
 from src.possibilities import Possibility as P
-from tests.test_rules_poly import tree
-from tests.rulestestcase import RulesTestCase
+from tests.rulestestcase import RulesTestCase, tree
 
 
 class TestRulesFractions(RulesTestCase):

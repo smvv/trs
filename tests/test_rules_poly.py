@@ -1,13 +1,7 @@
 from src.rules.poly import match_combine_polynomes, combine_polynomes
 from src.rules.numerics import add_numerics
 from src.possibilities import Possibility as P
-from src.parser import Parser
-from tests.parser import ParserWrapper
-from tests.rulestestcase import RulesTestCase
-
-
-def tree(exp, **kwargs):
-    return ParserWrapper(Parser, **kwargs).run([exp])
+from tests.rulestestcase import RulesTestCase, tree
 
 
 class TestRulesPoly(RulesTestCase):

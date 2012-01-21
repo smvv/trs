@@ -1,6 +1,7 @@
 import unittest
 
 from src.node import ExpressionNode as N, ExpressionLeaf as L
+from tests.rulestestcase import tree
 
 
 class TestNode(unittest.TestCase):
@@ -88,3 +89,48 @@ class TestNode(unittest.TestCase):
     def test_get_scope_nested_deep(self):
         plus = N('+', N('+', N('+', *self.l[:2]), self.l[2]), self.l[3])
         self.assertEqual(plus.get_scope(), self.l)
+
+    def test_equals_node_leaf(self):
+        a, b = plus = tree('a + b')
+
+        self.assertFalse(a.equals(plus))
+        self.assertFalse(plus.equals(a))
+
+    def test_equals_other_op(self):
+        plus, mul = tree('a + b, a * b')
+
+        self.assertFalse(plus.equals(mul))
+
+    def test_equals_add(self):
+        p0, p1, p2, p3 = tree('a + b,a + b,b + a, a + c')
+
+        self.assertTrue(p0.equals(p1))
+        self.assertTrue(p0.equals(p2))
+        self.assertFalse(p0.equals(p3))
+        self.assertFalse(p2.equals(p3))
+
+    def test_equals_mul(self):
+        m0, m1, m2, m3 = tree('a * b,a * b,b * a, a * c')
+
+        self.assertTrue(m0.equals(m1))
+        self.assertTrue(m0.equals(m2))
+        self.assertFalse(m0.equals(m3))
+        self.assertFalse(m2.equals(m3))
+
+    def test_equals_nary(self):
+        p0, p1, p2, p3, p4 = \
+                tree('a + b + c,a + c + b,b + a + c,b + c + a, a + b + d')
+
+        self.assertTrue(p0.equals(p1))
+        self.assertTrue(p0.equals(p2))
+        self.assertTrue(p0.equals(p3))
+        self.assertTrue(p1.equals(p2))
+        self.assertTrue(p1.equals(p3))
+        self.assertTrue(p2.equals(p3))
+        self.assertFalse(p2.equals(p4))
+
+    def test_equals_div(self):
+        d0, d1, d2 = tree('a / b,a / b,b / a')
+
+        self.assertTrue(d0.equals(d1))
+        self.assertFalse(d0.equals(d2))
