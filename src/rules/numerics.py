@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from .utils import nary_node
-from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL
+from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -11,9 +11,15 @@ def add_numerics(root, args):
     Combine two constants to a single constant in an n-ary addition.
 
     Example:
-    2 + 3  ->  5
+    2 + 3    ->  5
+    2 + -3   ->  -1
+    -2 + 3   ->  1
+    -2 + -3  ->  -5
     """
     n0, n1, c0, c1 = args
+
+    c0 = (-c0[0].value) if c0.is_op(OP_NEG) else c0.value
+    c1 = (-c1[0].value) if c1.is_op(OP_NEG) else c1.value
 
     scope = root.get_scope()
 

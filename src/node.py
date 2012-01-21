@@ -189,6 +189,9 @@ class ExpressionNode(Node, ExpressionBase):
         >>> n2 = N('*', N('^', r, e), c)
         >>> n2.extract_polynome()
         (c, r, e)
+        >>> n3 = N('-', r)
+        >>> n3.extract_polynome()
+        (1, -r, 1)
         """
         # TODO: change "get_polynome" -> "extract_polynome".
         # TODO: change retval of c * r ^ e to (c, r, e).
@@ -197,6 +200,10 @@ class ExpressionNode(Node, ExpressionBase):
         # rule: r ^ e -> (1, r, e)
         if self.is_power():
             return (ExpressionLeaf(1), self[0], self[1])
+
+        # rule: -r -> (1, r, 1)
+        if self.is_op(OP_NEG):
+            return (ExpressionLeaf(1), -self[0], ExpressionLeaf(1))
 
         if self.op != OP_MUL:
             return

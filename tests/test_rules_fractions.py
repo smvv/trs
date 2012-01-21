@@ -68,6 +68,19 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqualPos(possibilities,
                 [P(root, add_nominators, (n1, n3))])
 
+    def test_add_constant_fractions_with_negation(self):
+        a, b, c, l1, l2, l3, l4 = tree('a,b,c,1,2,3,4')
+
+        (((n0, n1), n2), n3), n4 = root = a + l2 / l2 + b + (-l3 / l4) + c
+        possibilities = match_add_constant_fractions(root)
+        self.assertEqualPos(possibilities,
+                [P(root, equalize_denominators, (n1, n3, 4))])
+
+        (((n0, n1), n2), n3), n4 = root = a + l2 / l4 + b + (-l3 / l4) + c
+        possibilities = match_add_constant_fractions(root)
+        self.assertEqualPos(possibilities,
+                [P(root, add_nominators, (n1, n3))])
+
     def test_equalize_denominators(self):
         a, b, l1, l2, l3, l4 = tree('a,b,1,2,3,4')
 
@@ -79,8 +92,22 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
                               (l2 * a) / l4 + b / l4)
 
+        #2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4  # Equalize denominators
+        n0, n1 = root = l1 / l2 + (-l3 / l4)
+        self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
+                              l2 / l4 + (-l3 / l4))
+
+        #2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4  # Equalize denominators
+        n0, n1 = root = a / l2 + (-b / l4)
+        self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
+                              (l2 * a) / l4 + (-b / l4))
+
     def test_add_nominators(self):
         a, b, c = tree('a,b,c')
         n0, n1 = root = a / b + c / b
-
         self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + c) / b)
+
+        #2 / 4 + 3 / -4  ->  2 / 4 + -3 / 4
+        #2 / 4 - 3 / 4  ->  -1 / 4  # Equal denominators, so nominators can
+        n0, n1 = root = a / b + (-c / b)
+        self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + (-c)) / b)

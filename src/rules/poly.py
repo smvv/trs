@@ -1,9 +1,13 @@
 from itertools import combinations
 
-from ..node import OP_ADD
+from ..node import OP_ADD, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from .utils import nary_node
 from .numerics import add_numerics
+
+
+def is_numeric_or_negated_numeric(n):
+    return n.is_numeric() or (n.is_op(OP_NEG) and n[0].is_numeric())
 
 
 def match_combine_polynomes(node, verbose=False):
@@ -49,9 +53,12 @@ def match_combine_polynomes(node, verbose=False):
             # roots, or: same root and exponent -> combine coefficients.
             # TODO: Addition with zero, e.g. a + 0 -> a
             if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
-                    and r0.is_numeric() and r1.is_numeric():
-                # 2 + 3 -> 5
-                p.append(P(node, add_numerics, (n0, n1, r0.value, r1.value)))
+                    and all(map(is_numeric_or_negated_numeric, [r0, r1])):
+                # 2 + 3    ->  5
+                # 2 + -3   ->  -1
+                # -2 + 3   ->  1
+                # -2 + -3  ->  -5
+                p.append(P(node, add_numerics, (n0, n1, r0, r1)))
             elif c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
                 # 2a + 2a -> 4a
                 # a + 2a -> 3a
