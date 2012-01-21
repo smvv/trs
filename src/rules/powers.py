@@ -138,7 +138,7 @@ def add_exponents(root, args):
     return nary_node('*', scope)
 
 
-MESSAGES[add_exponents] = _('Add the exponents {1} and {2}, which'
+MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}, which'
         ' will reduce to {1[0]}^({1[1]} + {2[1]}).')
 
 

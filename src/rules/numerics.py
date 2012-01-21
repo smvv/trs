@@ -3,6 +3,7 @@ from itertools import combinations
 from .utils import nary_node
 from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
+from ..translate import _
 
 
 def add_numerics(root, args):
@@ -23,6 +24,10 @@ def add_numerics(root, args):
     scope.remove(n1)
 
     return nary_node('+', scope)
+
+
+MESSAGES[add_numerics] = _('Combine the constants {3} and {4}, which'
+        ' will reduce to {3} + {4}.')
 
 
 #def match_subtract_numerics(node):
