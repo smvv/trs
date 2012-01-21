@@ -15,8 +15,7 @@ class Possibility(object):
         if self.handler in MESSAGES:
             return MESSAGES[self.handler].format(self.root, *self.args)
 
-        return '<Possibility root="%s" handler=%s args=%s>' \
-                % (self.root, self.handler.func_name, self.args)
+        return self.__repr__()
 
     def __repr__(self):
         return '<Possibility root="%s" handler=%s args=%s>' \
