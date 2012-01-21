@@ -14,8 +14,9 @@ class TestRewrite(TestCase):
         try:
             for i, exp in enumerate(rewrite_chain[:-1]):
                 self.assertEqual(str(rewrite(exp)), str(rewrite_chain[i+1]))
-        except AssertionError:
-            print exp, '->', rewrite_chain[i+1]
+        except AssertionError:  # pragma: nocover
+            print 'rewrite failed:', exp, '->', rewrite_chain[i+1]
+            print 'rewrite chain:', rewrite_chain
             raise
 
     def test_addition_rewrite(self):
