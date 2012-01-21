@@ -120,6 +120,8 @@ def apply_expressions(base_class, expressions, fail=True, silent=False,
 
             if fail:
                 raise
+
+
 def graph(parser, *exp, **kwargs):
     return generate_graph(ParserWrapper(parser, **kwargs).run(exp))
 

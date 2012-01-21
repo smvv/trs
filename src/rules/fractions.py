@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from .utils import nary_node, least_common_multiple
-from ..node import ExpressionLeaf as L, OP_DIV, OP_ADD, OP_MUL
+from ..node import ExpressionLeaf as L, OP_DIV, OP_ADD, OP_MUL, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -63,15 +63,23 @@ def match_add_constant_fractions(node):
     1 / 2 + 3 / 4  ->  2 / 4 + 3 / 4  # Equalize denominators
     2 / 4 + 3 / 4  ->  5 / 4          # Equal denominators, so nominators can
                                       # be added
+    2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4  # Equalize denominators
+    2 / 4 - 3 / 4  ->  -1 / 4         # Equal denominators, so nominators can
+                                      # be subtracted
     """
     assert node.is_op(OP_ADD)
 
     p = []
-    fractions = filter(lambda n: n.is_op(OP_DIV), node.get_scope())
+
+    def is_division(node):
+        return node.is_op(OP_DIV) or \
+                (node.is_op(OP_NEG) and node[0].is_op(OP_DIV))
+
+    fractions = filter(is_division, node.get_scope())
 
     for a, b in combinations(fractions, 2):
-        na, da = a
-        nb, db = b
+        na, da = a if a.is_op(OP_DIV) else a[0]
+        nb, db = b if b.is_op(OP_DIV) else b[0]
 
         if da == db:
             # Equal denominators, add nominators to create a single fraction
@@ -96,28 +104,40 @@ def equalize_denominators(root, args):
     scope = root.get_scope()
 
     for fraction in args[:2]:
-        n, d = fraction
+        n, d = fraction[0] if fraction.is_op(OP_NEG) else fraction
         mult = denom / d.value
 
         if mult != 1:
             n = L(n.value * mult) if n.is_numeric() else L(mult) * n
-            scope[scope.index(fraction)] = n / L(d.value * mult)
+
+            if fraction.is_op(OP_NEG):
+                scope[scope.index(fraction)] = -(n / L(d.value * mult))
+            else:
+                scope[scope.index(fraction)] = n / L(d.value * mult)
 
     return nary_node('+', scope)
 
 
 def add_nominators(root, args):
     """
-    a / b + c / b  ->  (a + c) / b
+    a / b + c / b     ->  (a + c) / b
+    a / b + (-c / b)  ->  (a + (-c)) / b
     """
+    # TODO: is 'add' Appropriate when rewriting to "(a + (-c)) / b"?
     ab, cb = args
     a, b = ab
-    c = cb[0]
+
+    if cb[0].is_op(OP_NEG):
+        c = cb[0][0]
+        substitution = (a + (-c)) / b
+    else:
+        c = cb[0]
+        substitution = (a + c) / b
 
     scope = root.get_scope()
 
     # Replace the left node with the new expression
-    scope[scope.index(ab)] = (a + c) / b
+    scope[scope.index(ab)] = substitution
 
     # Remove the right node
     scope.remove(cb)
@@ -127,8 +147,10 @@ def add_nominators(root, args):
 
 def match_expand_and_add_fractions(node):
     """
-    a * b / c + d * b / c  ->  (a + d) * (b / c)
+    a * b / c + d * b / c      ->  (a + d) * (b / c)
+    a * b / c + (- d * b / c)  ->  (a + (-d)) * (b / c)
     """
+    # TODO: is 'add' Appropriate when rewriting to "(a + (-d)) / * (b / c)"?
     assert node.is_op(OP_MUL)
 
     p = []

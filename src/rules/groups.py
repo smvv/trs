@@ -18,6 +18,7 @@ def match_combine_groups(node):
     ab + 2ab  ->  3ab
     ab + ba   ->  2ab
     """
+    # TODO: handle OP_NEG nodes
     assert node.is_op(OP_ADD)
 
     p = []

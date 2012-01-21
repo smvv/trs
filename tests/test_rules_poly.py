@@ -36,13 +36,11 @@ class TestRulesPoly(RulesTestCase):
         self.assertEqualPos(possibilities,
                 [P(root, combine_polynomes, (a1, a2, 2, 1, 'a', 3))])
 
-
     def test_identifiers_coeff_exponent_both(self):
         a1, a2 = root = tree('2a3+2a3')
         possibilities = match_combine_polynomes(root)
         self.assertEqualPos(possibilities,
                 [P(root, combine_polynomes, (a1, a2, 2, 2, 'a', 3))])
-
 
     def test_basic_subexpressions(self):
         a_b, c, d = tree('a+b,c,d')

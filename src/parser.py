@@ -79,6 +79,9 @@ class Parser(BisonParser):
         self.read_buffer = ''
         self.read_queue = Queue.Queue()
 
+        self.subtree_map = {}
+        self.root_node = None
+
     # Override default read method with a version that prompts for input.
     def read(self, nbytes):
         if self.file == sys.stdin and self.file.closed:
@@ -181,10 +184,42 @@ class Parser(BisonParser):
                 or retval.type != TYPE_OPERATOR or retval.op not in RULES:
             return retval
 
+        # Update the subtree map to let the subtree point to its parent node.
+        parent_nodes = self.subtree_map.keys()
+
+        for child in retval:
+            if child in parent_nodes:
+                self.subtree_map[child] = retval
+
         for handler in RULES[retval.op]:
-            self.possibilities.extend(handler(retval))
+            possibilities = handler(retval)
+
+            # Record the subtree root node in order to avoid tree traversal.
+            # At this moment, the node is the root node since the expression is
+            # parser using the left-innermost parsing strategy.
+            for p in possibilities:
+                self.subtree_map[p.root] = None
+
+            self.possibilities.extend(possibilities)
 
         return retval
+
+    def display_hint(self):
+        print pick_suggestion(self.last_possibilities)
+
+    def display_possibilities(self):
+        print '\n'.join(map(str, self.last_possibilities))
+
+    def rewrite(self):
+        suggestion = pick_suggestion(self.last_possibilities)
+
+        if not suggestion:
+            return self.root_node
+
+        expression = apply_suggestion(self.root_node, self.subtree_map,
+                                    suggestion)
+        self.read_queue.put_nowait(str(expression))
+        return expression
 
     #def hook_run(self, filename, retval):
     #    return retval
@@ -226,22 +261,23 @@ class Parser(BisonParser):
              | REWRITE NEWLINE
              | RAISE NEWLINE
         """
-        if option in [1, 2]:  # rule: EXP NEWLINE | DEBUG NEWLINE
+        if option == 1:  # rule: EXP NEWLINE
+            self.root_node = values[0]
+            return values[0]
+
+        if option == 2:  # rule: DEBUG NEWLINE
             return values[0]
 
         if option == 3:  # rule: HINT NEWLINE
-            print pick_suggestion(self.last_possibilities)
+            self.display_hint()
             return
 
         if option == 4:  # rule: POSSIBILITIES NEWLINE
-            print '\n'.join(map(str, self.last_possibilities))
+            self.display_possibilities()
             return
 
         if option == 5:  # rule: REWRITE NEWLINE
-            suggestion = pick_suggestion(self.last_possibilities)
-            expression = apply_suggestion(suggestion)
-            self.read_queue.put_nowait(str(expression))
-            return expression
+            return self.rewrite()
 
         if option == 6:
             raise RuntimeError('on_line: exception raised')

@@ -15,8 +15,7 @@ class Possibility(object):
         if self.handler in MESSAGES:
             return MESSAGES[self.handler].format(self.root, *self.args)
 
-        return '<Possibility root="%s" handler=%s args=%s>' \
-                % (self.root, self.handler.func_name, self.args)
+        return self.__repr__()
 
     def __repr__(self):
         return '<Possibility root="%s" handler=%s args=%s>' \
@@ -32,11 +31,11 @@ def filter_duplicates(possibilities):
     """
     Filter duplicated possibilities. Duplicated possibilities occur in n-ary
     nodes, the root-level node and a lower-level node will both recognize a
-    rewrite possibility within their sscope, whereas only the root-level one
+    rewrite possibility within their scope, whereas only the root-level one
     matters.
 
     Example: 1 + 2 + 3
-    The addition of 1 and 2 is recognized bij n-ary additions "1 + 2" and
+    The addition of 1 and 2 is recognized by n-ary additions "1 + 2" and
     "1 + 2 + 3". The "1 + 2" addition should be removed by this function.
     """
     features = []
@@ -53,10 +52,37 @@ def filter_duplicates(possibilities):
 
 
 def pick_suggestion(possibilities):
+    if not possibilities:
+        return
+
     # TODO: pick the best suggestion.
     suggestion = 0
     return possibilities[suggestion]
 
 
-def apply_suggestion(suggestion):
-    return suggestion.handler(suggestion.root, suggestion.args)
+def apply_suggestion(root, subtree_map, suggestion):
+    # clone the root node before modifying. After deep copying the root node,
+    # the subtree_map cannot be used since the hash() of each node in the deep
+    # copied root node has changed.
+    #root_clone = root.clone()
+
+    subtree = suggestion.handler(suggestion.root, suggestion.args)
+
+    if suggestion.root in subtree_map:
+        parent_node = subtree_map[suggestion.root]
+    else:
+        parent_node = None
+
+    # There is either a parent node or the subtree is the root node.
+    # FIXME: FAIL: test_diagnostic_test_application in tests/test_b1_ch08.py
+    #try:
+    #    assert bool(parent_node) != (subtree == root)
+    #except:
+    #    print 'parent_node: %s' % (str(parent_node))
+    #    print 'subtree: %s == %s' % (str(subtree), str(root))
+    #    raise
+
+    if parent_node:
+        parent_node.substitute(suggestion.root, subtree)
+        return root
+    return subtree
