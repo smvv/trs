@@ -129,6 +129,11 @@ class TestNode(unittest.TestCase):
         self.assertTrue(p2.equals(p3))
         self.assertFalse(p2.equals(p4))
 
+    def test_equals_nary_mary(self):
+        m0, m1 = tree('ab,2ab')
+
+        self.assertFalse(m0.equals(m1))
+
     def test_equals_div(self):
         d0, d1, d2 = tree('a / b,a / b,b / a')
 

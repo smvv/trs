@@ -253,6 +253,12 @@ class ExpressionNode(Node, ExpressionBase):
         if self.op in (OP_ADD, OP_MUL):
             s0 = self.get_scope()
             s1 = set(other.get_scope())
+
+            # Scopes sould be of equal size
+            if len(s0) != len(s1):
+                return False
+
+            # Each node in one scope should have an image node in the other
             matched = set()
 
             for n0 in s0:
