@@ -32,11 +32,11 @@ def filter_duplicates(possibilities):
     """
     Filter duplicated possibilities. Duplicated possibilities occur in n-ary
     nodes, the root-level node and a lower-level node will both recognize a
-    rewrite possibility within their sscope, whereas only the root-level one
+    rewrite possibility within their scope, whereas only the root-level one
     matters.
 
     Example: 1 + 2 + 3
-    The addition of 1 and 2 is recognized bij n-ary additions "1 + 2" and
+    The addition of 1 and 2 is recognized by n-ary additions "1 + 2" and
     "1 + 2 + 3". The "1 + 2" addition should be removed by this function.
     """
     features = []
