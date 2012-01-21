@@ -1,6 +1,7 @@
 # vim: set fileencoding=utf-8 :
 import os.path
 import sys
+import copy
 
 sys.path.insert(0, os.path.realpath('external'))
 
@@ -59,6 +60,9 @@ def to_expression(obj):
 
 
 class ExpressionBase(object):
+    def clone(self):
+        return copy.deepcopy(self)
+
     def __lt__(self, other):
         """
         Comparison between this expression{node,leaf} and another
@@ -160,6 +164,9 @@ class ExpressionNode(Node, ExpressionBase):
             return self.op == other.op and self.nodes == other.nodes
 
         return False
+
+    def substitute(self, old_child, new_child):
+        self.nodes[self.nodes.index(old_child)] = new_child
 
     def graph(self):  # pragma: nocover
         return generate_graph(self)
