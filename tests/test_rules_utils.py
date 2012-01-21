@@ -1,7 +1,6 @@
 from src.node import ExpressionNode as N
 from src.rules.utils import nary_node, is_prime, least_common_multiple
-from tests.test_rules_poly import tree
-from tests.rulestestcase import RulesTestCase
+from tests.rulestestcase import RulesTestCase, tree
 
 
 class TestRulesUtils(RulesTestCase):

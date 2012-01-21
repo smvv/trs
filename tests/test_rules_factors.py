@@ -1,7 +1,6 @@
 from src.rules.factors import match_expand, expand_single, expand_double
 from src.possibilities import Possibility as P
-from tests.rulestestcase import RulesTestCase
-from tests.test_rules_poly import tree
+from tests.rulestestcase import RulesTestCase, tree
 
 
 class TestRulesFactors(RulesTestCase):

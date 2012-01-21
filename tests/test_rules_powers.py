@@ -6,8 +6,7 @@ from src.rules.powers import match_add_exponents, add_exponents, \
         match_exponent_to_root, exponent_to_root
 from src.possibilities import Possibility as P
 from src.node import ExpressionNode as N
-from tests.test_rules_poly import tree
-from tests.rulestestcase import RulesTestCase
+from tests.rulestestcase import RulesTestCase, tree
 
 
 class TestRulesPowers(RulesTestCase):

@@ -1,5 +1,11 @@
 import unittest
 from src.node import ExpressionNode
+from src.parser import Parser
+from tests.parser import ParserWrapper
+
+
+def tree(exp, **kwargs):
+    return ParserWrapper(Parser, **kwargs).run([exp])
 
 
 class RulesTestCase(unittest.TestCase):
