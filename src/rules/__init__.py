@@ -11,8 +11,8 @@ from .fractions import match_constant_division, match_add_constant_fractions, \
 
 
 RULES = {
-        OP_ADD: [match_add_constant_fractions, match_combine_groups, \
-                 match_combine_polynomes],
+        OP_ADD: [match_add_constant_fractions, match_combine_polynomes, \
+                 match_combine_groups],
         OP_MUL: [match_expand, match_add_exponents, \
                  match_expand_and_add_fractions],
         OP_DIV: [match_subtract_exponents, match_divide_numerics, \
