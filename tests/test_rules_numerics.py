@@ -17,6 +17,7 @@ class TestRulesNumerics(RulesTestCase):
     def test_add_numerics_negations(self):
         l0, a, l1 = tree('1,a,2')
 
+        self.assertEqual(add_numerics(-l0 + l1, (-l0, l1, -L(1), L(2))), 1)
         self.assertEqual(add_numerics(l0 + -l1, (l0, -l1, L(1), -L(2))), -1)
         self.assertEqual(add_numerics(l0 + a + -l1, (l0, -l1, L(1), -L(2))),
                          L(-1) + a)
