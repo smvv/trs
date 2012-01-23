@@ -1,7 +1,7 @@
 from itertools import combinations
 
-from .utils import nary_node
-from ..node import ExpressionLeaf as Leaf, OP_DIV, OP_MUL, OP_NEG
+from ..node import ExpressionLeaf as Leaf, Scope, nary_node, OP_DIV, OP_MUL, \
+        OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -28,15 +28,15 @@ def add_numerics(root, args):
     else:
         c1 = c1.value
 
-    scope = root.get_scope()
+    scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope[scope.index(n0)] = Leaf(c0 + c1)
+    scope.remove(n0, Leaf(c0 + c1))
 
     # Remove the right node
     scope.remove(n1)
 
-    return nary_node('+', scope)
+    return scope.as_nary_node()
 
 
 MESSAGES[add_numerics] = _('Combine the constants {1} and {2}, which'
@@ -119,7 +119,7 @@ def match_multiply_numerics(node):
     p = []
     numerics = []
 
-    for n in node.get_scope():
+    for n in Scope(node):
         if n.is_numeric():
             numerics.append((n, n.value))
         elif n.is_op(OP_NEG) and n[0].is_numeric():
@@ -147,7 +147,7 @@ def multiply_numerics(root, args):
     else:
         substitution = -Leaf(-value)
 
-    for n in root.get_scope():
+    for n in Scope(root):
         if hash(n) == hash(n0):
             # Replace the left node with the new expression
             scope.append(substitution)
