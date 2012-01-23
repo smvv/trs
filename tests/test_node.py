@@ -1,6 +1,6 @@
 import unittest
 
-from src.node import ExpressionNode as N, ExpressionLeaf as L
+from src.node import ExpressionNode as N, ExpressionLeaf as L, OP_ADD
 from tests.rulestestcase import tree
 
 
@@ -23,7 +23,26 @@ class TestNode(unittest.TestCase):
                         < N('*', L(3), N('^', L('a'), L('b'))))
         self.assertFalse(N('^', L('a'), L(3)) < N('^', L('a'), L(2)))
 
-    def test_is_power_true(self):
+    def test_is_op(self):
+        self.assertTrue(N('+', *self.l[:2]).is_op(OP_ADD))
+        self.assertFalse(N('-', *self.l[:2]).is_op(OP_ADD))
+
+    def test_is_op_or_negated(self):
+        self.assertTrue(N('+', *self.l[:2]).is_op_or_negated(OP_ADD))
+        self.assertTrue(N('-', N('+', *self.l[:2])).is_op_or_negated(OP_ADD))
+        self.assertFalse(N('-', *self.l[:2]).is_op_or_negated(OP_ADD))
+
+    def test_is_leaf(self):
+        self.assertTrue(L(2).is_leaf())
+        self.assertFalse(N('+', *self.l[:2]).is_leaf())
+
+    def test_is_leaf_or_negated(self):
+        self.assertTrue(L(2).is_leaf_or_negated())
+        self.assertTrue(N('-', L(2)).is_leaf_or_negated())
+        self.assertFalse(N('+', *self.l[:2]).is_leaf_or_negated())
+        self.assertFalse(N('-', N('+', *self.l[:2])).is_leaf_or_negated())
+
+    def test_is_power(self):
         self.assertTrue(N('^', *self.l[:2]).is_power())
         self.assertFalse(N('+', *self.l[:2]).is_power())
 

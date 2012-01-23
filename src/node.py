@@ -104,8 +104,26 @@ class ExpressionBase(object):
     def is_op(self, op):
         return not self.is_leaf() and self.op == op
 
+    def is_op_or_negated(self, op):
+        if self.is_leaf():
+            return False
+
+        if self.op == OP_NEG:
+            return self[0].is_op(op)
+
+        return self.op == op
+
     def is_leaf(self):
         return self.type != TYPE_OPERATOR
+
+    def is_leaf_or_negated(self):
+        if  self.is_leaf():
+            return True
+
+        if self.is_op(OP_NEG):
+            return self[0].is_leaf()
+
+        return False
 
     def is_power(self):
         return not self.is_leaf() and self.op == OP_POW
