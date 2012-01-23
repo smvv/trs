@@ -1,7 +1,6 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, Scope, nary_node, OP_DIV, OP_MUL, \
-        OP_NEG
+from ..node import ExpressionLeaf as Leaf, Scope, OP_DIV, OP_MUL, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -147,12 +146,12 @@ def multiply_numerics(root, args):
     else:
         substitution = -Leaf(-value)
 
-    for n in Scope(root):
-        if hash(n) == hash(n0):
-            # Replace the left node with the new expression
-            scope.append(substitution)
-        elif hash(n) != hash(n1):
-            # Remove the right node
-            scope.append(n)
+    scope = Scope(root)
 
-    return nary_node('*', scope)
+    # Replace the left node with the new expression
+    scope.remove(n0, substitution)
+
+    # Remove the right node
+    scope.remove(n1)
+
+    return scope.as_nary_node()
