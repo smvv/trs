@@ -17,7 +17,7 @@ class TestRulesPowers(RulesTestCase):
 
         possibilities = match_add_exponents(root)
         self.assertEqualPos(possibilities,
-                [P(root, add_exponents, (n0, n1))])
+                [P(root, add_exponents, (n0, n1, a, p, q))])
 
     def test_match_add_exponents_ternary(self):
         a, p, q, r = tree('a,p,q,r')
@@ -25,9 +25,9 @@ class TestRulesPowers(RulesTestCase):
 
         possibilities = match_add_exponents(root)
         self.assertEqualPos(possibilities,
-                [P(root, add_exponents, (n0, n1)),
-                 P(root, add_exponents, (n0, n2)),
-                 P(root, add_exponents, (n1, n2))])
+                [P(root, add_exponents, (n0, n1, a, p, q)),
+                 P(root, add_exponents, (n0, n2, a, p, r)),
+                 P(root, add_exponents, (n1, n2, a, q, r))])
 
     def test_match_add_exponents_multiple_identifiers(self):
         a, b, p, q = tree('a,b,p,q')
@@ -35,8 +35,8 @@ class TestRulesPowers(RulesTestCase):
 
         possibilities = match_add_exponents(root)
         self.assertEqualPos(possibilities,
-                [P(root, add_exponents, (a0, a1)),
-                 P(root, add_exponents, (b0, b1))])
+                [P(root, add_exponents, (a0, a1, a, p, q)),
+                 P(root, add_exponents, (b0, b1, b, p, q))])
 
     def test_match_subtract_exponents_powers(self):
         a, p, q = tree('a,p,q')
@@ -103,7 +103,7 @@ class TestRulesPowers(RulesTestCase):
         a, p, q = tree('a,p,q')
         n0, n1 = root = a ** p * a ** q
 
-        self.assertEqualNodes(add_exponents(root, (n0, n1)), a ** (p + q))
+        self.assertEqualNodes(add_exponents(root, (n0, n1, a, p, q)), a ** (p + q))
 
     def test_subtract_exponents(self):
         a, p, q = tree('a,p,q')

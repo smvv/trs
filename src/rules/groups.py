@@ -37,13 +37,16 @@ def match_combine_groups(node):
             for i, sub_node in enumerate(scope):
                 if sub_node.is_numeric():
                     others = [scope[j] for j in range(i) + range(i + 1, l)]
-                    g = others[0] if len(others) == 1 else Node('*', *others)
+
+                    if len(others) == 1:
+                        g = others[0]
+                    else:
+                        g = Node('*', *others)
+
                     groups.append((sub_node, g, n))
 
-    #print [map(str, group) for group in groups]
     for g0, g1 in combinations(groups, 2):
         if g0[1].equals(g1[1]):
-            #print type(g0[1]), str(g0[1]), 'equals', type(g1[1]), str(g1[1])
             p.append(P(node, combine_groups, g0 + g1))
 
     return p

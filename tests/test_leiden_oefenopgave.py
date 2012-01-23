@@ -2,11 +2,14 @@ from tests.rulestestcase import RulesTestCase as TestCase, rewrite
 
 
 class TestLeidenOefenopgave(TestCase):
-    def test_1(self):
+    def test_1_1(self):
         for chain in [['-5(x2 - 3x + 6)', '-5(x ^ 2 - 3x) - 5 * 6',
                        '-5 * x ^ 2 - 5 * -3x - 5 * 6',
                        '-5 * x ^ 2 - -15x - 5 * 6',
                        # FIXME: '-5 * x ^ 2 - 5 * -3x - 30',
+                       # FIXME: '-5 * x ^ 2 - -15x - 5 * 6',
+                       # FIXME: '-5 * x ^ 2 + 15x - 5 * 6',
+                       # FIXME: '-5 * x ^ 2 + 15x - 30',
                        ], #'-30 + 15 * x - 5 * x ^ 2'],
                      ]:
             self.assertRewrite(chain)
@@ -22,6 +25,56 @@ class TestLeidenOefenopgave(TestCase):
                 ('(4x + 5) * -(5 - 4x)', '16x^2 - 25'),
                 ]:
             self.assertEqual(str(rewrite(exp)), solution)
+
+    def test_1_2(self):
+        for chain in [['(x+1)^3', '(x + 1)(x + 1) ^ 2',
+                '(x + 1)(x + 1)(x + 1)',
+                '(xx + x * 1 + 1x + 1 * 1)(x + 1)',
+                '(x ^ (1 + 1) + x * 1 + 1x + 1 * 1)(x + 1)',
+                '(x ^ 2 + x * 1 + 1x + 1 * 1)(x + 1)',
+                '(x ^ 2 + (1 + 1)x + 1 * 1)(x + 1)',
+                '(x ^ 2 + 2x + 1 * 1)(x + 1)',
+                '(x ^ 2 + 2x + 1)(x + 1)',
+                '(x ^ 2 + 2x)x + (x ^ 2 + 2x) * 1 + 1x + 1 * 1',
+                'x * x ^ 2 + x * 2x + (x ^ 2 + 2x) * 1 + 1x + 1 * 1',
+                'x ^ (1 + 2) + x * 2x + (x ^ 2 + 2x) * 1 + 1x + 1 * 1',
+                'x ^ 3 + x * 2x + (x ^ 2 + 2x) * 1 + 1x + 1 * 1',
+                'x ^ 3 + x ^ (1 + 1) * 2 + (x ^ 2 + 2x) * 1 + 1x + 1 * 1',
+                'x ^ 3 + x ^ 2 * 2 + (x ^ 2 + 2x) * 1 + 1x + 1 * 1',
+                'x ^ 3 + x ^ 2 * 2 + 1 * x ^ 2 + 1 * 2x + 1x + 1 * 1',
+                'x ^ 3 + (2 + 1) * x ^ 2 + 1 * 2x + 1x + 1 * 1',
+                'x ^ 3 + 3 * x ^ 2 + 1 * 2x + 1x + 1 * 1',
+                'x ^ 3 + 3 * x ^ 2 + 2x + 1x + 1 * 1',
+                'x ^ 3 + 3 * x ^ 2 + (2 + 1)x + 1 * 1',
+                'x ^ 3 + 3 * x ^ 2 + 3x + 1 * 1',
+                'x ^ 3 + 3 * x ^ 2 + 3x + 1',
+                ]
+            ]:
+            self.assertRewrite(chain)
+
+    def test_1_3(self):
+        # (x+1)^2 -> x^2 + 2x + 1
+        for chain in [['(x+1)^2', '(x + 1)(x + 1)',
+                       'xx + x * 1 + 1x + 1 * 1',
+                       'x ^ (1 + 1) + x * 1 + 1x + 1 * 1',
+                       'x ^ 2 + x * 1 + 1x + 1 * 1',
+                       'x ^ 2 + (1 + 1)x + 1 * 1',
+                       'x ^ 2 + 2x + 1 * 1',
+                       'x ^ 2 + 2x + 1'],
+                     ]:
+            self.assertRewrite(chain)
+
+    def test_1_4(self):
+        # (x-1)^2 -> x^2 - 2x + 1
+        for chain in [['(x-1)^2', '(x - 1)(x - 1)',
+                       'xx + x * -1 - 1x - 1 * -1',
+                       'x ^ (1 + 1) + x * -1 - 1x - 1 * -1',
+                       'x ^ 2 + x * -1 - 1x - 1 * -1',
+                       # FIXME: 'x ^ 2 + (-1 - 1)x - 1 * -1',
+                       # FIXME: 'x ^ 2 - 2x - 1 * -1',
+                       # FIXME: 'x ^ 2 - 2x + 1',
+                     ]]:
+            self.assertRewrite(chain)
 
     def test_2(self):
         pass

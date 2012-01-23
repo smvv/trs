@@ -19,3 +19,46 @@
 
  - rewrite match_combine_polynomes to an even more generic form:
    match_combine_factors.
+
+ - Fix division by zero caused by "0/0".
+
+smvv@multivac ~/work/trs $ printf "a/0\n??" | ./main.py
+Traceback (most recent call last):
+  File "./main.py", line 75, in <module>
+    main()
+  File "./main.py", line 64, in main
+    node = p.run(debug=args.debug)
+  File "/home/smvv/work/trs/external/pybison/src/python/bison.py", line 258, in run
+    self.report_last_error(filename, e)
+  File "/home/smvv/work/trs/external/pybison/src/python/bison.py", line 251, in run
+    self.engine.runEngine(debug)
+  File "bison_.pyx", line 592, in bison_.ParserEngine.runEngine (build/external/pybison/bison_.c:592)
+  File "/home/smvv/work/trs/src/parser.py", line 195, in hook_handler
+    possibilities = handler(retval)
+  File "/home/smvv/work/trs/src/rules/fractions.py", line 23, in match_constant_division
+    raise ZeroDivisionError('Division by zero: %s.' % node)
+ZeroDivisionError: Division by zero: a / 0.
+
+smvv@multivac ~/work/trs $ printf "0/0\n??" | ./main.py
+Traceback (most recent call last):
+  File "./main.py", line 75, in <module>
+    main()
+  File "./main.py", line 64, in main
+    node = p.run(debug=args.debug)
+  File "/home/smvv/work/trs/external/pybison/src/python/bison.py", line 258, in run
+    self.report_last_error(filename, e)
+  File "/home/smvv/work/trs/external/pybison/src/python/bison.py", line 251, in run
+    self.engine.runEngine(debug)
+  File "bison_.pyx", line 592, in bison_.ParserEngine.runEngine (build/external/pybison/bison_.c:592)
+  File "/home/smvv/work/trs/src/parser.py", line 195, in hook_handler
+    possibilities = handler(retval)
+  File "/home/smvv/work/trs/src/rules/numerics.py", line 73, in match_divide_numerics
+    divide = not divmod(n.value, dv)[1]
+ZeroDivisionError: integer division or modulo by zero
+
+ - Last possibilities reduce to a similar result.
+
+smvv@multivac ~/work/trs $ printf "0/1\n??" | ./main.py
+<Possibility root="0 / 1" handler=divide_numerics args=(0, 1)>
+Division of 0 by 1 reduces to 0.
+Division of 0 by 1 reduces to 0.

@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, \
-                   OP_NEG, OP_MUL, OP_DIV, OP_POW
+                   OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_ADD
 from ..possibilities import Possibility as P, MESSAGES
 from .utils import nary_node
 from ..translate import _
@@ -10,6 +10,9 @@ from ..translate import _
 def match_add_exponents(node):
     """
     a^p * a^q  ->  a^(p + q)
+    a * a^q    ->  a^(1 + q)
+    a^p * a    ->  a^(p + 1)
+    a * a      ->  a^(1 + 1)
     """
     assert node.is_op(OP_MUL)
 
@@ -17,24 +20,51 @@ def match_add_exponents(node):
     powers = {}
 
     for n in node.get_scope():
-        if n.is_op(OP_POW):
+        if n.is_identifier():
+            s = n
+            exponent = L(1)
+        elif n.is_op(OP_POW):
             # Order powers by their roots, e.g. a^p and a^q are put in the same
             # list because of the mutual 'a'
-            s = str(n[0])
+            s, exponent = n
+        else:
+            continue
 
-            if s in powers:
-                powers[s].append(n)
-            else:
-                powers[s] = [n]
+        s_str = str(s)
+
+        if s_str in powers:
+            powers[s_str].append((n, exponent, s))
+        else:
+            powers[s_str] = [(n, exponent, s)]
 
     for root, occurrences in powers.iteritems():
         # If a root has multiple occurences, their exponents can be added to
         # create a single power with that root
         if len(occurrences) > 1:
-            for pair in combinations(occurrences, 2):
-                p.append(P(node, add_exponents, pair))
+            for (n0, e1, a0), (n1, e2, a1) in combinations(occurrences, 2):
+                p.append(P(node, add_exponents, (n0, n1, a0, e1, e2)))
 
     return p
+
+
+def add_exponents(root, args):
+    """
+    a^p * a^q  ->  a^(p + q)
+    """
+    n0, n1, a, p, q = args
+    scope = root.get_scope()
+
+    # Replace the left node with the new expression
+    scope[scope.index(n0)] = a ** (p + q)
+
+    # Remove the right node
+    scope.remove(n1)
+
+    return nary_node('*', scope)
+
+
+MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}, which'
+        ' will reduce to {1[0]}^({1[1]} + {2[1]}).')
 
 
 def match_subtract_exponents(node):
@@ -120,26 +150,32 @@ def match_exponent_to_root(node):
     return []
 
 
-def add_exponents(root, args):
+def match_extend_exponent(node):
     """
-    a^p * a^q  ->  a^(p + q)
+    (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # n > 1
     """
-    n0, n1 = args
-    a, p = n0
-    q = n1[1]
-    scope = root.get_scope()
+    assert node.is_op(OP_POW)
 
-    # Replace the left node with the new expression
-    scope[scope.index(n0)] = a ** (p + q)
+    left, right = node
 
-    # Remove the right node
-    scope.remove(n1)
+    if right.is_numeric():
+        for n in node.get_scope():
+            if n.is_op(OP_ADD):
+                return [P(node, extend_exponent, (left, right))]
 
-    return nary_node('*', scope)
+    return []
 
 
-MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}, which'
-        ' will reduce to {1[0]}^({1[1]} + {2[1]}).')
+def extend_exponent(root, args):
+    """
+    (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # n > 1
+    """
+    left, right = args
+
+    if right.value > 2:
+        return left * left ** L(right.value - 1)
+
+    return left * left
 
 
 def subtract_exponents(root, args):

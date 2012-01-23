@@ -43,7 +43,8 @@ class RulesTestCase(unittest.TestCase):
     def assertRewrite(self, rewrite_chain):
         try:
             for i, exp in enumerate(rewrite_chain[:-1]):
-                self.assertEqual(str(rewrite(exp)), str(rewrite_chain[i+1]))
+                self.assertMultiLineEqual(str(rewrite(exp)),
+                                          str(rewrite_chain[i+1]))
         except AssertionError:  # pragma: nocover
             print 'rewrite failed:', exp, '->', rewrite_chain[i+1]
             print 'rewrite chain:', rewrite_chain
