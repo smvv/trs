@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, Scope, \
-        OP_ADD, OP_MUL
+        OP_ADD, OP_MUL, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -34,7 +34,8 @@ def match_combine_groups(node):
             l = len(scope)
 
             for i, sub_node in enumerate(scope):
-                if sub_node.is_numeric():
+                if sub_node.is_numeric() or (sub_node.is_op(OP_NEG)
+                                             and sub_node[0].is_numeric()):
                     others = [scope[j] for j in range(i) + range(i + 1, l)]
 
                     if len(others) == 1:
@@ -56,7 +57,7 @@ def combine_groups(root, args):
 
     scope = Scope(root)
 
-    if not isinstance(c0, Leaf):
+    if not isinstance(c0, Leaf) and not isinstance(c0, Node):
         c0 = Leaf(c0)
 
     # Replace the left node with the new expression

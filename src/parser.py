@@ -181,15 +181,20 @@ class Parser(BisonParser):
 
     def hook_handler(self, target, option, names, values, retval):
         if target in ['exp', 'line', 'input'] or not retval \
-                or retval.type != TYPE_OPERATOR or retval.op not in RULES:
+                or retval.type != TYPE_OPERATOR:
             return retval
 
-        # Update the subtree map to let the subtree point to its parent node.
-        parent_nodes = self.subtree_map.keys()
+        if self.subtree_map:
+            # Update the subtree map to let the subtree point to its parent
+            # node.
+            parent_nodes = self.subtree_map.keys()
 
-        for child in retval:
-            if child in parent_nodes:
-                self.subtree_map[child] = retval
+            for child in retval:
+                if child in parent_nodes:
+                    self.subtree_map[child] = retval
+
+        if retval.op not in RULES:
+            return retval
 
         for handler in RULES[retval.op]:
             possibilities = handler(retval)
@@ -213,12 +218,20 @@ class Parser(BisonParser):
     def rewrite(self):
         suggestion = pick_suggestion(self.last_possibilities)
 
+        if self.verbose:
+            print 'applying suggestion:', suggestion
+
         if not suggestion:
             return self.root_node
 
         expression = apply_suggestion(self.root_node, self.subtree_map,
                                     suggestion)
+
+        if self.verbose:
+            print 'After application, expression=', expression
+
         self.read_queue.put_nowait(str(expression))
+
         return expression
 
     #def hook_run(self, filename, retval):
@@ -266,6 +279,7 @@ class Parser(BisonParser):
             return values[0]
 
         if option == 2:  # rule: DEBUG NEWLINE
+            self.root_node = values[0]
             return values[0]
 
         if option == 3:  # rule: HINT NEWLINE
@@ -277,7 +291,8 @@ class Parser(BisonParser):
             return
 
         if option == 5:  # rule: REWRITE NEWLINE
-            return self.rewrite()
+            self.root_node = self.rewrite()
+            return self.root_node
 
         if option == 6:
             raise RuntimeError('on_line: exception raised')
@@ -346,7 +361,12 @@ class Parser(BisonParser):
             return Node(values[1], values[0], values[2])
 
         if option == 4:  # rule: exp MINUS exp
-            return Node('+', values[0], Node('-', values[2]))
+            # It is necessary to call the hook_handler here explicitly, since
+            # the minus operator is internally represented as two nodes (unary
+            # negation and binary plus).
+            node = Node('-', values[2])
+            node = self.hook_handler(target, option, names, values, node)
+            return Node('+', values[0], node)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover

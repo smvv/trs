@@ -61,9 +61,9 @@ def pick_suggestion(possibilities):
 
 
 def apply_suggestion(root, subtree_map, suggestion):
-    # clone the root node before modifying. After deep copying the root node,
-    # the subtree_map cannot be used since the hash() of each node in the deep
-    # copied root node has changed.
+    # TODO: clone the root node before modifying. After deep copying the root
+    # node, the subtree_map cannot be used since the hash() of each node in the
+    # deep copied root node has changed.
     #root_clone = root.clone()
 
     subtree = suggestion.handler(suggestion.root, suggestion.args)

@@ -151,7 +151,6 @@ def multiply_numerics(root, args):
         if hash(n) == hash(n0):
             # Replace the left node with the new expression
             scope.append(substitution)
-            #scope.append(n)
         elif hash(n) != hash(n1):
             # Remove the right node
             scope.append(n)

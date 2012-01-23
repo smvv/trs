@@ -6,11 +6,9 @@ class TestLeidenOefenopgave(TestCase):
         for chain in [['-5(x2 - 3x + 6)', '-5(x ^ 2 - 3x) - 5 * 6',
                        '-5 * x ^ 2 - 5 * -3x - 5 * 6',
                        '-5 * x ^ 2 - -15x - 5 * 6',
-                       # FIXME: '-5 * x ^ 2 - 5 * -3x - 30',
-                       # FIXME: '-5 * x ^ 2 - -15x - 5 * 6',
-                       # FIXME: '-5 * x ^ 2 + 15x - 5 * 6',
-                       # FIXME: '-5 * x ^ 2 + 15x - 30',
-                       ], #'-30 + 15 * x - 5 * x ^ 2'],
+                       '-5 * x ^ 2 + 15x - 5 * 6',
+                       '-5 * x ^ 2 + 15x - 30',
+                       ],
                      ]:
             self.assertRewrite(chain)
 
@@ -70,11 +68,20 @@ class TestLeidenOefenopgave(TestCase):
                        'xx + x * -1 - 1x - 1 * -1',
                        'x ^ (1 + 1) + x * -1 - 1x - 1 * -1',
                        'x ^ 2 + x * -1 - 1x - 1 * -1',
-                       # FIXME: 'x ^ 2 + (-1 - 1)x - 1 * -1',
-                       # FIXME: 'x ^ 2 - 2x - 1 * -1',
-                       # FIXME: 'x ^ 2 - 2x + 1',
+                       'x ^ 2 + (-1 - 1)x - 1 * -1',
+                       'x ^ 2 - 2x - 1 * -1',
+                       'x ^ 2 - 2x + 1',
                      ]]:
             self.assertRewrite(chain)
+
+    def test_1_4_1(self):
+        self.assertRewrite(['x * -1 + 1x', '(-1 + 1)x', '0x',])  # FIXME: '0'])
+
+    def test_1_4_2(self):
+        self.assertRewrite(['x * -1 - 1x', '(-1 + -1)x', '-2x'])
+
+    def test_1_4_3(self):
+        self.assertRewrite(['x * -1 + x * -1', '(-1 + -1)x', '-2x'])
 
     def test_2(self):
         pass

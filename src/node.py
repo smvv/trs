@@ -272,6 +272,10 @@ class ExpressionNode(Node, ExpressionBase):
           non-strictly equal.
         """
         if not other.is_op(self.op):
+            # FIXME: this is if-clause is a problem. To fix this problem
+            # permanently, normalize ("x * -1" -> "-1x") before comparing to
+            # the other node.
+
             return False
 
         if self.op in (OP_ADD, OP_MUL):
