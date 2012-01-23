@@ -18,7 +18,7 @@ def add_numerics(root, args):
     n0, n1, c0, c1 = args
 
     if c0.is_op(OP_NEG):
-        c0 = (-c0[0].value)
+        c0 = -c0[0].value
     else:
         c0 = c0.value
 

@@ -140,9 +140,10 @@ MESSAGES[equalize_denominators] = _('Equalize the denominators of division'
 
 def add_nominators(root, args):
     """
-    a / b + c / b    ->  (a + c) / b
-    a / -b + c / -b  ->  (a + c) / -b
-    a / -b - c / -b  ->  (a - c) / -b
+    a / b + c / b      ->  (a + c) / b
+    a / b - c / b      ->  (a - c) / b
+    -(a / b) + c / b   ->  -((a + c) / b)
+    -(a / b) - c / b   ->  (c - a) / -b
     """
     # TODO: is 'add' Appropriate when rewriting to "(a + (-c)) / b"?
     ab, cb = args
