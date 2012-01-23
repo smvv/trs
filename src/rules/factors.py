@@ -3,6 +3,7 @@ from itertools import product, combinations
 from .utils import nary_node
 from ..node import OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
+from ..translate import _
 
 
 def match_expand(node):
@@ -53,6 +54,9 @@ def expand_single(root, args):
     return nary_node('*', scope)
 
 
+MESSAGES[expand_single] = _('Expand {1}({2}) to {1}({2[0]}) + {1}({2[1]}).')
+
+
 def expand_double(root, args):
     """
     Rewrite two multiplied additions to an addition of four multiplications.
@@ -69,3 +73,7 @@ def expand_double(root, args):
     scope.remove(cd)
 
     return nary_node('*', scope)
+
+
+MESSAGES[expand_double] = _('Expand ({1})({2}) to {1[0]}{2[0]} + {1[0]}{2[1]}'
+        ' + {1[1]}{2[0]} + {1[1]}{2[1]}.')
