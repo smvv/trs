@@ -28,11 +28,11 @@ def match_constant_division(node):
 
     # 0 / a
     if nominator == 0:
-        p.append(P(node, division_of_zero))
+        p.append(P(node, division_of_zero, (denominator,)))
 
     # a / a
     if nominator == denominator:
-        p.append(P(node, division_by_self))
+        p.append(P(node, division_by_self, (nominator,)))
 
     return p
 
@@ -44,6 +44,9 @@ def division_by_one(root, args):
     return args[0]
 
 
+MESSAGES[division_by_one] = _('Division of {1} by 1 reduces to {1}.')
+
+
 def division_of_zero(root, args):
     """
     0 / a  ->  0
@@ -51,11 +54,17 @@ def division_of_zero(root, args):
     return L(0)
 
 
+MESSAGES[division_of_zero] = _('Division of 0 by {1} reduces to 0.')
+
+
 def division_by_self(root, args):
     """
     a / a  ->  1
     """
     return L(1)
+
+
+MESSAGES[division_by_self] = _('Division of {1} by {1} reduces to 1.')
 
 
 def match_add_constant_fractions(node):
@@ -118,6 +127,10 @@ def equalize_denominators(root, args):
     return nary_node('+', scope)
 
 
+MESSAGES[equalize_denominators] = _('Equalize the denominators of division'
+    ' of {1} by {2}.')
+
+
 def add_nominators(root, args):
     """
     a / b + c / b     ->  (a + c) / b
@@ -143,6 +156,9 @@ def add_nominators(root, args):
     scope.remove(cb)
 
     return nary_node('+', scope)
+
+
+MESSAGES[add_nominators] = _('Add nominators of the division of {1} by {2}.')
 
 
 def match_expand_and_add_fractions(node):
