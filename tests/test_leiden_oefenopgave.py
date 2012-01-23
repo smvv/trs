@@ -85,6 +85,10 @@ class TestLeidenOefenopgave(TestCase):
         # FIXME: self.assertRewrite(['x * -1 + x * -1', '(-1 + -1)x', '-2x'])
         pass
 
+    def test_1_5(self):
+        self.assertRewrite(['(2x + x)x', '(2 + 1)xx', '3xx',
+                            '3 * x ^ (1 + 1)', '3 * x ^ 2'])
+
     def test_2(self):
         pass
 
