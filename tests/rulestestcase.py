@@ -8,6 +8,10 @@ def tree(exp, **kwargs):
     return ParserWrapper(Parser, **kwargs).run([exp])
 
 
+def rewrite(exp, **kwargs):
+    return ParserWrapper(Parser, **kwargs).run([exp, '@'])
+
+
 class RulesTestCase(unittest.TestCase):
 
     def assertEqualPos(self, possibilities, expected):
@@ -35,3 +39,12 @@ class RulesTestCase(unittest.TestCase):
 
         for ca, cb in zip(a, b):
             self.assertEqualNodes(ca, cb)
+
+    def assertRewrite(self, rewrite_chain):
+        try:
+            for i, exp in enumerate(rewrite_chain[:-1]):
+                self.assertEqual(str(rewrite(exp)), str(rewrite_chain[i+1]))
+        except AssertionError:  # pragma: nocover
+            print 'rewrite failed:', exp, '->', rewrite_chain[i+1]
+            print 'rewrite chain:', rewrite_chain
+            raise

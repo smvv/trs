@@ -70,27 +70,33 @@ class TestRulesNumerics(RulesTestCase):
 
         root = i3 * i2
         self.assertEqual(match_multiply_numerics(root),
-                [P(root, multiply_numerics, (i3, i2))])
+                [P(root, multiply_numerics, (i3, i2, 3, 2))])
 
         root = f3 * i2
         self.assertEqual(match_multiply_numerics(root),
-                [P(root, multiply_numerics, (f3, i2))])
+                [P(root, multiply_numerics, (f3, i2, 3.0, 2))])
 
         root = i3 * f2
         self.assertEqual(match_multiply_numerics(root),
-                [P(root, multiply_numerics, (i3, f2))])
+                [P(root, multiply_numerics, (i3, f2, 3, 2.0))])
 
         root = f3 * f2
         self.assertEqual(match_multiply_numerics(root),
-                [P(root, multiply_numerics, (f3, f2))])
+                [P(root, multiply_numerics, (f3, f2, 3.0, 2.0))])
 
     def test_multiply_numerics(self):
         a, b, i2, i3, i6, f2, f3, f6 = tree('a,b,2,3,6,2.0,3.0,6.0')
 
-        self.assertEqual(multiply_numerics(i3 * i2, (i3, i2)), 6)
-        self.assertEqual(multiply_numerics(f3 * i2, (f3, i2)), 6.0)
-        self.assertEqual(multiply_numerics(i3 * f2, (i3, f2)), 6.0)
-        self.assertEqual(multiply_numerics(f3 * f2, (f3, f2)), 6.0)
+        self.assertEqual(multiply_numerics(i3 * i2, (i3, i2, 3, 2)), 6)
+        self.assertEqual(multiply_numerics(f3 * i2, (f3, i2, 3.0, 2)), 6.0)
+        self.assertEqual(multiply_numerics(i3 * f2, (i3, f2, 3, 2.0)), 6.0)
+        self.assertEqual(multiply_numerics(f3 * f2, (f3, f2, 3.0, 2.0)), 6.0)
 
-        self.assertEqualNodes(multiply_numerics(a * i3 * i2 * b, (i3, i2)),
+        self.assertEqualNodes(multiply_numerics(a * i3 * i2 * b, (i3, i2, 3, 2)),
                               a * 6 * b)
+
+    def test_multiply_numerics_negation(self):
+        #a, b = root = tree('1 - 5 * -3x - 5 * 6')
+        l1, l2 = tree('-1 * 2')
+
+        self.assertEqual(multiply_numerics(l1 * l2, (l1, l2, -1, 2)), -l2)

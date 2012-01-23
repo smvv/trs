@@ -90,6 +90,15 @@ class ExpressionBase(object):
             # Self is a leaf, thus has less value than an expression node.
             return True
 
+        if self.is_op(OP_NEG) and self[0].is_leaf():
+            if other.is_leaf():
+                # Both are leafs, string compare the value.
+                return ('-' + str(self.value)) < str(other.value)
+            if other.is_op(OP_NEG) and other[0].is_leaf():
+                return ('-' + str(self.value)) < ('-' + str(other.value))
+            # Self is a leaf, thus has less value than an expression node.
+            return True
+
         if other.is_leaf():
             # Self is an expression node, and the other is a leaf. Thus, other
             # is greater than self.

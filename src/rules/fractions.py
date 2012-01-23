@@ -87,8 +87,15 @@ def match_add_constant_fractions(node):
     fractions = filter(is_division, node.get_scope())
 
     for a, b in combinations(fractions, 2):
-        na, da = a if a.is_op(OP_DIV) else a[0]
-        nb, db = b if b.is_op(OP_DIV) else b[0]
+        if a.is_op(OP_NEG):
+            na, da = a[0]
+        else:
+            na, da = a
+
+        if b.is_op(OP_NEG):
+            nb, db = b[0]
+        else:
+            nb, db = b
 
         if da == db:
             # Equal denominators, add nominators to create a single fraction
@@ -133,19 +140,24 @@ MESSAGES[equalize_denominators] = _('Equalize the denominators of division'
 
 def add_nominators(root, args):
     """
-    a / b + c / b     ->  (a + c) / b
-    a / b + (-c / b)  ->  (a + (-c)) / b
+    a / b + c / b    ->  (a + c) / b
+    a / -b + c / -b  ->  (a + c) / -b
+    a / -b - c / -b  ->  (a - c) / -b
     """
     # TODO: is 'add' Appropriate when rewriting to "(a + (-c)) / b"?
     ab, cb = args
-    a, b = ab
 
-    if cb[0].is_op(OP_NEG):
-        c = cb[0][0]
-        substitution = (a + (-c)) / b
+    if ab.is_op(OP_NEG):
+        a, b = ab[0]
+    else:
+        a, b = ab
+
+    if cb.is_op(OP_NEG):
+        c = -cb[0][0]
     else:
         c = cb[0]
-        substitution = (a + c) / b
+
+    substitution = (a + c) / b
 
     scope = root.get_scope()
 
@@ -158,7 +170,9 @@ def add_nominators(root, args):
     return nary_node('+', scope)
 
 
-MESSAGES[add_nominators] = _('Add nominators of the division of {1} by {2}.')
+# TODO: convert this to a lambda. Example: 22 / 77 - 28 / 77. the "-" is above
+# the "28/77" division.
+MESSAGES[add_nominators] = _('Add nominators {1[0]} and {2[0]} of the division.')
 
 
 def match_expand_and_add_fractions(node):

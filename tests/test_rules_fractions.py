@@ -107,7 +107,14 @@ class TestRulesFractions(RulesTestCase):
         n0, n1 = root = a / b + c / b
         self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + c) / b)
 
-        #2 / 4 + 3 / -4  ->  2 / 4 + -3 / 4
-        #2 / 4 - 3 / 4  ->  -1 / 4  # Equal denominators, so nominators can
-        n0, n1 = root = a / b + (-c / b)
-        self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + (-c)) / b)
+        n0, n1 = root = a / b + -c / b
+        self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + -c) / b)
+
+        n0, n1 = root = a / b + -(c / b)
+        self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + -c) / b)
+
+        n0, n1 = root = a / -b + c / -b
+        self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + c) / -b)
+
+        n0, n1 = root = a / -b + -c / -b
+        self.assertEqualNodes(add_nominators(root, (n0, n1)), (a + -c) / -b)

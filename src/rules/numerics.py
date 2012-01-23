@@ -18,8 +18,15 @@ def add_numerics(root, args):
     """
     n0, n1, c0, c1 = args
 
-    c0 = (-c0[0].value) if c0.is_op(OP_NEG) else c0.value
-    c1 = (-c1[0].value) if c1.is_op(OP_NEG) else c1.value
+    if c0.is_op(OP_NEG):
+        c0 = (-c0[0].value)
+    else:
+        c0 = c0.value
+
+    if c1.is_op(OP_NEG):
+        c1 = (-c1[0].value)
+    else:
+        c1 = c1.value
 
     scope = root.get_scope()
 
@@ -110,11 +117,16 @@ def match_multiply_numerics(node):
     assert node.is_op(OP_MUL)
 
     p = []
-    scope = node.get_scope()
-    numerics = filter(lambda n: n.is_numeric(), scope)
+    numerics = []
 
-    for args in combinations(numerics, 2):
-        p.append(P(node, multiply_numerics, args))
+    for n in node.get_scope():
+        if n.is_numeric():
+            numerics.append((n, n.value))
+        elif n.is_op(OP_NEG) and n[0].is_numeric():
+            numerics.append((n, n[0].value))
+
+    for (n0, v0), (n1, v1) in combinations(numerics, 2):
+        p.append(P(node, multiply_numerics, (n0, n1, v0, v1)))
 
     return p
 
@@ -126,13 +138,19 @@ def multiply_numerics(root, args):
     Example:
     2 * 3  ->  6
     """
-    n0, n1 = args
+    n0, n1, v0, v1 = args
     scope = []
+    value = v0 * v1
+
+    if value > 0:
+        substitution = Leaf(value)
+    else:
+        substitution = -Leaf(-value)
 
     for n in root.get_scope():
         if hash(n) == hash(n0):
             # Replace the left node with the new expression
-            scope.append(Leaf(n0.value * n1.value))
+            scope.append(substitution)
             #scope.append(n)
         elif hash(n) != hash(n1):
             # Remove the right node

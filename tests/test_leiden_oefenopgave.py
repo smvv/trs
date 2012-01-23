@@ -1,18 +1,19 @@
-from unittest import TestCase
-
-from src.parser import Parser
-from tests.parser import ParserWrapper
-
-
-def rewrite(exp, **kwargs):
-    return ParserWrapper(Parser, **kwargs).run([exp, '@'])
+from tests.rulestestcase import RulesTestCase as TestCase, rewrite
 
 
 class TestLeidenOefenopgave(TestCase):
     def test_1(self):
+        for chain in [['-5(x2 - 3x + 6)', '-5(x ^ 2 - 3x) - 5 * 6',
+                       # FIXME: '-5 * x ^ 2 - 5 * -3x - 5 * 6',
+                       # FIXME: '-5 * x ^ 2 - 5 * -3x - 30',
+                       ], #'-30 + 15 * x - 5 * x ^ 2'],
+                     ]:
+            self.assertRewrite(chain)
+
         return
+
         for exp, solution in [
-                ('-5(x2 -3x + 6)',       '-30 + 15 * x - 5 * x ^ 2'),
+                ('-5(x2 - 3x + 6)',       '-30 + 15 * x - 5 * x ^ 2'),
                 ('(x+1)^2',              'x ^ 2 + 2 * x + 1'),
                 ('(x-1)^2',              'x ^ 2 - 2 * x + 1'),
                 ('(2x+x)*x',             '3 * x ^ 2'),
@@ -32,9 +33,9 @@ class TestLeidenOefenopgave(TestCase):
                 ('2/15 + 1/4',      '8 / 60 + 15 / 60'),
                 ('8/60 + 15/60',    '(8 + 15) / 60'),
                 ('(8 + 15) / 60',   '23 / 60'),
-                ('2/7 - 4/11',      '22 / 77 + -28 / 77'),
-                ('22/77 + -28/77',  '(22 + -28) / 77'),
-                ('(22 + -28)/77',    '-6 / 77'),
+                ('2/7 - 4/11',      '22 / 77 - 28 / 77'),
+                ('22/77 - 28/77',  '(22 - 28) / 77'),
+                ('(22 - 28)/77',    '-6 / 77'),
                 # FIXME: ('(7/3) * (3/5)',   '7 / 5'),
                 # FIXME: ('(3/4) / (5/6)',   '9 / 10'),
                 # FIXME: ('1/4 * 1/x',       '1 / (4x)'),

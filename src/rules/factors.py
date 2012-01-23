@@ -1,7 +1,7 @@
 from itertools import product, combinations
 
 from .utils import nary_node
-from ..node import OP_ADD, OP_MUL
+from ..node import OP_ADD, OP_MUL, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -19,7 +19,7 @@ def match_expand(node):
     additions = []
 
     for n in node.get_scope():
-        if n.is_leaf():
+        if n.is_leaf() or n.is_op(OP_NEG) and n[0].is_leaf():
             leaves.append(n)
         elif n.op == OP_ADD:
             additions.append(n)
