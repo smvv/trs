@@ -147,13 +147,12 @@ def multiply_numerics(root, args):
     else:
         substitution = -Leaf(-value)
 
-    for n in Scope(root):
-        if hash(n) == hash(n0):
-            # Replace the left node with the new expression
-            scope.append(substitution)
-            #scope.append(n)
-        elif hash(n) != hash(n1):
-            # Remove the right node
-            scope.append(n)
+    scope = Scope(root)
 
-    return nary_node('*', scope)
+    # Replace the left node with the new expression
+    scope.remove(n0, substitution)
+
+    # Remove the right node
+    scope.remove(n1)
+
+    return scope.as_nary_node()

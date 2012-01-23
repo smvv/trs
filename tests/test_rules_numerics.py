@@ -96,7 +96,19 @@ class TestRulesNumerics(RulesTestCase):
                               a * 6 * b)
 
     def test_multiply_numerics_negation(self):
-        #a, b = root = tree('1 - 5 * -3x - 5 * 6')
-        l1, l2 = tree('-1 * 2')
+        l1_neg, l2 = root = tree('-1 * 2')
+        self.assertEqualNodes(multiply_numerics(root, (l1_neg, l2, -1, 2)), -l2)
 
-        self.assertEqual(multiply_numerics(l1 * l2, (l1, l2, -1, 2)), -l2)
+        root, l6 = tree('1 - 2 * 3,6')
+        l1, neg = root
+        l2, l3 = mul = neg[0]
+        self.assertEqualNodes(multiply_numerics(mul, (l2, l3, 2, 3)), l6)
+
+        l1, mul = root = tree('1 + -2 * 3')
+        l2_neg, l3 = mul
+        self.assertEqualNodes(multiply_numerics(mul, (l2_neg, l3, -2, 3)), -l6)
+
+        root, l30 = tree('-5 * x ^ 2 - -15x - 5 * 6,30')
+        rest, mul_neg = root
+        l5_neg, l6 = mul = mul_neg[0]
+        self.assertEqualNodes(multiply_numerics(mul, (l5_neg, l6, 5, 6)), l30)
