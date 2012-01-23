@@ -21,11 +21,11 @@ class TestRulesFractions(RulesTestCase):
 
         root = zero / a
         possibilities = match_constant_division(root)
-        self.assertEqualPos(possibilities, [P(root, division_of_zero)])
+        self.assertEqualPos(possibilities, [P(root, division_of_zero, (a,))])
 
         root = a / a
         possibilities = match_constant_division(root)
-        self.assertEqualPos(possibilities, [P(root, division_by_self)])
+        self.assertEqualPos(possibilities, [P(root, division_by_self, (a,))])
 
     def test_division_by_one(self):
         a = tree('a')
