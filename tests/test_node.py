@@ -1,13 +1,15 @@
-import unittest
-
-from src.node import ExpressionNode as N, ExpressionLeaf as L, OP_ADD
+from src.node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_ADD
 from tests.rulestestcase import tree
 
 
-class TestNode(unittest.TestCase):
+class TestNode(RulesTestCase):
 
     def setUp(self):
         self.l = [L(1), N('*', L(2), L(3)), L(4), L(5)]
+        self.n, self.f = tree('a + b + cd,f')
+        (self.a, self.b), self.cd = self.n
+        self.c, self.d = self.cd
+        self.scope = Scope(self.n)
 
     def test___lt__(self):
         self.assertTrue(L(1) < L(2))
@@ -168,3 +170,26 @@ class TestNode(unittest.TestCase):
 
         m0, m1 = tree('-5 * -3,-5 * 6')
         self.assertFalse(m0.equals(m1))
+
+    def test_scope___init__(self):
+        self.assertEqual(self.scope.node, self.n)
+        self.assertEqual(self.scope.nodes, [self.a, self.b, self.cd])
+
+    def test_scope_remove_leaf(self):
+        self.scope.remove(self.b)
+        self.assertEqual(self.scope.nodes, [self.a, self.cd])
+
+    def test_scope_remove_node(self):
+        self.scope.remove(self.cd)
+        self.assertEqual(self.scope.nodes, [self.a, self.b])
+
+    def test_scope_remove_replace(self):
+        self.scope.remove(self.cd, self.f)
+        self.assertEqual(self.scope.nodes, [self.a, self.b, self.f])
+
+    def test_scope_remove_error(self):
+        with self.assertRaises(ValueError):
+            self.scope.remove(self.f)
+
+    def test_scope_as_nary_node(self):
+        self.assertEqualNodes(self.scope.as_nary_node(), self.n)
