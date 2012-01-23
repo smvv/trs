@@ -1,10 +1,9 @@
 from itertools import combinations
 
-from ..node import OP_ADD, OP_MUL, ExpressionNode as Node, \
-        ExpressionLeaf as Leaf
+from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, Scope, \
+        OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
-from .utils import nary_node
 
 
 def match_combine_groups(node):
@@ -25,13 +24,13 @@ def match_combine_groups(node):
     p = []
     groups = []
 
-    for n in node.get_scope():
+    for n in Scope(node):
         groups.append((1, n, n))
 
         # Each number multiplication yields a group, multiple occurences of
         # the same group can be replaced by a single one
         if n.is_op(OP_MUL):
-            scope = n.get_scope()
+            scope = Scope(n)
             l = len(scope)
 
             for i, sub_node in enumerate(scope):
@@ -55,18 +54,18 @@ def match_combine_groups(node):
 def combine_groups(root, args):
     c0, g0, n0, c1, g1, n1 = args
 
-    scope = root.get_scope()
+    scope = Scope(root)
 
     if not isinstance(c0, Leaf):
         c0 = Leaf(c0)
 
     # Replace the left node with the new expression
-    scope[scope.index(n0)] = (c0 + c1) * g0
+    scope.remove(n0, (c0 + c1) * g0)
 
     # Remove the right node
     scope.remove(n1)
 
-    return nary_node('+', scope)
+    return scope.as_nary_node()
 
 
 MESSAGES[combine_groups] = \

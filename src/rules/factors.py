@@ -1,7 +1,6 @@
 from itertools import product, combinations
 
-from .utils import nary_node
-from ..node import OP_ADD, OP_MUL, OP_NEG
+from ..node import Scope, OP_ADD, OP_MUL, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -18,7 +17,7 @@ def match_expand(node):
     leaves = []
     additions = []
 
-    for n in node.get_scope():
+    for n in Scope(node):
         if n.is_leaf() or n.is_op(OP_NEG) and n[0].is_leaf():
             leaves.append(n)
         elif n.op == OP_ADD:
@@ -43,15 +42,15 @@ def expand_single(root, args):
     """
     a, bc = args
     b, c = bc
-    scope = root.get_scope()
+    scope = Scope(root)
 
     # Replace 'a' with the new expression
-    scope[scope.index(a)] = a * b + a * c
+    scope.remove(a, a * b + a * c)
 
     # Remove the addition
     scope.remove(bc)
 
-    return nary_node('*', scope)
+    return scope.as_nary_node()
 
 
 MESSAGES[expand_single] = _('Expand {1}({2}) to {1}({2[0]}) + {1}({2[1]}).')
@@ -64,15 +63,15 @@ def expand_double(root, args):
     (a + b) * (c + d) -> ac + ad + bc + bd
     """
     (a, b), (c, d) = ab, cd = args
-    scope = root.get_scope()
+    scope = Scope(root)
 
-    # Replace 'b + c' with the new expression
-    scope[scope.index(ab)] = a * c + a * d + b * c + b * d
+    # Replace 'a + b' with the new expression
+    scope.remove(ab, a * c + a * d + b * c + b * d)
 
     # Remove the right addition
     scope.remove(cd)
 
-    return nary_node('*', scope)
+    return scope.as_nary_node()
 
 
 MESSAGES[expand_double] = _('Expand ({1})({2}) to {1[0]}{2[0]} + {1[0]}{2[1]}'

@@ -1,8 +1,7 @@
 from itertools import combinations
 
-from ..node import OP_ADD, OP_NEG
+from ..node import Scope, OP_ADD, OP_NEG
 from ..possibilities import Possibility as P, MESSAGES
-from .utils import nary_node
 from .numerics import add_numerics
 
 
@@ -32,7 +31,7 @@ def match_combine_polynomes(node, verbose=False):
     if verbose:  # pragma: nocover
         print 'match combine factors:', node
 
-    for n in node.get_scope():
+    for n in Scope(node):
         polynome = n.extract_polynome_properties()
 
         if verbose:  # pragma: nocover
@@ -84,16 +83,14 @@ def combine_polynomes(root, args):
     else:
         power = r ** e
 
-    # replacement: (c0 + c1) * a ^ b
+    scope = Scope(root)
+
+    # Replace the left node with the new expression:
+    # (c0 + c1) * a ^ b
     # a, b and c are from 'left', d is from 'right'.
-    replacement = (c0 + c1) * power
-
-    scope = root.get_scope()
-
-    # Replace the left node with the new expression
-    scope[scope.index(n0)] = replacement
+    scope.remove(n0, (c0 + c1) * power)
 
     # Remove the right node
     scope.remove(n1)
 
-    return nary_node('+', scope)
+    return scope.as_nary_node()

@@ -1,9 +1,8 @@
 from itertools import combinations
 
-from ..node import ExpressionNode as N, ExpressionLeaf as L, \
+from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
                    OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_ADD
 from ..possibilities import Possibility as P, MESSAGES
-from .utils import nary_node
 from ..translate import _
 
 
@@ -19,7 +18,7 @@ def match_add_exponents(node):
     p = []
     powers = {}
 
-    for n in node.get_scope():
+    for n in Scope(node):
         if n.is_identifier():
             s = n
             exponent = L(1)
@@ -52,15 +51,15 @@ def add_exponents(root, args):
     a^p * a^q  ->  a^(p + q)
     """
     n0, n1, a, p, q = args
-    scope = root.get_scope()
+    scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope[scope.index(n0)] = a ** (p + q)
+    scope.remove(n0, a ** (p + q))
 
     # Remove the right node
     scope.remove(n1)
 
-    return nary_node('*', scope)
+    return scope.as_nary_node()
 
 
 MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}, which'
@@ -116,7 +115,7 @@ def match_duplicate_exponent(node):
     left, right = node
 
     if left.is_op(OP_MUL):
-        return [P(node, duplicate_exponent, (left.get_scope(), right))]
+        return [P(node, duplicate_exponent, (list(Scope(left)), right))]
 
     return []
 
@@ -159,7 +158,7 @@ def match_extend_exponent(node):
     left, right = node
 
     if right.is_numeric():
-        for n in node.get_scope():
+        for n in Scope(node):
             if n.is_op(OP_ADD):
                 return [P(node, extend_exponent, (left, right))]
 

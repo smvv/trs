@@ -1,19 +1,9 @@
-from src.node import ExpressionNode as N
-from src.rules.utils import nary_node, least_common_multiple
-from tests.rulestestcase import RulesTestCase, tree
+import unittest
+
+from src.rules.utils import least_common_multiple
 
 
-class TestRulesUtils(RulesTestCase):
-
-    def test_nary_node(self):
-        a, b, c, d = tree('a,b,c,d')
-
-        self.assertEqualNodes(nary_node('+', [a]), a)
-        self.assertEqualNodes(nary_node('+', [a, b]), N('+', a, b))
-        self.assertEqualNodes(nary_node('+', [a, b, c]),
-                              N('+', N('+', a, b), c))
-        self.assertEqualNodes(nary_node('+', [a, b, c, d]),
-                              N('+', N('+', N('+', a, b), c), d))
+class TestRulesUtils(unittest.TestCase):
 
     def test_least_common_multiple(self):
         self.assertEqual(least_common_multiple(5, 6), 30)
