@@ -313,8 +313,11 @@ class ExpressionNode(Node, ExpressionBase):
 
                 if not found:
                     return False
-        elif self.op == OP_DIV:
-            return self[0].equals(other[0]) and self[1].equals(other[1])
+        else:
+            # Check if all children are non-strictly equal, preserving order
+            for i, child in enumerate(self):
+                if not child.equals(other[i]):
+                    return False
 
         return True
 

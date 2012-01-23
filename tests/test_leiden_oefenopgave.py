@@ -4,7 +4,8 @@ from tests.rulestestcase import RulesTestCase as TestCase, rewrite
 class TestLeidenOefenopgave(TestCase):
     def test_1(self):
         for chain in [['-5(x2 - 3x + 6)', '-5(x ^ 2 - 3x) - 5 * 6',
-                       # FIXME: '-5 * x ^ 2 - 5 * -3x - 5 * 6',
+                       '-5 * x ^ 2 - 5 * -3x - 5 * 6',
+                       '-5 * x ^ 2 - -15x - 5 * 6',
                        # FIXME: '-5 * x ^ 2 - 5 * -3x - 30',
                        ], #'-30 + 15 * x - 5 * x ^ 2'],
                      ]:

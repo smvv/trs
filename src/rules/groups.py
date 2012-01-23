@@ -3,6 +3,7 @@ from itertools import combinations
 from ..node import OP_ADD, OP_MUL, ExpressionNode as Node, \
         ExpressionLeaf as Leaf
 from ..possibilities import Possibility as P, MESSAGES
+from ..translate import _
 from .utils import nary_node
 
 
@@ -39,8 +40,10 @@ def match_combine_groups(node):
                     g = others[0] if len(others) == 1 else Node('*', *others)
                     groups.append((sub_node, g, n))
 
+    #print [map(str, group) for group in groups]
     for g0, g1 in combinations(groups, 2):
         if g0[1].equals(g1[1]):
+            #print type(g0[1]), str(g0[1]), 'equals', type(g1[1]), str(g1[1])
             p.append(P(node, combine_groups, g0 + g1))
 
     return p
@@ -61,3 +64,7 @@ def combine_groups(root, args):
     scope.remove(n1)
 
     return nary_node('+', scope)
+
+
+MESSAGES[combine_groups] = \
+        _('Group "{2}" is multiplied by {1} and {4}, combine them.')

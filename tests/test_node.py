@@ -138,7 +138,7 @@ class TestNode(unittest.TestCase):
 
     def test_equals_nary(self):
         p0, p1, p2, p3, p4 = \
-                tree('a + b + c,a + c + b,b + a + c,b + c + a, a + b + d')
+                tree('a + b + c,a + c + b,b + a + c,b + c + a,a + b + d')
 
         self.assertTrue(p0.equals(p1))
         self.assertTrue(p0.equals(p2))
@@ -158,3 +158,13 @@ class TestNode(unittest.TestCase):
 
         self.assertTrue(d0.equals(d1))
         self.assertFalse(d0.equals(d2))
+
+    def test_equals_neg(self):
+        a0, a1 = tree('-a,a')
+        self.assertFalse(a0.equals(a1))
+
+        a0, a1 = tree('-a,-a')
+        self.assertTrue(a0.equals(a1))
+
+        m0, m1 = tree('-5 * -3,-5 * 6')
+        self.assertFalse(m0.equals(m1))
