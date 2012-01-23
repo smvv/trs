@@ -123,7 +123,7 @@ def match_multiply_numerics(node):
         if n.is_numeric():
             numerics.append((n, n.value))
         elif n.is_op(OP_NEG) and n[0].is_numeric():
-            numerics.append((n, n[0].value))
+            numerics.append((n, -n[0].value))
 
     for (n0, v0), (n1, v1) in combinations(numerics, 2):
         p.append(P(node, multiply_numerics, (n0, n1, v0, v1)))
