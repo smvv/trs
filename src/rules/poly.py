@@ -79,7 +79,10 @@ def combine_polynomes(root, args):
     n0, n1, c0, c1, r, e = args
 
     # a ^ 1 -> a
-    power = r if e == 1 else r ^ e
+    if e == 1:
+        power = r
+    else:
+        power = r ** e
 
     # replacement: (c0 + c1) * a ^ b
     # a, b and c are from 'left', d is from 'right'.
