@@ -1,4 +1,4 @@
-from ..node import OP_NEG, OP_ADD, OP_MUL, get_scope, nary_node
+from ..node import get_scope, nary_node, OP_NEG, OP_ADD, OP_MUL, OP_DIV
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -83,6 +83,53 @@ def double_negation(root, args):
     node = args[0]
 
     return node[0][0]
+
+
+def match_negated_division(node):
+    """
+    -a / -b  ->  a / b
+    """
+    assert node.is_op(OP_DIV)
+
+    a, b = node
+    a_neg = a.is_op(OP_NEG)
+    b_neg = b.is_op(OP_NEG)
+
+    if a_neg and b_neg:
+        return [P(node, double_negated_division, (node,))]
+    elif a_neg:
+        return [P(node, single_negated_division, (a[0], b))]
+    elif b_neg:
+        return [P(node, single_negated_division, (a, b[0]))]
+
+    return []
+
+
+def single_negated_division(root, args):
+    """
+    -a / b  ->  -(a / b)
+    a / -b  ->  -(a / b)
+    """
+    a, b = args
+
+    return -(a / b)
+
+
+MESSAGES[single_negated_division] = \
+        _('Bring negation outside of the division: -({1} / {2}).')
+
+
+def double_negated_division(root, args):
+    """
+    -a / -b  ->  a / b
+    """
+    a, b = root
+
+    return a[0] / b[0]
+
+
+MESSAGES[double_negated_division] = \
+        _('Eliminate top and bottom negation in {1}.')
 
 
 MESSAGES[double_negation] = _('Remove double negation in {1}.')
