@@ -1,4 +1,4 @@
-TESTS=$(wildcard tests/test_*.py)
+TESTS=$(sort $(wildcard tests/test_*.py))
 COVERAGE_OUTPUT_DIR := coverage
 PROFILER_OUTPUT_DIR := profiles
 OMIT := /usr/share/pyshared/*,external/*
