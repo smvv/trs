@@ -106,6 +106,52 @@ def divide_numerics(root, args):
     return Leaf(n / d)
 
 
+def match_multiply_zero(node):
+    """
+    a * 0    ->  0
+    0 * a    ->  0
+    -0 * a   ->  -0
+    0 * -a   ->  -0
+    -0 * -a  ->  0
+    """
+    assert node.is_op(OP_MUL)
+
+    left, right = node
+    is_zero = lambda n: n.is_leaf() and n.value == 0
+
+    if is_zero(left):
+        negated = right.is_op(OP_NEG)
+    elif is_zero(right):
+        negated = left.is_op(OP_NEG)
+    elif left.is_op(OP_NEG) and is_zero(left[0]):
+        negated = not right.is_op(OP_NEG)
+    elif right.is_op(OP_NEG) and is_zero(right[0]):
+        negated = not left.is_op(OP_NEG)
+    else:
+        return []
+
+    return [P(node, multiply_zero, (negated,))]
+
+
+def multiply_zero(root, args):
+    """
+    a * 0  ->  0
+    0 * a  ->  0
+    -0 * a   ->  -0
+    0 * -a   ->  -0
+    -0 * -a  ->  0
+    """
+    negated = args[0]
+
+    if negated:
+        return -Leaf(0)
+    else:
+        return Leaf(0)
+
+
+MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
+
+
 def match_multiply_numerics(node):
     """
     3 * 2      ->  6

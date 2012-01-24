@@ -102,8 +102,10 @@ class TestLeidenOefenopgave(TestCase):
                             '-20x + 16 * x ^ 2 - 25 + 5 * 4x',
                             '-20x + 16 * x ^ 2 - 25 + 20x',
                             '(-20 + 20)x + 16 * x ^ 2 - 25',
-                            '0x + 16 * x ^ 2 - 25',])
-                            # FIXME: '16x^2 - 25'])
+                            '0x + 16 * x ^ 2 - 25',
+                            '0 + 16 * x ^ 2 - 25',
+                            '-25 + 16 * x ^ 2'])
+                            # FIXME: '16 * x ^ 2 - 25'])
 
     def test_2(self):
         pass
