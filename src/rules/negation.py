@@ -63,13 +63,10 @@ def negate_group(root, args):
     """
     node, scope = args
 
-    print 'negate_group:', node, map(str, scope)
-
     # Negate each group
     for i, n in enumerate(scope):
         scope[i] = -n
 
-    print nary_node('+', scope)
     return nary_node('+', scope)
 
 

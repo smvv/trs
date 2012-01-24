@@ -86,6 +86,25 @@ class TestLeidenOefenopgave(TestCase):
         # FIXME: self.assertRewrite(['x * -1 + x * -1', '(-1 + -1)x', '-2x'])
         pass
 
+    def test_1_5(self):
+        self.assertRewrite(['(2x + x)x', '(2 + 1)xx', '3xx',
+                            '3 * x ^ (1 + 1)', '3 * x ^ 2'])
+
+    def test_1_7(self):
+        self.assertRewrite(['(4x + 5) * -(5 - 4x)',
+                            '(4x + 5)(-5 - -4x)',
+                            '(4x + 5)(-5 + 4x)',
+                            '4x * -5 + 4x * 4x + 5 * -5 + 5 * 4x',
+                            '-20x + 4x * 4x + 5 * -5 + 5 * 4x',
+                            '-20x + 16xx + 5 * -5 + 5 * 4x',
+                            '-20x + 16 * x ^ (1 + 1) + 5 * -5 + 5 * 4x',
+                            '-20x + 16 * x ^ 2 + 5 * -5 + 5 * 4x',
+                            '-20x + 16 * x ^ 2 - 25 + 5 * 4x',
+                            '-20x + 16 * x ^ 2 - 25 + 20x',
+                            '(-20 + 20)x + 16 * x ^ 2 - 25',
+                            '0x + 16 * x ^ 2 - 25',])
+                            # FIXME: '16x^2 - 25'])
+
     def test_2(self):
         pass
 
