@@ -343,7 +343,9 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: NEG exp
-            return Node('-', values[1])
+            node = values[1]
+            node.negated += 1
+            return node
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -361,11 +363,8 @@ class Parser(BisonParser):
             return Node(values[1], values[0], values[2])
 
         if option == 4:  # rule: exp MINUS exp
-            # It is necessary to call the hook_handler here explicitly, since
-            # the minus operator is internally represented as two nodes (unary
-            # negation and binary plus).
-            node = Node('-', values[2])
-            node = self.hook_handler(target, option, names, values, node)
+            node = values[2]
+            node.negated += 1
             return Node('+', values[0], node)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'

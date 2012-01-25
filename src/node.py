@@ -60,6 +60,10 @@ def to_expression(obj):
 
 
 class ExpressionBase(object):
+
+    def __init__(self, *args, **kwargs):
+        self.negated = 0
+
     def clone(self):
         return copy.deepcopy(self)
 
@@ -165,7 +169,8 @@ class ExpressionBase(object):
         return ExpressionNode('^', self, to_expression(other))
 
     def __neg__(self):
-        return ExpressionNode('-', self)
+        self.negated += 1
+        return self
 
 
 class ExpressionNode(Node, ExpressionBase):
@@ -309,7 +314,6 @@ class ExpressionNode(Node, ExpressionBase):
 class ExpressionLeaf(Leaf, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
-
         self.type = TYPE_MAP[type(args[0])]
 
     def __eq__(self, other):
