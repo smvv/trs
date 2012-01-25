@@ -53,7 +53,7 @@ def expand_single(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[expand_single] = _('Expand {1}({2}) to {1}({2[0]}) + {1}({2[1]}).')
+MESSAGES[expand_single] = _('Expand {1}({2}).')
 
 
 def expand_double(root, args):
@@ -74,5 +74,4 @@ def expand_double(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[expand_double] = _('Expand ({1})({2}) to {1[0]}{2[0]} + {1[0]}{2[1]}'
-        ' + {1[1]}{2[0]} + {1[1]}{2[1]}.')
+MESSAGES[expand_double] = _('Expand ({1})({2}).')

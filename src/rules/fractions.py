@@ -171,7 +171,7 @@ def add_nominators(root, args):
 
 # TODO: convert this to a lambda. Example: 22 / 77 - 28 / 77. the "-" is above
 # the "28/77" division.
-MESSAGES[add_nominators] = _('Add nominators {1[0]} and {2[0]} of the division.')
+MESSAGES[add_nominators] = _('Add the nominators of {1} and {2}.')
 
 
 def match_expand_and_add_fractions(node):

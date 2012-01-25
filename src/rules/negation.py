@@ -82,6 +82,9 @@ def double_negation(root, args):
     return node[0][0]
 
 
+MESSAGES[double_negation] = _('Remove double negation in {1}.')
+
+
 def match_negated_division(node):
     """
     -a / -b  ->  a / b
@@ -109,6 +112,8 @@ def single_negated_division(root, args):
     """
     a, b = args
 
+    # FIXME: "-a/b" results in "-(a/b)", which will cause a loop.
+
     return -(a / b)
 
 
@@ -127,6 +132,3 @@ def double_negated_division(root, args):
 
 MESSAGES[double_negated_division] = \
         _('Eliminate top and bottom negation in {1}.')
-
-
-MESSAGES[double_negation] = _('Remove double negation in {1}.')

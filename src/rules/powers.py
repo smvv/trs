@@ -62,8 +62,7 @@ def add_exponents(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}, which'
-        ' will reduce to {1[0]}^({1[1]} + {2[1]}).')
+MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}.')
 
 
 def match_subtract_exponents(node):
@@ -186,8 +185,7 @@ def subtract_exponents(root, args):
     return a ** (p - q)
 
 
-MESSAGES[subtract_exponents] = _('Substract the exponents {1} and {2},'
-        ' which will reduce to {1[0]}^({1[1]} - {2[1]}).')
+MESSAGES[subtract_exponents] = _('Substract the exponents {2} and {3}.')
 
 
 def multiply_exponents(root, args):
@@ -199,8 +197,7 @@ def multiply_exponents(root, args):
     return a ** (p * q)
 
 
-MESSAGES[multiply_exponents] = _('Multiply the exponents {1} and {2},'
-        ' which will reduce to {1[0]}^({1[1]} * {2[1]}).')
+MESSAGES[multiply_exponents] = _('Multiply the exponents {2} and {3}.')
 
 
 def duplicate_exponent(root, args):
@@ -217,8 +214,7 @@ def duplicate_exponent(root, args):
     return result
 
 
-MESSAGES[duplicate_exponent] = _('Duplicate the exponents {1} and {2},'
-        ' which will reduce to {1[0]}^({1[1]} * {2[1]}).')
+MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
 
 
 def remove_negative_exponent(root, args):
@@ -228,6 +224,9 @@ def remove_negative_exponent(root, args):
     a, p = args
 
     return L(1) / a ** p
+
+
+MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
 
 
 def exponent_to_root(root, args):
