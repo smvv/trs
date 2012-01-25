@@ -1,10 +1,6 @@
- - Build expression tree (consisting of expression nodes).
- - Define all rules in src/rules.py.
-
  - Fix BisonSyntaxError location tracking.
 
  - Sort polynom by its exponents?
-
 
  - No possibilities found for:
    >>> a2b3 + a2b3
@@ -19,6 +15,32 @@
 
  - rewrite match_combine_polynomes to an even more generic form:
    match_combine_factors.
+
+ - "--ab + c" has no rewrite possibility. The graph of "--ab + c" is also
+   not valid:
+
+     -
+     │
+      +
+    ╭─┴╮
+    *  c
+   ╭┴╮
+   - b
+   │
+   a
+
+ - The following expression gives a cycle in the possibilities:
+
+   >>> ab + ba
+   possibilities:
+     Group "ab" is multiplied by 1 and 1, combine them.
+   >>> (1 + 1) * ab
+   (1 + 1)ab
+   possibilities:
+     Combine the constants 1 and 1.
+     Group "1" is multiplied by 1 and 1, combine them.
+     Expand a(1 + 1).
+     Expand b(1 + 1).
 
  - Fix division by zero caused by "0/0".
 
