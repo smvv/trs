@@ -18,7 +18,7 @@ def match_negate_group(node):
         # --a
         return [P(node, double_negation, (node,))]
 
-    if not val.is_leaf():
+    if not val.is_leaf:
         scope = get_scope(val)
 
         if not any(map(lambda n: n.is_op(OP_NEG), scope)):

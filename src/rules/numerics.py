@@ -119,7 +119,7 @@ def match_multiply_zero(node):
     assert node.is_op(OP_MUL)
 
     left, right = node
-    is_zero = lambda n: n.is_leaf() and n.value == 0
+    is_zero = lambda n: n.is_leaf and n.value == 0
 
     if is_zero(left):
         negated = right.is_op(OP_NEG)

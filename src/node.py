@@ -83,23 +83,23 @@ class ExpressionBase(object):
            exponent property, or this node's coefficient property is less than
            other's coefficient property. Otherwise, False is returned.
         """
-        if self.is_leaf():
-            if other.is_leaf():
+        if self.is_leaf:
+            if other.is_leaf:
                 # Both are leafs, string compare the value.
                 return str(self.value) < str(other.value)
             # Self is a leaf, thus has less value than an expression node.
             return True
 
-        if self.is_op(OP_NEG) and self[0].is_leaf():
-            if other.is_leaf():
+        if self.is_op(OP_NEG) and self[0].is_leaf:
+            if other.is_leaf:
                 # Both are leafs, string compare the value.
                 return ('-' + str(self.value)) < str(other.value)
-            if other.is_op(OP_NEG) and other[0].is_leaf():
+            if other.is_op(OP_NEG) and other[0].is_leaf:
                 return ('-' + str(self.value)) < ('-' + str(other.value))
             # Self is a leaf, thus has less value than an expression node.
             return True
 
-        if other.is_leaf():
+        if other.is_leaf:
             # Self is an expression node, and the other is a leaf. Thus, other
             # is greater than self.
             return False
@@ -111,10 +111,10 @@ class ExpressionBase(object):
         return s_root < o_root or s_exp < o_exp or s_coeff < o_coeff
 
     def is_op(self, op):
-        return not self.is_leaf() and self.op == op
+        return not self.is_leaf and self.op == op
 
     def is_op_or_negated(self, op):
-        if self.is_leaf():
+        if self.is_leaf:
             return False
 
         if self.op == OP_NEG:
@@ -122,23 +122,20 @@ class ExpressionBase(object):
 
         return self.op == op
 
-    def is_leaf(self):
-        return self.type != TYPE_OPERATOR
-
     def is_leaf_or_negated(self):
-        if  self.is_leaf():
+        if  self.is_leaf:
             return True
 
         if self.is_op(OP_NEG):
-            return self[0].is_leaf()
+            return self[0].is_leaf
 
         return False
 
     def is_power(self):
-        return not self.is_leaf() and self.op == OP_POW
+        return not self.is_leaf and self.op == OP_POW
 
     def is_nary(self):
-        return not self.is_leaf() and self.op in [OP_ADD, OP_SUB, OP_MUL]
+        return not self.is_leaf and self.op in [OP_ADD, OP_SUB, OP_MUL]
 
     def is_identifier(self):
         return self.type == TYPE_IDENTIFIER
@@ -362,13 +359,13 @@ class Scope(object):
         return iter(self.nodes)
 
     def remove(self, node, replacement=None):
-        if node.is_leaf():
+        if node.is_leaf:
             node_cmp = hash(node)
         else:
             node_cmp = node
 
         for i, n in enumerate(self.nodes):
-            if n.is_leaf():
+            if n.is_leaf:
                 n_cmp = hash(n)
             else:
                 n_cmp = n

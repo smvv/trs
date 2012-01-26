@@ -37,8 +37,8 @@ class TestNode(RulesTestCase):
         self.assertFalse(self.l[0].is_op_or_negated(OP_ADD))
 
     def test_is_leaf(self):
-        self.assertTrue(L(2).is_leaf())
-        self.assertFalse(N('+', *self.l[:2]).is_leaf())
+        self.assertTrue(L(2).is_leaf)
+        self.assertFalse(N('+', *self.l[:2]).is_leaf)
 
     def test_is_leaf_or_negated(self):
         self.assertTrue(L(2).is_leaf_or_negated())
