@@ -22,4 +22,4 @@ class TestParser(unittest.TestCase):
         """).replace('\n        ', '\n')[1:-1]
 
     def test_line(self):
-        self.assertEqual(line(Parser, '4a'), '4 * a')
+        self.assertEqual(line(Parser, '4-a'), '4 - a')
