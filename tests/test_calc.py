@@ -24,7 +24,7 @@ class TestCalc(unittest.TestCase):
 
     def test_infinity(self):
         expressions = [('2^3000',  N('^', L(2), L(3000))),
-                       ('2^-3000', N('^', L(2), N('-', L(3000))))]
+                       ('2^-3000', N('^', L(2), -L(3000)))]
         #               ('2^99999999999', None),
         #               ('2^-99999999999', 0.0)]
 
@@ -70,7 +70,7 @@ class TestCalc(unittest.TestCase):
 
         expressions = [
                        ('a^b^c', N('^', a, N('^', b, c))),
-                       ('-1^b^c', N('-', N('^', L(1), N('^', b, c)))),
+                       ('-1^b^c', -N('^', L(1), N('^', b, c))),
                        ('ab^c', N('*', a, N('^', b, c))),
                        ('a(b)^c', N('*', a, N('^', b, c))),
                        ('a(b+c)^(d+e)', N('*', a, N('^', N('+', b, c),
