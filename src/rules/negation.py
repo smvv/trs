@@ -1,4 +1,4 @@
-from ..node import get_scope, nary_node, OP_NEG, OP_ADD, OP_MUL, OP_DIV
+from ..node import get_scope, nary_node, OP_ADD, OP_MUL, OP_DIV
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -6,58 +6,48 @@ from ..translate import _
 def match_negate_group(node):
     """
     --a                 ->  a
-    --ab                ->  ab
-    -(-ab + c)          ->  --ab - c
+    -(a * ... * -b)     ->  ab
     -(a + b + ... + z)  ->  -a + -b + ... + -z
     """
-    assert node.is_op(OP_NEG)
+    assert node.negated
 
-    val = node[0]
-
-    if val.is_op(OP_NEG):
+    if node.negated == 2:
         # --a
         return [P(node, double_negation, (node,))]
 
-    if not val.is_leaf:
-        scope = get_scope(val)
+    if not node.is_leaf:
+        scope = get_scope(node)
 
-        if not any(map(lambda n: n.is_op(OP_NEG), scope)):
-            return []
+        if node.is_op(OP_MUL) and any(map(lambda n: n.negated, scope)):
+            # -(-a)b
+            return [P(node, negate_group, (node, scope))]
 
-        if val.is_op(OP_MUL):
-            # --ab
-            return [P(node, negate_polynome, (node, scope))]
-
-        elif val.is_op(OP_ADD):
+        if node.is_op(OP_ADD):
             # -(ab + c)   ->  -ab - c
             # -(-ab + c)  ->  ab - c
-            return [P(node, negate_group, (node, scope))]
+            return [P(node, negate_polynome, (node, scope))]
 
     return []
 
 
-def negate_polynome(root, args):
+def negate_group(root, args):
     """
-    # -a * -3c  ->  a * 3c
-    --a * 3c  ->  a * 3c
-    --ab      ->  ab
-    --abc     ->  abc
+    -(a * -3c)       ->  a * 3c
+    -(a * ... * -b)  ->  ab
     """
     node, scope = args
 
     for i, n in enumerate(scope):
-        # XXX: validate this property!
-        if n.is_op(OP_NEG):
-            scope[i] = n[0]
-            return nary_node('*', scope)
+        if n.negated:
+            scope[i] = n.reduce_negation()
 
-    raise RuntimeError('No negation node found in scope.')
+    return nary_node('*', scope).reduce_negation()
 
 
-MESSAGES[negate_polynome] = _('Apply negation to the polynome {1[0]}.')
+MESSAGES[negate_group] = _('Apply negation to the polynome {1[0]}.')
 
 
-def negate_group(root, args):
+def negate_polynome(root, args):
     """
     -(-ab + ... + c)  ->  --ab + ... + -c
     """
@@ -70,16 +60,14 @@ def negate_group(root, args):
     return nary_node('+', scope)
 
 
-MESSAGES[negate_group] = _('Apply negation to the subexpression {1[0]}.')
+MESSAGES[negate_polynome] = _('Apply negation to the subexpression {1[0]}.')
 
 
 def double_negation(root, args):
     """
     --a  ->  a
     """
-    node = args[0]
-
-    return node[0][0]
+    return negate(args[0], args[0].negated - 2)
 
 
 MESSAGES[double_negation] = _('Remove double negation in {1}.')
@@ -92,14 +80,12 @@ def match_negated_division(node):
     assert node.is_op(OP_DIV)
 
     a, b = node
-    a_neg = a.is_op(OP_NEG)
-    b_neg = b.is_op(OP_NEG)
 
-    if a_neg and b_neg:
+    if a.negated and b.negated:
         return [P(node, double_negated_division, (node,))]
-    elif a_neg:
+    elif a.negated:
         return [P(node, single_negated_division, (a[0], b))]
-    elif b_neg:
+    elif b.negated:
         return [P(node, single_negated_division, (a, b[0]))]
 
     return []
@@ -132,3 +118,6 @@ def double_negated_division(root, args):
 
 MESSAGES[double_negated_division] = \
         _('Eliminate top and bottom negation in {1}.')
+
+
+# TODO: negated multiplication: -a * -b = ab

@@ -1,6 +1,6 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, Scope, OP_DIV, OP_MUL, OP_NEG
+from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_DIV, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -16,21 +16,10 @@ def add_numerics(root, args):
     -2 + -3  ->  -5
     """
     n0, n1, c0, c1 = args
-
-    if c0.is_op(OP_NEG):
-        c0 = -c0[0].value
-    else:
-        c0 = c0.value
-
-    if c1.is_op(OP_NEG):
-        c1 = (-c1[0].value)
-    else:
-        c1 = c1.value
-
     scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(n0, Leaf(c0 + c1))
+    scope.remove(n0, Leaf(c0.actual_value() + c1.actual_value()))
 
     # Remove the right node
     scope.remove(n1)
@@ -119,20 +108,12 @@ def match_multiply_zero(node):
     assert node.is_op(OP_MUL)
 
     left, right = node
-    is_zero = lambda n: n.is_leaf and n.value == 0
 
-    if is_zero(left):
-        negated = right.is_op(OP_NEG)
-    elif is_zero(right):
-        negated = left.is_op(OP_NEG)
-    elif left.is_op(OP_NEG) and is_zero(left[0]):
-        negated = not right.is_op(OP_NEG)
-    elif right.is_op(OP_NEG) and is_zero(right[0]):
-        negated = not left.is_op(OP_NEG)
-    else:
-        return []
+    if (left.is_leaf and left.value == 0) \
+            or (right.is_leaf and right.value == 0):
+        return [P(node, multiply_zero, (left.negated + right.negated,))]
 
-    return [P(node, multiply_zero, (negated,))]
+    return []
 
 
 def multiply_zero(root, args):
@@ -143,12 +124,7 @@ def multiply_zero(root, args):
     0 * -a   ->  -0
     -0 * -a  ->  0
     """
-    negated = args[0]
-
-    if negated:
-        return -Leaf(0)
-    else:
-        return Leaf(0)
+    return negate(Leaf(0), args[0])
 
 
 MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
@@ -168,9 +144,7 @@ def match_multiply_numerics(node):
 
     for n in Scope(node):
         if n.is_numeric():
-            numerics.append((n, n.value))
-        elif n.is_op(OP_NEG) and n[0].is_numeric():
-            numerics.append((n, -n[0].value))
+            numerics.append((n, n.actual_value()))
 
     for (n0, v0), (n1, v1) in combinations(numerics, 2):
         p.append(P(node, multiply_numerics, (n0, n1, v0, v1)))

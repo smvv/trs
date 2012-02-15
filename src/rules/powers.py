@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-                   OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_ADD
+                   OP_MUL, OP_DIV, OP_POW, OP_ADD
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -91,6 +91,18 @@ def match_subtract_exponents(node):
     return []
 
 
+def subtract_exponents(root, args):
+    """
+    a^p / a^q  ->  a^(p - q)
+    """
+    a, p, q = args
+
+    return a ** (p - q)
+
+
+MESSAGES[subtract_exponents] = _('Substract the exponents {2} and {3}.')
+
+
 def match_multiply_exponents(node):
     """
     (a^p)^q  ->  a^(pq)
@@ -103,6 +115,18 @@ def match_multiply_exponents(node):
         return [P(node, multiply_exponents, tuple(left) + (right,))]
 
     return []
+
+
+def multiply_exponents(root, args):
+    """
+    (a^p)^q  ->  a^(pq)
+    """
+    a, p, q = args
+
+    return a ** (p * q)
+
+
+MESSAGES[multiply_exponents] = _('Multiply the exponents {2} and {3}.')
 
 
 def match_duplicate_exponent(node):
@@ -119,18 +143,47 @@ def match_duplicate_exponent(node):
     return []
 
 
+def duplicate_exponent(root, args):
+    """
+    (ab)^p   ->  a^p * b^p
+    (abc)^p  ->  a^p * b^p * c^p
+    """
+    ab, p = args
+    result = ab[0] ** p
+
+    for b in ab[1:]:
+        result *= b ** p
+
+    return result
+
+
+MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
+
+
 def match_remove_negative_exponent(node):
     """
     a^-p  ->  1 / a^p
     """
     assert node.is_op(OP_POW)
 
-    left, right = node
+    a, p = node
 
-    if right.is_op(OP_NEG):
-        return [P(node, remove_negative_exponent, (left, right[0]))]
+    if p.negated:
+        return [P(node, remove_negative_exponent, (a, p))]
 
     return []
+
+
+def remove_negative_exponent(root, args):
+    """
+    a^-p  ->  1 / a^p
+    """
+    a, p = args
+
+    return L(1) / a ** p.reduce_negation()
+
+
+MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
 
 
 def match_exponent_to_root(node):
@@ -146,6 +199,16 @@ def match_exponent_to_root(node):
         return [P(node, exponent_to_root, (left,) + tuple(right))]
 
     return []
+
+
+def exponent_to_root(root, args):
+    """
+    a^(1 / m)  ->  sqrt(a, m)
+    a^(n / m)  ->  sqrt(a^n, m)
+    """
+    a, n, m = args
+
+    return N('sqrt', a if n == 1 else a ** n, m)
 
 
 def match_extend_exponent(node):
@@ -174,66 +237,3 @@ def extend_exponent(root, args):
         return left * left ** L(right.value - 1)
 
     return left * left
-
-
-def subtract_exponents(root, args):
-    """
-    a^p / a^q  ->  a^(p - q)
-    """
-    a, p, q = args
-
-    return a ** (p - q)
-
-
-MESSAGES[subtract_exponents] = _('Substract the exponents {2} and {3}.')
-
-
-def multiply_exponents(root, args):
-    """
-    (a^p)^q  ->  a^(pq)
-    """
-    a, p, q = args
-
-    return a ** (p * q)
-
-
-MESSAGES[multiply_exponents] = _('Multiply the exponents {2} and {3}.')
-
-
-def duplicate_exponent(root, args):
-    """
-    (ab)^p   ->  a^p * b^p
-    (abc)^p  ->  a^p * b^p * c^p
-    """
-    ab, p = args
-    result = ab[0] ** p
-
-    for b in ab[1:]:
-        result *= b ** p
-
-    return result
-
-
-MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
-
-
-def remove_negative_exponent(root, args):
-    """
-    a^-p  ->  1 / a^p
-    """
-    a, p = args
-
-    return L(1) / a ** p
-
-
-MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
-
-
-def exponent_to_root(root, args):
-    """
-    a^(1 / m)  ->  sqrt(a, m)
-    a^(n / m)  ->  sqrt(a^n, m)
-    """
-    a, n, m = args
-
-    return N('sqrt', a if n == 1 else a ** n, m)

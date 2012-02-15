@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from .utils import least_common_multiple
-from ..node import ExpressionLeaf as L, Scope, OP_DIV, OP_ADD, OP_MUL, OP_NEG
+from ..node import ExpressionLeaf as L, Scope, OP_DIV, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -80,22 +80,11 @@ def match_add_constant_fractions(node):
 
     p = []
 
-    def is_division(node):
-        return node.is_op(OP_DIV) or \
-                (node.is_op(OP_NEG) and node[0].is_op(OP_DIV))
-
-    fractions = filter(is_division, Scope(node))
+    fractions = filter(lambda node: node.is_op(OP_DIV), Scope(node))
 
     for a, b in combinations(fractions, 2):
-        if a.is_op(OP_NEG):
-            na, da = a[0]
-        else:
-            na, da = a
-
-        if b.is_op(OP_NEG):
-            nb, db = b[0]
-        else:
-            nb, db = b
+        na, da = a
+        nb, db = b
 
         if da == db:
             # Equal denominators, add nominators to create a single fraction
@@ -116,20 +105,17 @@ def equalize_denominators(root, args):
     a / 2 + b / 4  ->  2a / 4 + b / 4
     """
     denom = args[2]
-
     scope = Scope(root)
 
     for fraction in args[:2]:
-        n, d = fraction[0] if fraction.is_op(OP_NEG) else fraction
+        n, d = fraction
         mult = denom / d.value
 
         if mult != 1:
             n = L(n.value * mult) if n.is_numeric() else L(mult) * n
 
-            if fraction.is_op(OP_NEG):
-                scope.remove(fraction, -(n / L(d.value * mult)))
-            else:
-                scope.remove(fraction, n / L(d.value * mult))
+            scope.remove(fraction, negate(n / L(d.value * mult),
+                                          fraction.negated))
 
     return scope.as_nary_node()
 
@@ -147,21 +133,11 @@ def add_nominators(root, args):
     """
     # TODO: is 'add' Appropriate when rewriting to "(a + (-c)) / b"?
     ab, cb = args
-
-    if ab.is_op(OP_NEG):
-        a, b = ab[0]
-    else:
-        a, b = ab
-
-    if cb.is_op(OP_NEG):
-        c = -cb[0][0]
-    else:
-        c = cb[0]
-
+    a, b = ab
     scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(ab, (a + c) / b)
+    scope.remove(ab, (a + negate(cb[0], cb.negated)) / b)
 
     # Remove the right node
     scope.remove(cb)
