@@ -354,6 +354,10 @@ class Scope(object):
     def __iter__(self):
         return iter(self.nodes)
 
+    def __eq__(self, other):
+        return isinstance(other, Scope) and self.node == other.node \
+               and self.nodes == other.node
+
     def remove(self, node, replacement=None):
         if node.is_leaf:
             node_cmp = hash(node)
@@ -381,7 +385,7 @@ class Scope(object):
         self.remove(node, replacement=replacement)
 
     def as_nary_node(self):
-        return nary_node(self.node.value, self.nodes)
+        return nary_node(self.node.value, self.nodes).negate(self.node.negated)
 
 
 def nary_node(operator, scope):

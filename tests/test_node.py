@@ -193,3 +193,8 @@ class TestNode(RulesTestCase):
 
     def test_scope_as_nary_node(self):
         self.assertEqualNodes(self.scope.as_nary_node(), self.n)
+
+    def test_scope_as_nary_node_negated(self):
+        n = tree('-(a + b)')
+        self.assertEqualNodes(Scope(n).as_nary_node(), n)
+        self.assertEqualNodes(Scope(-n).as_nary_node(), -n)
