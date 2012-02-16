@@ -145,8 +145,13 @@ class ExpressionBase(object):
     def __pow__(self, other):
         return ExpressionNode('^', self, to_expression(other))
 
+    def __pos__(self):
+        return self.reduce_negation()
+
     def reduce_negation(self, n=1):
         """Remove n negation flags from the node."""
+        assert self.negated
+
         return self.negate(-n)
 
     def negate(self, n=1):
