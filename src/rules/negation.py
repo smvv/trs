@@ -67,7 +67,7 @@ def double_negation(root, args):
     """
     --a  ->  a
     """
-    return negate(args[0], args[0].negated - 2)
+    return args[0].reduce_negation(2)
 
 
 MESSAGES[double_negation] = _('Remove double negation in {1}.')
@@ -84,9 +84,9 @@ def match_negated_division(node):
     if a.negated and b.negated:
         return [P(node, double_negated_division, (node,))]
     elif a.negated:
-        return [P(node, single_negated_division, (a[0], b))]
+        return [P(node, single_negated_division, (+a, b))]
     elif b.negated:
-        return [P(node, single_negated_division, (a, b[0]))]
+        return [P(node, single_negated_division, (a, +b))]
 
     return []
 
@@ -111,9 +111,9 @@ def double_negated_division(root, args):
     """
     -a / -b  ->  a / b
     """
-    a, b = root
+    a, b = args[0]
 
-    return a[0] / b[0]
+    return +a / +b
 
 
 MESSAGES[double_negated_division] = \
