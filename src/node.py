@@ -358,7 +358,7 @@ class Scope(object):
         return isinstance(other, Scope) and self.node == other.node \
                and self.nodes == other.nodes
 
-    def remove(self, node, replacement=None):
+    def remove(self, node, **kwargs):
         if node.is_leaf:
             node_cmp = hash(node)
         else:
@@ -371,8 +371,8 @@ class Scope(object):
                 n_cmp = n
 
             if n_cmp == node_cmp:
-                if replacement != None:
-                    self[i] = replacement
+                if 'replacement' in kwargs:
+                    self[i] = kwargs['replacement']
                 else:
                     del self.nodes[i]
 
@@ -416,7 +416,9 @@ def get_scope(node):
 
 def negate(node, n=1):
     """Negate the given node n times."""
-    node = node.clone()
-    node.negated = n
+    assert n >= 0
 
-    return node
+    new_node = node.clone()
+    new_node.negated = n
+
+    return new_node
