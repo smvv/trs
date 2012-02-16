@@ -16,6 +16,9 @@ def match_negated_factor(node):
     p = []
     scope = Scope(node)
 
+    # FIXME: The negation that is brought outside is assigned to the first
+    # element in the scope during the next parsing step:
+    # -ab -> -(ab), but -(ab) is printed as -ab
     for factor in scope:
         if factor.negated:
             p.append(P(node, negated_factor, (scope, factor)))
@@ -31,6 +34,10 @@ def negated_factor(root, args):
     scope.replace(factor, +factor)
 
     return -scope.as_nary_node()
+
+
+MESSAGES[negated_factor] = \
+        _('Bring negation of {2} to the outside of the multiplication.')
 
 
 def match_negate_polynome(node):
@@ -60,7 +67,7 @@ def double_negation(root, args):
     return root.reduce_negation(2)
 
 
-MESSAGES[double_negation] = _('Remove double negation in {1}.')
+MESSAGES[double_negation] = _('Remove double negation in {0}.')
 
 
 def negate_polynome(root, args):
@@ -76,7 +83,7 @@ def negate_polynome(root, args):
     return +scope.as_nary_node()
 
 
-MESSAGES[negate_polynome] = _('Apply negation to the polynome {1}.')
+MESSAGES[negate_polynome] = _('Apply negation to the polynome {0}.')
 
 
 #def negate_group(root, args):
@@ -140,7 +147,7 @@ def double_negated_division(root, args):
 
 
 MESSAGES[double_negated_division] = \
-        _('Eliminate top and bottom negation in {1}.')
+        _('Eliminate top and bottom negation in {0}.')
 
 
 # TODO: negated multiplication: -a * -b = ab
