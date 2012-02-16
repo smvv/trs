@@ -356,7 +356,7 @@ class Scope(object):
 
     def __eq__(self, other):
         return isinstance(other, Scope) and self.node == other.node \
-               and self.nodes == other.node
+               and self.nodes == other.nodes
 
     def remove(self, node, replacement=None):
         if node.is_leaf:
