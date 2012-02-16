@@ -45,7 +45,7 @@ def expand_single(root, args):
     scope = Scope(root)
 
     # Replace 'a' with the new expression
-    scope.remove(a, a * b + a * c)
+    scope.replace(a, a * b + a * c)
 
     # Remove the addition
     scope.remove(bc)
@@ -66,7 +66,7 @@ def expand_double(root, args):
     scope = Scope(root)
 
     # Replace 'a + b' with the new expression
-    scope.remove(ab, a * c + a * d + b * c + b * d)
+    scope.replace(ab, a * c + a * d + b * c + b * d)
 
     # Remove the right addition
     scope.remove(cd)

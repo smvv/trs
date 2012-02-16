@@ -84,7 +84,7 @@ def combine_polynomes(root, args):
     # Replace the left node with the new expression:
     # (c0 + c1) * a ^ b
     # a, b and c are from 'left', d is from 'right'.
-    scope.remove(n0, (c0 + c1) * power)
+    scope.replace(n0, (c0 + c1) * power)
 
     # Remove the right node
     scope.remove(n1)

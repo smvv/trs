@@ -59,7 +59,7 @@ def combine_groups(root, args):
         c0 = Leaf(c0)
 
     # Replace the left node with the new expression
-    scope.remove(n0, (c0 + c1) * g0)
+    scope.replace(n0, (c0 + c1) * g0)
 
     # Remove the right node
     scope.remove(n1)

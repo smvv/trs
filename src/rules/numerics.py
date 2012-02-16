@@ -19,7 +19,7 @@ def add_numerics(root, args):
     scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(n0, Leaf(c0.actual_value() + c1.actual_value()))
+    scope.replace(n0, Leaf(c0.actual_value() + c1.actual_value()))
 
     # Remove the right node
     scope.remove(n1)
@@ -171,7 +171,7 @@ def multiply_numerics(root, args):
     scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(n0, substitution)
+    scope.replace(n0, substitution)
 
     # Remove the right node
     scope.remove(n1)

@@ -54,7 +54,7 @@ def add_exponents(root, args):
     scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(n0, a ** (p + q))
+    scope.replace(n0, a ** (p + q))
 
     # Remove the right node
     scope.remove(n1)
