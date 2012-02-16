@@ -1,6 +1,6 @@
 from itertools import product, combinations
 
-from ..node import Scope, OP_ADD, OP_MUL, OP_NEG
+from ..node import Scope, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -18,7 +18,7 @@ def match_expand(node):
     additions = []
 
     for n in Scope(node):
-        if n.is_leaf or n.is_op(OP_NEG) and n[0].is_leaf:
+        if n.is_leaf:
             leaves.append(n)
         elif n.op == OP_ADD:
             additions.append(n)

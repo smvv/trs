@@ -16,7 +16,7 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_COMMA
+from node import TYPE_OPERATOR, OP_COMMA, OP_NEG
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
@@ -180,11 +180,13 @@ class Parser(BisonParser):
         return data
 
     def hook_handler(self, target, option, names, values, retval):
-        if target in ['exp', 'line', 'input'] or not retval \
-                or retval.type != TYPE_OPERATOR:
+        if target in ['exp', 'line', 'input'] or not retval:
             return retval
 
-        if self.subtree_map:
+        if not retval.negated and retval.type != TYPE_OPERATOR:
+            return retval
+
+        if self.subtree_map and retval.type == TYPE_OPERATOR:
             # Update the subtree map to let the subtree point to its parent
             # node.
             parent_nodes = self.subtree_map.keys()
@@ -193,10 +195,15 @@ class Parser(BisonParser):
                 if child in parent_nodes:
                     self.subtree_map[child] = retval
 
-        if retval.op not in RULES:
-            return retval
+        if retval.type == TYPE_OPERATOR and retval.op in RULES:
+            handlers = RULES[retval.op]
+        else:
+            handlers = []
 
-        for handler in RULES[retval.op]:
+        if retval.negated:
+            handlers += RULES[OP_NEG]
+
+        for handler in handlers:
             possibilities = handler(retval)
 
             # Record the subtree root node in order to avoid tree traversal.
@@ -343,7 +350,9 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: NEG exp
-            return Node('-', values[1])
+            node = values[1]
+            node.negated += 1
+            return node
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -361,11 +370,8 @@ class Parser(BisonParser):
             return Node(values[1], values[0], values[2])
 
         if option == 4:  # rule: exp MINUS exp
-            # It is necessary to call the hook_handler here explicitly, since
-            # the minus operator is internally represented as two nodes (unary
-            # negation and binary plus).
-            node = Node('-', values[2])
-            node = self.hook_handler(target, option, names, values, node)
+            node = values[2]
+            node.negated += 1
             return Node('+', values[0], node)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'

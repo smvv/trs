@@ -1,12 +1,8 @@
 from itertools import combinations
 
-from ..node import Scope, OP_ADD, OP_NEG
+from ..node import Scope, OP_ADD
 from ..possibilities import Possibility as P, MESSAGES
 from .numerics import add_numerics
-
-
-def is_numeric_or_negated_numeric(n):
-    return n.is_numeric() or (n.is_op(OP_NEG) and n[0].is_numeric())
 
 
 def match_combine_polynomes(node, verbose=False):
@@ -52,7 +48,7 @@ def match_combine_polynomes(node, verbose=False):
             # roots, or: same root and exponent -> combine coefficients.
             # TODO: Addition with zero, e.g. a + 0 -> a
             if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
-                    and all(map(is_numeric_or_negated_numeric, [r0, r1])):
+                    and all(map(lambda n: n.is_numeric(), [r0, r1])):
                 # 2 + 3    ->  5
                 # 2 + -3   ->  -1
                 # -2 + 3   ->  1

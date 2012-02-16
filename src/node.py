@@ -43,7 +43,7 @@ TYPE_MAP = {
 OP_MAP = {
         '+': OP_ADD,
         # Either substraction or negation. Skip the operator sign in 'x' (= 2).
-        '-': lambda x: OP_SUB if len(x) > 2 else OP_NEG,
+        '-': OP_SUB,
         '*': OP_MUL,
         '/': OP_DIV,
         '^': OP_POW,
@@ -60,6 +60,10 @@ def to_expression(obj):
 
 
 class ExpressionBase(object):
+
+    def __init__(self, *args, **kwargs):
+        self.negated = 0
+
     def clone(self):
         return copy.deepcopy(self)
 
@@ -86,16 +90,11 @@ class ExpressionBase(object):
         if self.is_leaf:
             if other.is_leaf:
                 # Both are leafs, string compare the value.
-                return str(self.value) < str(other.value)
-            # Self is a leaf, thus has less value than an expression node.
-            return True
+                self_value = '-' * (self.negated & 1) + str(self.value)
+                other_value = '-' * (other.negated & 1) + str(other.value)
 
-        if self.is_op(OP_NEG) and self[0].is_leaf:
-            if other.is_leaf:
-                # Both are leafs, string compare the value.
-                return ('-' + str(self.value)) < str(other.value)
-            if other.is_op(OP_NEG) and other[0].is_leaf:
-                return ('-' + str(self.value)) < ('-' + str(other.value))
+                return self_value < other_value
+
             # Self is a leaf, thus has less value than an expression node.
             return True
 
@@ -112,24 +111,6 @@ class ExpressionBase(object):
 
     def is_op(self, op):
         return not self.is_leaf and self.op == op
-
-    def is_op_or_negated(self, op):
-        if self.is_leaf:
-            return False
-
-        if self.op == OP_NEG:
-            return self[0].is_op(op)
-
-        return self.op == op
-
-    def is_leaf_or_negated(self):
-        if  self.is_leaf:
-            return True
-
-        if self.is_op(OP_NEG):
-            return self[0].is_leaf
-
-        return False
 
     def is_power(self):
         return not self.is_leaf and self.op == OP_POW
@@ -164,8 +145,13 @@ class ExpressionBase(object):
     def __pow__(self, other):
         return ExpressionNode('^', self, to_expression(other))
 
-    def __neg__(self):
-        return ExpressionNode('-', self)
+    def reduce_negation(self, n=1):
+        """Remove n negation flags from the node."""
+        return self.negate(-n)
+
+    def negate(self, n=1):
+        """Negate the node n times."""
+        return negate(self, self.negated + n)
 
 
 class ExpressionNode(Node, ExpressionBase):
@@ -226,8 +212,10 @@ class ExpressionNode(Node, ExpressionBase):
             return (ExpressionLeaf(1), self[0], self[1])
 
         # rule: -r -> (1, r, 1)
-        if self.is_op(OP_NEG):
-            return (ExpressionLeaf(1), -self[0], ExpressionLeaf(1))
+        # rule: --r -> (1, r, 1)
+        # rule: ---r -> (1, r, 1)
+        if self.negated:
+            return (ExpressionLeaf(1), self, ExpressionLeaf(1))
 
         if self.op != OP_MUL:
             return
@@ -309,7 +297,6 @@ class ExpressionNode(Node, ExpressionBase):
 class ExpressionLeaf(Leaf, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
-
         self.type = TYPE_MAP[type(args[0])]
 
     def __eq__(self, other):
@@ -338,6 +325,11 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         """
         # rule: 1 * r ^ 1 -> (1, r, 1)
         return (ExpressionLeaf(1), self, ExpressionLeaf(1))
+
+    def actual_value(self):
+        assert self.is_numeric()
+
+        return (1 - 2 * (self.negated & 1)) * self.value
 
 
 class Scope(object):
@@ -409,3 +401,11 @@ def get_scope(node):
             scope.append(child)
 
     return scope
+
+
+def negate(node, n=1):
+    """Negate the given node n times."""
+    node = node.clone()
+    node.negated = n
+
+    return node
