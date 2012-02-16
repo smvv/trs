@@ -170,10 +170,8 @@ class ExpressionNode(Node, ExpressionBase):
         """
         Check strict equivalence.
         """
-        if isinstance(other, ExpressionNode):
-            return self.op == other.op and self.nodes == other.nodes
-
-        return False
+        return isinstance(other, ExpressionNode) and self.op == other.op \
+               and self.negated == other.negated and self.nodes == other.nodes
 
     def substitute(self, old_child, new_child):
         self.nodes[self.nodes.index(old_child)] = new_child
@@ -267,7 +265,7 @@ class ExpressionNode(Node, ExpressionBase):
             s0 = Scope(self)
             s1 = set(Scope(other))
 
-            # Scopes sould be of equal size
+            # Scopes should be of equal size
             if len(s0) != len(s1):
                 return False
 
@@ -308,7 +306,8 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         if other_type in TYPE_MAP:
             return TYPE_MAP[other_type] == self.type and self.value == other
 
-        return other.type == self.type and self.value == other.value
+        return self.negated == other.negated and self.type == other.type \
+               and self.value == other.value
 
     def equals(self, other):
         """
@@ -372,6 +371,9 @@ class Scope(object):
 
         raise ValueError('Node "%s" is not in the scope of "%s".'
                          % (node, self.node))
+
+    def replace(self, node, replacement):
+        self.remove(node, replacement=replacement)
 
     def as_nary_node(self):
         return nary_node(self.node.value, self.nodes)

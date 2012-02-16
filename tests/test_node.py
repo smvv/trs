@@ -30,21 +30,9 @@ class TestNode(RulesTestCase):
         self.assertTrue(N('+', *self.l[:2]).is_op(OP_ADD))
         self.assertFalse(N('-', *self.l[:2]).is_op(OP_ADD))
 
-    def test_is_op_or_negated(self):
-        self.assertTrue(N('+', *self.l[:2]).is_op_or_negated(OP_ADD))
-        self.assertTrue(N('-', N('+', *self.l[:2])).is_op_or_negated(OP_ADD))
-        self.assertFalse(N('-', *self.l[:2]).is_op_or_negated(OP_ADD))
-        self.assertFalse(self.l[0].is_op_or_negated(OP_ADD))
-
     def test_is_leaf(self):
         self.assertTrue(L(2).is_leaf)
         self.assertFalse(N('+', *self.l[:2]).is_leaf)
-
-    def test_is_leaf_or_negated(self):
-        self.assertTrue(L(2).is_leaf_or_negated())
-        self.assertTrue(N('-', L(2)).is_leaf_or_negated())
-        self.assertFalse(N('+', *self.l[:2]).is_leaf_or_negated())
-        self.assertFalse(N('-', N('+', *self.l[:2])).is_leaf_or_negated())
 
     def test_is_power(self):
         self.assertTrue(N('^', *self.l[:2]).is_power())
@@ -185,13 +173,13 @@ class TestNode(RulesTestCase):
         self.scope.remove(self.cd)
         self.assertEqual(self.scope.nodes, [self.a, self.b])
 
-    def test_scope_remove_replace(self):
-        self.scope.remove(self.cd, self.f)
-        self.assertEqual(self.scope.nodes, [self.a, self.b, self.f])
-
     def test_scope_remove_error(self):
         with self.assertRaises(ValueError):
             self.scope.remove(self.f)
+
+    def test_scope_replace(self):
+        self.scope.replace(self.cd, self.f)
+        self.assertEqual(self.scope.nodes, [self.a, self.b, self.f])
 
     def test_nary_node(self):
         a, b, c, d = tree('a,b,c,d')
