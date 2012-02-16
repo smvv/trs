@@ -7,9 +7,4 @@ from tests.parser import ParserWrapper
 
 class TestException(unittest.TestCase):
     def test_raise(self):
-        try:
-            ParserWrapper(Parser).run(['raise'])
-        except RuntimeError:
-            return
-
-        raise AssertionError('Expected raised RuntimeError!') # pragma: nocover
+        self.assertRaises(RuntimeError, ParserWrapper(Parser).run, ['raise'])

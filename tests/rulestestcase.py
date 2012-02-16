@@ -44,10 +44,10 @@ class RulesTestCase(unittest.TestCase):
         try:
             for i, exp in enumerate(rewrite_chain[:-1]):
                 self.assertMultiLineEqual(str(rewrite(exp)),
-                                          str(rewrite_chain[i+1]))
+                                          str(rewrite_chain[i + 1]))
         except AssertionError:  # pragma: nocover
             print 'rewrite failed: "%s"  ->  "%s"' \
-                    % (str(exp), str(rewrite_chain[i+1]))
+                    % (str(exp), str(rewrite_chain[i + 1]))
             print 'rewrite chain index: %d' % i
             print 'rewrite chain: ---'
 

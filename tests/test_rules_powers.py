@@ -103,7 +103,8 @@ class TestRulesPowers(RulesTestCase):
         a, p, q = tree('a,p,q')
         n0, n1 = root = a ** p * a ** q
 
-        self.assertEqualNodes(add_exponents(root, (n0, n1, a, p, q)), a ** (p + q))
+        self.assertEqualNodes(add_exponents(root, (n0, n1, a, p, q)),
+                              a ** (p + q))
 
     def test_subtract_exponents(self):
         a, p, q = tree('a,p,q')

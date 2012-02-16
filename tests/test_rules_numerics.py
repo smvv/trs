@@ -93,12 +93,13 @@ class TestRulesNumerics(RulesTestCase):
         self.assertEqual(multiply_numerics(i3 * f2, (i3, f2, 3, 2.0)), 6.0)
         self.assertEqual(multiply_numerics(f3 * f2, (f3, f2, 3.0, 2.0)), 6.0)
 
-        self.assertEqualNodes(multiply_numerics(a * i3 * i2 * b, (i3, i2, 3, 2)),
-                              a * 6 * b)
+        self.assertEqualNodes(multiply_numerics(a * i3 * i2 * b,
+                              (i3, i2, 3, 2)), a * 6 * b)
 
     def test_multiply_numerics_negation(self):
         l1_neg, l2 = root = tree('-1 * 2')
-        self.assertEqualNodes(multiply_numerics(root, (l1_neg, l2, -1, 2)), -l2)
+        self.assertEqualNodes(multiply_numerics(root, (l1_neg, l2, -1, 2)),
+                              -l2)
 
         root, l6 = tree('1 - 2 * 3,6')
         l1, neg = root
