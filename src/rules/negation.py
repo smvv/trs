@@ -6,7 +6,7 @@ from ..translate import _
 def match_negated_factor(node):
     """
     This rule assures that negations in the scope of a multiplication are
-    brought `outside', to the multiplication itself.
+    brought to the most left node in the multiplication's scope.
 
     Example:
     a * -b  ->  -(ab)
@@ -19,7 +19,7 @@ def match_negated_factor(node):
     # FIXME: The negation that is brought outside is assigned to the first
     # element in the scope during the next parsing step:
     # -ab -> -(ab), but -(ab) is printed as -ab
-    for factor in scope:
+    for factor in scope[1:]:
         if factor.negated:
             p.append(P(node, negated_factor, (scope, factor)))
 
@@ -28,12 +28,13 @@ def match_negated_factor(node):
 
 def negated_factor(root, args):
     """
-    a * -b  ->  -(ab)
+    a * -b  ->  -ab
     """
     scope, factor = args
+    scope[0] = -scope[0]
     scope.replace(factor, +factor)
 
-    return -scope.as_nary_node()
+    return scope.as_nary_node()
 
 
 MESSAGES[negated_factor] = \

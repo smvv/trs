@@ -23,14 +23,13 @@ class TestRulesNegation(RulesTestCase):
     def test_negated_factor(self):
         a, b = root = tree('a * -b')
         self.assertEqualNodes(negated_factor(root, (Scope(root), b)),
-                              -(a * +b))
+                              -a * +b)
 
         (a, b), c = root = tree('a * -b * -c')
-        scope = Scope(root)
-        self.assertEqualNodes(negated_factor(root, (scope, b)),
-                              -(a * +b * c))
-        self.assertEqualNodes(negated_factor(root, (scope, c)),
-                              -(a * b * +c))
+        self.assertEqualNodes(negated_factor(root, (Scope(root), b)),
+                              -a * +b * c)
+        self.assertEqualNodes(negated_factor(root, (Scope(root), c)),
+                              -a * b * +c)
 
     def test_match_negate_polynome(self):
         root = tree('--a')
