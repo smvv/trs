@@ -1,4 +1,4 @@
-from ..node import Scope, nary_node, OP_ADD, OP_MUL, OP_DIV
+from ..node import Scope, OP_ADD, OP_MUL, OP_DIV, TYPE_OPERATOR
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -46,7 +46,9 @@ def match_negate_polynome(node):
     --a       ->  a
     -(a + b)  ->  -a - b
     """
-    assert node.negated
+    if not node.negated and node.type == TYPE_OPERATOR:
+        print 'operator\'s negated childs:', [n.negated for n in node]
+    assert node.negated, str(node.negated) + '; ' + str(node)
 
     p = []
 

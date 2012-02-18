@@ -165,9 +165,6 @@ class ExpressionNode(Node, ExpressionBase):
         self.type = TYPE_OPERATOR
         self.op = OP_MAP[args[0]]
 
-        if hasattr(self.op, '__call__'):
-            self.op = self.op(args)
-
     def __str__(self):  # pragma: nocover
         return generate_line(self)
 

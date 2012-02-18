@@ -23,3 +23,13 @@ class TestParser(unittest.TestCase):
 
     def test_line(self):
         self.assertEqual(line(Parser, '4-a'), '4 - a')
+
+    def test_reset_after_failure(self):
+        parser = ParserWrapper(Parser)
+        parser.run(['-(3a+6b)'])
+        possibilities = parser.parser.possibilities
+        print possibilities
+
+        parser.run(['5+2*6'])
+        possibilities = parser.parser.possibilities
+        print possibilities

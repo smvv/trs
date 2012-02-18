@@ -74,13 +74,20 @@ class Parser(BisonParser):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
-        self.possibilities = self.last_possibilities = []
 
+        self.reset()
+
+    def reset(self):
         self.read_buffer = ''
         self.read_queue = Queue.Queue()
 
         self.subtree_map = {}
         self.root_node = None
+        self.possibilities = self.last_possibilities = []
+
+    def run(self, *args, **kwargs):
+        self.reset()
+        return super(Parser, self).run(*args, **kwargs)
 
     # Override default read method with a version that prompts for input.
     def read(self, nbytes):
@@ -201,6 +208,7 @@ class Parser(BisonParser):
             handlers = []
 
         if retval.negated:
+            print retval, 'OP_NEG', retval.negated
             handlers += RULES[OP_NEG]
 
         for handler in handlers:
@@ -372,6 +380,10 @@ class Parser(BisonParser):
         if option == 4:  # rule: exp MINUS exp
             node = values[2]
             node.negated += 1
+
+            # Explicit call the hook handler on the created unary negation.
+            node = self.hook_handler('binary', 4, names, values, node)
+
             return Node('+', values[0], node)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -415,8 +427,6 @@ class Parser(BisonParser):
             yylloc.first_column = yycolumn; \
             yylloc.last_column = yycolumn + yyleng; \
             yycolumn += yyleng;
-
-    /*[a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }*/
     %}
 
     %option yylineno
