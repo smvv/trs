@@ -46,8 +46,6 @@ def match_negate_polynome(node):
     --a       ->  a
     -(a + b)  ->  -a - b
     """
-    if not node.negated and node.type == TYPE_OPERATOR:
-        print 'operator\'s negated childs:', [n.negated for n in node]
     assert node.negated, str(node.negated) + '; ' + str(node)
 
     p = []
