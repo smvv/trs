@@ -76,7 +76,7 @@ class TestLeidenOefenopgave(TestCase):
             self.assertRewrite(chain)
 
     def test_1_4_1(self):
-        self.assertRewrite(['x * -1 + 1x', '(-1 + 1)x', '0x',])  # FIXME: '0'])
+        self.assertRewrite(['x * -1 + 1x', '(-1 + 1)x', '0x', '0'])
 
     def test_1_4_2(self):
         # FIXME: self.assertRewrite(['x * -1 - 1x', '(-1 + -1)x', '-2x'])
