@@ -45,7 +45,7 @@ class TestPossibilities(unittest.TestCase):
         possibilities = parser.parser.possibilities
         self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
                     '<Possibility root="3 + 4" handler=add_numerics' \
-                    ' args=(<Scope of "3 + 4">, 3, 4, 3, 4)>')
+                    ' args=(<Scope of "3 + 4">, 3, 4)>')
 
     def test_multiple_runs(self):
         parser = ParserWrapper(Parser)
@@ -53,7 +53,7 @@ class TestPossibilities(unittest.TestCase):
         possibilities = parser.parser.possibilities
         self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
                     '<Possibility root="1 + 2" handler=add_numerics' \
-                    ' args=(<Scope of "1 + 2">, 1, 2, 1, 2)>')
+                    ' args=(<Scope of "1 + 2">, 1, 2)>')
 
         # Remove previous possibilities after second run() call.
         parser.run(['', ' '])
@@ -65,7 +65,7 @@ class TestPossibilities(unittest.TestCase):
         possibilities = parser.parser.possibilities
         self.assertEqual('\n'.join([repr(pos) for pos in possibilities]),
                     '<Possibility root="3 + 4" handler=add_numerics' \
-                    ' args=(<Scope of "3 + 4">, 3, 4, 3, 4)>')
+                    ' args=(<Scope of "3 + 4">, 3, 4)>')
 
     def test_filter_duplicates(self):
         a, b = ab = tree('a + b')
