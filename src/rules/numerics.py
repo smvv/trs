@@ -1,11 +1,12 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_DIV, OP_MUL
+from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_ADD, OP_DIV, \
+        OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-def add_numerics(root, args):
+def match_add_numerics(node):
     """
     Combine two constants to a single constant in an n-ary addition.
 
@@ -15,8 +16,26 @@ def add_numerics(root, args):
     -2 + 3   ->  1
     -2 + -3  ->  -5
     """
-    scope, n0, n1, c0, c1 = args
+    assert node.is_op(OP_ADD)
 
+    p = []
+    scope = Scope(node)
+    numerics = filter(lambda n: n.is_numeric(), scope)
+
+    for c0, c1 in combinations(numerics, 2):
+        p.append(P(node, add_numerics, (scope, c0, c1)))
+
+    return p
+
+
+def add_numerics(root, args):
+    """
+    2 + 3    ->  5
+    2 + -3   ->  -1
+    -2 + 3   ->  1
+    -2 + -3  ->  -5
+    """
+    scope, c0, c1 = args
     value = c0.actual_value() + c1.actual_value()
 
     if value < 0:
@@ -25,10 +44,10 @@ def add_numerics(root, args):
         leaf = Leaf(value)
 
     # Replace the left node with the new expression
-    scope.replace(n0, leaf)
+    scope.replace(c0, Leaf(abs(value)).negate(int(value < 0)))
 
     # Remove the right node
-    scope.remove(n1)
+    scope.remove(c1)
 
     return scope.as_nary_node()
 
@@ -146,14 +165,11 @@ def match_multiply_numerics(node):
     assert node.is_op(OP_MUL)
 
     p = []
-    numerics = []
+    scope = Scope(node)
+    numerics = filter(lambda n: n.is_numeric(), scope)
 
-    for n in Scope(node):
-        if n.is_numeric():
-            numerics.append((n, n.actual_value()))
-
-    for (n0, v0), (n1, v1) in combinations(numerics, 2):
-        p.append(P(node, multiply_numerics, (n0, n1, v0, v1)))
+    for c0, c1 in combinations(numerics, 2):
+        p.append(P(node, multiply_numerics, (scope, c0, c1)))
 
     return p
 
@@ -165,22 +181,15 @@ def multiply_numerics(root, args):
     Example:
     2 * 3  ->  6
     """
-    n0, n1, v0, v1 = args
-    scope = []
-    value = v0 * v1
+    scope, c0, c1 = args
 
-    if value > 0:
-        substitution = Leaf(value)
-    else:
-        substitution = -Leaf(-value)
-
-    scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.replace(n0, substitution)
+    substitution = Leaf(c0.value * c1.value).negate(c0.negated + c1.negated)
+    scope.replace(c0, substitution)
 
     # Remove the right node
-    scope.remove(n1)
+    scope.remove(c1)
 
     return scope.as_nary_node()
 

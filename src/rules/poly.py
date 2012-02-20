@@ -49,14 +49,15 @@ def match_combine_polynomes(node, verbose=False):
             # Both numeric root and same exponent -> combine coefficients and
             # roots, or: same root and exponent -> combine coefficients.
             # TODO: Addition with zero, e.g. a + 0 -> a
-            if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
-                    and all(map(lambda n: n.is_numeric(), [r0, r1])):
-                # 2 + 3    ->  5
-                # 2 + -3   ->  -1
-                # -2 + 3   ->  1
-                # -2 + -3  ->  -5
-                p.append(P(node, add_numerics, (scope, n0, n1, r0, r1)))
-            elif c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
+            #if c0 == 1 and c1 == 1 and e0 == 1 and e1 == 1 \
+            #        and all(map(lambda n: n.is_numeric(), [r0, r1])):
+            #    # 2 + 3    ->  5
+            #    # 2 + -3   ->  -1
+            #    # -2 + 3   ->  1
+            #    # -2 + -3  ->  -5
+            #    p.append(P(node, add_numerics, (scope, n0, n1, r0, r1)))
+            #el
+            if c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
                 # 2a + 2a -> 4a
                 # a + 2a -> 3a
                 # 2a + a -> 3a
