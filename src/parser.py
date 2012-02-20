@@ -199,7 +199,7 @@ class Parser(BisonParser):
             handlers = []
 
         if retval.negated:
-            handlers = handlers[:] + RULES[OP_NEG]
+            handlers = RULES[OP_NEG]
 
         for handler in handlers:
             possibilities = handler(retval)
