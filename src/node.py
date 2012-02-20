@@ -276,7 +276,7 @@ class ExpressionNode(Node, ExpressionBase):
         - If both nodes are divisions, the nominator and denominator have to be
           non-strictly equal.
         """
-        if not other.is_op(self.op):
+        if not isinstance(other, ExpressionNode) or other.op != self.op:
             return False
 
         if self.op in (OP_ADD, OP_MUL):
