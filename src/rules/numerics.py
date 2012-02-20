@@ -155,6 +155,42 @@ def multiply_zero(root, args):
 MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
 
 
+def match_multiply_one(node):
+    """
+    a * 1    ->  a
+    1 * a    ->  a
+    -1 * a   ->  -a
+    1 * -a   ->  -a
+    -1 * -a  ->  a
+    """
+    assert node.is_op(OP_MUL)
+
+    left, right = node
+
+    if left.value == 1:
+        return [P(node, multiply_one, (right, left))]
+
+    if right.value == 1:
+        return [P(node, multiply_one, (left, right))]
+
+    return []
+
+
+def multiply_one(root, args):
+    """
+    a * 1  ->  a
+    1 * a  ->  a
+    -1 * a   ->  -a
+    1 * -a   ->  -a
+    -1 * -a  ->  a
+    """
+    a, one = args
+    return a.negate(one.negated + root.negated)
+
+
+MESSAGES[multiply_one] = _('Multiplication with one yields the multiplicant.')
+
+
 def match_multiply_numerics(node):
     """
     3 * 2      ->  6
