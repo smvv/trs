@@ -16,7 +16,7 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_COMMA, OP_NEG
+from node import TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
@@ -193,14 +193,18 @@ class Parser(BisonParser):
         if not retval.negated and retval.type != TYPE_OPERATOR:
             return retval
 
-        if self.subtree_map and retval.type == TYPE_OPERATOR:
+        if self.subtree_map:  # and retval.type == TYPE_OPERATOR:
             # Update the subtree map to let the subtree point to its parent
             # node.
             parent_nodes = self.subtree_map.keys()
 
-            for child in retval:
-                if child in parent_nodes:
-                    self.subtree_map[child] = retval
+            if retval.is_leaf:
+                if retval in parent_nodes:
+                    self.subtree_map[retval] = None
+            else:
+                for child in retval:
+                    if child in parent_nodes:
+                        self.subtree_map[child] = retval
 
         if retval.type == TYPE_OPERATOR and retval.op in RULES:
             handlers = RULES[retval.op]
@@ -357,9 +361,14 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: NEG exp
-            node = values[1]
-            node.negated += 1
-            return node
+            # Add negation to the left-most child
+            if values[1].is_leaf or values[1].op != OP_MUL:
+                values[1].negated += 1
+            else:
+                child = Scope(values[1])[0]
+                child.negated += 1
+
+            return values[1]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -378,12 +387,18 @@ class Parser(BisonParser):
 
         if option == 4:  # rule: exp MINUS exp
             node = values[2]
-            node.negated += 1
+
+            # Add negation to the left-most child
+            if node.is_leaf or node.op != OP_MUL:
+                node.negated += 1
+            else:
+                node = Scope(node)[0]
+                node.negated += 1
 
             # Explicit call the hook handler on the created unary negation.
             node = self.hook_handler('binary', 4, names, values, node)
 
-            return Node('+', values[0], node)
+            return Node('+', values[0], values[2])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover

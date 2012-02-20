@@ -73,6 +73,9 @@ def apply_suggestion(root, subtree_map, suggestion):
     else:
         parent_node = None
 
+    print 'suggestion:', suggestion.root, parent_node
+    print 'subtree_map:', subtree_map
+
     # There is either a parent node or the subtree is the root node.
     # FIXME: FAIL: test_diagnostic_test_application in tests/test_b1_ch08.py
     #try:
@@ -85,4 +88,5 @@ def apply_suggestion(root, subtree_map, suggestion):
     if parent_node:
         parent_node.substitute(suggestion.root, subtree)
         return root
+
     return subtree

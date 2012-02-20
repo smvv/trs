@@ -1,4 +1,4 @@
-from ..node import Scope, OP_ADD, OP_MUL, OP_DIV, TYPE_OPERATOR
+from ..node import Scope, OP_ADD, OP_MUL, OP_DIV
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -46,6 +46,7 @@ def match_negate_polynome(node):
     --a       ->  a
     -(a + b)  ->  -a - b
     """
+    print 'match_negate_polynome:', node, node.negated
     assert node.negated, str(node.negated) + '; ' + str(node)
 
     p = []
