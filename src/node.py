@@ -326,7 +326,8 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         other_type = type(other)
 
         if other_type in TYPE_MAP:
-            return TYPE_MAP[other_type] == self.type and self.value == other
+            return TYPE_MAP[other_type] == self.type \
+                   and self.actual_value() == other
 
         return self.negated == other.negated and self.type == other.type \
                and self.value == other.value
