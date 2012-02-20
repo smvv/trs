@@ -72,18 +72,6 @@ class ExpressionBase(object):
     def clone(self):
         return copy.deepcopy(self)
 
-    def left(self):
-        """
-        Return the left-most child of this node. When this instance is a leaf,
-        the leaf will be returned.
-        """
-        node = self
-
-        while not node.is_leaf:
-            node = node[0]
-
-        return node
-
     def __lt__(self, other):
         """
         Comparison between this expression{node,leaf} and another
