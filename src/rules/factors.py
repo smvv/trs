@@ -21,6 +21,10 @@ def match_expand(node):
         if n.is_leaf:
             leaves.append(n)
         elif n.op == OP_ADD:
+            # If the addition only contains numerics, do not expand
+            if not filter(lambda n: not n.is_numeric(), Scope(n)):
+                continue
+
             additions.append(n)
 
     for args in product(leaves, additions):
