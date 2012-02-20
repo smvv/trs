@@ -165,6 +165,13 @@ class TestNode(RulesTestCase):
         m0, m1 = tree('-5 * -3,-5 * 6')
         self.assertFalse(m0.equals(m1))
 
+    def test_equals_ignore_negation(self):
+        p0, p1 = tree('-(a + b), a + b')
+        self.assertTrue(p0.equals(p1, ignore_negation=True))
+
+        a0, a1 = tree('-a,a')
+        self.assertTrue(a0.equals(a1, ignore_negation=True))
+
     def test_scope___init__(self):
         self.assertEqual(self.scope.node, self.n)
         self.assertEqual(self.scope.nodes, [self.a, self.b, self.cd])

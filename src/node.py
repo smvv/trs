@@ -265,7 +265,7 @@ class ExpressionNode(Node, ExpressionBase):
             return (self[0], self[1], ExpressionLeaf(1))
         return (self[1], self[0], ExpressionLeaf(1))
 
-    def equals(self, other):
+    def equals(self, other, ignore_negation=False):
         """
         Perform a non-strict equivalence check between two nodes:
         - If the other node is a leaf, it cannot be equal to this node.
@@ -277,10 +277,6 @@ class ExpressionNode(Node, ExpressionBase):
           non-strictly equal.
         """
         if not other.is_op(self.op):
-            # FIXME: this is if-clause is a problem. To fix this problem
-            # permanently, normalize ("x * -1" -> "-1x") before comparing to
-            # the other node.
-
             return False
 
         if self.op in (OP_ADD, OP_MUL):
@@ -311,7 +307,10 @@ class ExpressionNode(Node, ExpressionBase):
                 if not child.equals(other[i]):
                     return False
 
-        return True
+        if ignore_negation:
+            return True
+
+        return self.negated == other.negated
 
 
 class ExpressionLeaf(Leaf, ExpressionBase):
@@ -335,12 +334,24 @@ class ExpressionLeaf(Leaf, ExpressionBase):
     def __repr__(self):
         return '-' * self.negated + str(self.value)
 
-    def equals(self, other):
+    def equals(self, other, ignore_negation=False):
         """
         Check non-strict equivalence.
-        Between leaves, this is the same as strict equivalence.
+        Between leaves, this is the same as strict equivalence, except when
+        negations must be ignored.
         """
-        return self == other
+        if ignore_negation:
+            other_type = type(other)
+
+            if other_type in (int, float):
+                return TYPE_MAP[other_type] == self.type \
+                    and self.value == abs(other)
+            elif other_type == str:
+                return self.type == TYPE_IDENTIFIER and self.value == other
+
+            return self.type == other.type and self.value == other.value
+        else:
+            return self == other
 
     def extract_polynome_properties(self):
         """
