@@ -33,6 +33,11 @@ OP_EXPAND = 9
 OP_COMMA = 10
 OP_SQRT = 11
 
+# Goniometry
+OP_SIN = 12
+OP_COS = 13
+OP_TAN = 14
+
 
 TYPE_MAP = {
         int: TYPE_INTEGER,
@@ -112,8 +117,11 @@ class ExpressionBase(object):
     def is_op(self, op):
         return not self.is_leaf and self.op == op
 
-    def is_power(self):
-        return not self.is_leaf and self.op == OP_POW
+    def is_power(self, exponent=None):
+        if self.is_leaf or self.op != OP_POW:
+            return False
+
+        return exponent == None or self[1] == exponent
 
     def is_nary(self):
         return not self.is_leaf and self.op in [OP_ADD, OP_SUB, OP_MUL]

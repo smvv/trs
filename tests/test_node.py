@@ -35,8 +35,12 @@ class TestNode(RulesTestCase):
         self.assertFalse(N('+', *self.l[:2]).is_leaf)
 
     def test_is_power(self):
-        self.assertTrue(N('^', *self.l[:2]).is_power())
-        self.assertFalse(N('+', *self.l[:2]).is_power())
+        self.assertTrue(N('^', *self.l[2:]).is_power())
+        self.assertFalse(N('+', *self.l[2:]).is_power())
+
+    def test_is_power_exponent(self):
+        self.assertTrue(N('^', *self.l[2:]).is_power(5))
+        self.assertFalse(N('^', *self.l[2:]).is_power(2))
 
     def test_is_nary(self):
         self.assertTrue(N('+', *self.l[:2]).is_nary())
