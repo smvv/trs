@@ -74,10 +74,14 @@ class TestLeidenOefenopgave(TestCase):
                        'xx + x * -1 - 1x - 1 * -1',
                        'x ^ (1 + 1) + x * -1 - 1x - 1 * -1',
                        'x ^ 2 + x * -1 - 1x - 1 * -1',
-                       # FIXME: 'x ^ 2 + (-1 - 1)x - 1 * -1',
-                       # FIXME: 'x ^ 2 - 2x - 1 * -1',
-                       # FIXME: 'x ^ 2 - 2x - -1',
-                       # FIXME: 'x ^ 2 - 2x + 1',
+                       'x ^ 2 - x * 1 - 1x - 1 * -1',
+                       'x ^ 2 - x - 1x - 1 * -1',
+                       'x ^ 2 - x - x - 1 * -1',
+                       'x ^ 2 + (1 + 1) * -x - 1 * -1',
+                       'x ^ 2 + 2 * -x - 1 * -1',
+                       'x ^ 2 - 2x - 1 * -1',
+                       'x ^ 2 - 2x - -1',
+                       'x ^ 2 - 2x + 1',
                      ]]:
             self.assertRewrite(chain)
 

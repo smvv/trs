@@ -19,5 +19,5 @@ class TestB1Ch08(unittest.TestCase):
     def test_diagnostic_test_application(self):
         apply_expressions(Parser, [
             ('7p+2p', 1, (L(7) + 2) * 'p'),
-            #('7p-3p', 1, (L(7) - 3) * 'p'),
+            ('7p-3p', 1, (L(7) + -L(3)) * 'p'),
             ])
