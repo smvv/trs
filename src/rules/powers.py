@@ -162,7 +162,7 @@ MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
 
 def match_remove_negative_exponent(node):
     """
-    a^-p  ->  1 / a^p
+    a ^ -p  ->  1 / a ^ p
     """
     assert node.is_op(OP_POW)
 

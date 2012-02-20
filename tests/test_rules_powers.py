@@ -132,11 +132,11 @@ class TestRulesPowers(RulesTestCase):
                               a ** p * b ** p * c ** p)
 
     def test_remove_negative_exponent(self):
-        a, p, l1 = tree('a,p,1')
-        root = a ** -p
+        a, p, l1 = tree('a,-p,1')
+        root = a ** p
 
         self.assertEqualNodes(remove_negative_exponent(root, (a, p)),
-                              l1 / a ** p)
+                              l1 / a ** +p)
 
     def test_exponent_to_root(self):
         a, n, m, l1 = tree('a,n,m,1')
