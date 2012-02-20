@@ -29,14 +29,21 @@ OP_MOD = 7
 
 # N-ary (functions)
 OP_INT = 8
-OP_EXPAND = 9
-OP_COMMA = 10
-OP_SQRT = 11
+OP_COMMA = 9
+OP_SQRT = 10
 
 # Goniometry
-OP_SIN = 12
-OP_COS = 13
-OP_TAN = 14
+OP_SIN = 11
+OP_COS = 12
+OP_TAN = 13
+
+OP_SOLVE = 14
+OP_EQ = 15
+
+OP_POSSIBILITIES = 16
+OP_HINT = 17
+OP_REWRITE_ALL = 18
+OP_REWRITE = 19
 
 
 TYPE_MAP = {
@@ -46,18 +53,44 @@ TYPE_MAP = {
         }
 
 OP_MAP = {
+        ',': OP_COMMA,
         '+': OP_ADD,
-        # Either substraction or negation. Skip the operator sign in 'x' (= 2).
         '-': OP_SUB,
         '*': OP_MUL,
         '/': OP_DIV,
         '^': OP_POW,
-        'mod': OP_MOD,
-        'int': OP_INT,
-        'expand': OP_EXPAND,
+        'sin': OP_SIN,
+        'cos': OP_COS,
+        'tan': OP_TAN,
         'sqrt': OP_SQRT,
-        ',': OP_COMMA,
+        'int': OP_INT,
+        'solve': OP_SOLVE,
+        '=': OP_EQ,
+        '??': OP_POSSIBILITIES,
+        '?': OP_HINT,
+        '@@': OP_REWRITE_ALL,
+        '@': OP_REWRITE,
         }
+
+TOKEN_MAP = {
+        OP_COMMA: 'COMMA',
+        OP_ADD: 'PLUS',
+        OP_SUB: 'MINUS',
+        OP_MUL: 'TIMES',
+        OP_DIV: 'DIVIDE',
+        OP_POW: 'POW',
+        OP_SQRT: 'SQRT',
+        OP_SIN: 'SIN',
+        OP_COS: 'COS',
+        OP_TAN: 'TAN',
+        OP_INT: 'INT',
+        OP_SOLVE: 'SOLVE',
+        OP_EQ: 'EQ',
+        OP_POSSIBILITIES: 'POSSIBILITIES',
+        OP_HINT: 'HINT',
+        OP_REWRITE_ALL: 'REWRITE_ALL',
+        OP_REWRITE: 'REWRITE',
+}
 
 
 def to_expression(obj):

@@ -3,8 +3,6 @@ This parser will parse the given input and build an expression tree. Grammar
 file for the supported mathematical expressions.
 """
 
-from node import ExpressionNode as Node, ExpressionLeaf as Leaf
-
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
 EXTERNAL_MODS = os.path.realpath('external')
@@ -16,7 +14,8 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope
+from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
+        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
@@ -52,10 +51,8 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
-    tokens = ['NUMBER', 'IDENTIFIER', 'POSSIBILITIES',
-              'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA', 'HINT', 'REWRITE',
-              'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', 'SQRT']
+    tokens =  ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', \
+               'LPAREN', 'RPAREN'] + TOKEN_MAP.values()
 
     # ------------------------------
     # precedences
@@ -394,6 +391,15 @@ class Parser(BisonParser):
                                % (option, target))  # pragma: nocover
 
     # -----------------------------------------
+    # operator tokens
+    # -----------------------------------------
+    operators = ''
+
+    for op_str, op in OP_MAP.iteritems():
+        operators += '"%s"%s{ returntoken(%s); }\n' \
+                     % (op_str, ' ' * (8 - len(op_str)), TOKEN_MAP[op])
+
+    # -----------------------------------------
     # raw lex script, verbatim here
     # -----------------------------------------
     lexscript = r"""
@@ -430,19 +436,11 @@ class Parser(BisonParser):
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
-    "+"       { returntoken(PLUS); }
-    "-"       { returntoken(MINUS); }
-    "*"       { returntoken(TIMES); }
-    "^"       { returntoken(POW); }
-    "/"       { returntoken(DIVIDE); }
     ","       { returntoken(COMMA); }
-    "??"      { returntoken(POSSIBILITIES); }
-    "?"       { returntoken(HINT); }
-    "@"       { returntoken(REWRITE); }
-    "quit"    { yyterminate(); returntoken(QUIT); }
+    """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
-    "sqrt"    { returntoken(SQRT); }
+    "quit"    { yyterminate(); returntoken(QUIT); }
 
     [ \t\v\f] { }
     [\n]      { yycolumn = 0; returntoken(NEWLINE); }
