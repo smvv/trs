@@ -46,12 +46,15 @@ def match_combine_groups(node):
                     groups.append((sub_node, g, n))
 
     for (c0, g0, n0), (c1, g1, n1) in combinations(groups, 2):
-        if g0.equals(g1, ignore_negation=True):
+        if g0.equals(g1):
+            p.append(P(node, combine_groups, (scope, c0, g0, n0, c1, g1, n1)))
+        elif g0.equals(g1, ignore_negation=True):
             # Move negations to constants
             c0 = c0.negate(g0.negated)
             c1 = c1.negate(g1.negated)
             g0 = negate(g0, 0)
             g1 = negate(g1, 0)
+
             p.append(P(node, combine_groups, (scope, c0, g0, n0, c1, g1, n1)))
 
     return p
