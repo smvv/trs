@@ -22,9 +22,9 @@ def match_combine_groups(node):
 
     p = []
     groups = []
-    scope = Scope(node)
+    root_scope = Scope(node)
 
-    for n in scope:
+    for n in root_scope:
         groups.append((1, n, n))
 
         # Each number multiplication yields a group, multiple occurences of
@@ -46,7 +46,7 @@ def match_combine_groups(node):
 
     for g0, g1 in combinations(groups, 2):
         if g0[1].equals(g1[1]):
-            p.append(P(node, combine_groups, (scope,) + g0 + g1))
+            p.append(P(node, combine_groups, (root_scope,) + g0 + g1))
 
     return p
 
