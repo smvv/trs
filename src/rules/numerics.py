@@ -52,7 +52,7 @@ def add_numerics(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[add_numerics] = _('Combine the constants {1} and {2}.')
+MESSAGES[add_numerics] = _('Add the constants {2} and {3}.')
 
 
 #def match_subtract_numerics(node):
@@ -194,4 +194,4 @@ def multiply_numerics(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[multiply_numerics] = _('Multiply constant {1} with {2}.')
+MESSAGES[multiply_numerics] = _('Multiply constant {2} with {3}.')
