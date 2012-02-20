@@ -40,11 +40,6 @@ class TestRulesNegation(RulesTestCase):
         self.assertEqualPos(match_negate_polynome(root),
                 [P(root, negate_polynome, ())])
 
-        a, b = root = tree('-(a - -b)')
-        self.assertEqualPos(match_negate_polynome(root),
-                [P(root, double_negation, (b,)),
-                 P(root, negate_polynome, ())])
-
     def test_double_negation(self):
         root = tree('--a')
         self.assertEqualNodes(double_negation(root, ()), ++root)
