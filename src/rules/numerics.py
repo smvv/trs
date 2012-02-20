@@ -15,11 +15,12 @@ def add_numerics(root, args):
     -2 + 3   ->  1
     -2 + -3  ->  -5
     """
-    n0, n1, c0, c1 = args
-    scope = Scope(root)
+    scope, n0, n1, c0, c1 = args
 
     # Replace the left node with the new expression
-    scope.replace(n0, Leaf(c0.actual_value() + c1.actual_value()))
+    leaf = Leaf(c0.value + c1.value)
+    print 'New leaf:', c0.value, c1.value, leaf
+    scope.replace(n0, leaf.negate(c0.negated + c1.negated))
 
     # Remove the right node
     scope.remove(n1)

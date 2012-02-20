@@ -27,7 +27,9 @@ def match_combine_polynomes(node, verbose=False):
     if verbose:  # pragma: nocover
         print 'match combine factors:', node
 
-    for n in Scope(node):
+    scope = Scope(node)
+
+    for n in scope:
         polynome = n.extract_polynome_properties()
 
         if verbose:  # pragma: nocover
@@ -53,13 +55,14 @@ def match_combine_polynomes(node, verbose=False):
                 # 2 + -3   ->  -1
                 # -2 + 3   ->  1
                 # -2 + -3  ->  -5
-                p.append(P(node, add_numerics, (n0, n1, r0, r1)))
+                p.append(P(node, add_numerics, (scope, n0, n1, r0, r1)))
             elif c0.is_numeric() and c1.is_numeric() and r0 == r1 and e0 == e1:
                 # 2a + 2a -> 4a
                 # a + 2a -> 3a
                 # 2a + a -> 3a
                 # a + a -> 2a
-                p.append(P(node, combine_polynomes, (n0, n1, c0, c1, r0, e0)))
+                p.append(P(node, combine_polynomes, (scope, n0, n1,
+                                                     c0, c1, r0, e0)))
 
     return p
 
@@ -71,15 +74,13 @@ def combine_polynomes(root, args):
     Synopsis:
     c0 * a ^ b + c1 * a ^ b -> (c0 + c1) * a ^ b
     """
-    n0, n1, c0, c1, r, e = args
+    scope, n0, n1, c0, c1, r, e = args
 
     # a ^ 1 -> a
     if e == 1:
         power = r
     else:
         power = r ** e
-
-    scope = Scope(root)
 
     # Replace the left node with the new expression:
     # (c0 + c1) * a ^ b
