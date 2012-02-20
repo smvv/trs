@@ -84,7 +84,7 @@ class TestRulesPowers(RulesTestCase):
 
         possibilities = match_remove_negative_exponent(root)
         self.assertEqualPos(possibilities,
-                [P(root, remove_negative_exponent, (a, p))])
+                [P(root, remove_negative_exponent, (a, -p))])
 
     def test_match_exponent_to_root(self):
         a, n, m, l1 = tree('a,n,m,1')

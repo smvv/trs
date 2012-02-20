@@ -46,7 +46,7 @@ def match_negate_polynome(node):
     --a       ->  a
     -(a + b)  ->  -a - b
     """
-    print 'match_negate_polynome:', node, node.negated
+    #print 'match_negate_polynome:', node, node.negated
     assert node.negated, str(node.negated) + '; ' + str(node)
 
     p = []

@@ -331,6 +331,9 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         return self.negated == other.negated and self.type == other.type \
                and self.value == other.value
 
+    def __repr__(self):
+        return '-' * self.negated + str(self.value)
+
     def equals(self, other):
         """
         Check non-strict equivalence.
@@ -374,6 +377,9 @@ class Scope(object):
     def __eq__(self, other):
         return isinstance(other, Scope) and self.node == other.node \
                and self.nodes == other.nodes
+
+    def __repr__(self):
+        return '<Scope of "%s">' % repr(self.node)
 
     def remove(self, node, **kwargs):
         if node.is_leaf:

@@ -27,9 +27,11 @@ class TestParser(unittest.TestCase):
     def test_reset_after_failure(self):
         parser = ParserWrapper(Parser)
         parser.run(['-(3a+6b)'])
-        possibilities = parser.parser.possibilities
-        print possibilities
+        possibilities1 = parser.parser.possibilities
+        self.assertNotEqual(possibilities1, [])
 
         parser.run(['5+2*6'])
-        possibilities = parser.parser.possibilities
-        print possibilities
+        possibilities2 = parser.parser.possibilities
+        self.assertNotEqual(possibilities2, [])
+
+        self.assertNotEqual(possibilities1, possibilities2)
