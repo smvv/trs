@@ -4,7 +4,7 @@ from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
         match_multiply_exponents, match_duplicate_exponent, \
         match_remove_negative_exponent, match_exponent_to_root, \
-        match_extend_exponent
+        match_extend_exponent, match_constant_exponent
 from .numerics import match_add_numerics, match_divide_numerics, \
         match_multiply_numerics, match_multiply_zero
 from .fractions import match_constant_division, match_add_constant_fractions, \
@@ -22,6 +22,6 @@ RULES = {
                  match_constant_division, match_negated_division],
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
                  match_remove_negative_exponent, match_exponent_to_root,
-                 match_extend_exponent],
+                 match_extend_exponent, match_constant_exponent],
         OP_NEG: [match_negate_polynome],
         }

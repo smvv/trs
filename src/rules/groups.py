@@ -67,4 +67,4 @@ def combine_groups(root, args):
 
 
 MESSAGES[combine_groups] = \
-        _('Group "{2}" is multiplied by {1} and {4}, combine them.')
+        _('Group "{3}" is multiplied by {2} and {5}, combine them.')
