@@ -27,7 +27,7 @@ def match_add_exponents(node):
             # Order powers by their roots, e.g. a^p and a^q are put in the same
             # list because of the mutual 'a'
             s, exponent = n
-        else:
+        else:  # pragma: nocover
             continue
 
         s_str = str(s)

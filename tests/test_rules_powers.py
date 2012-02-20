@@ -39,6 +39,14 @@ class TestRulesPowers(RulesTestCase):
                 [P(root, add_exponents, (Scope(root), a0, a1, a, p, q)),
                  P(root, add_exponents, (Scope(root), b0, b1, b, p, q))])
 
+    def test_match_add_exponents_nary_multiplication(self):
+        a, p, q = tree('a,p,q')
+        (n0, l1), n1 = root = a ** p * 2 * a ** q
+
+        possibilities = match_add_exponents(root)
+        self.assertEqualPos(possibilities,
+                [P(root, add_exponents, (Scope(root), n0, n1, a, p, q))])
+
     def test_match_subtract_exponents_powers(self):
         a, p, q = tree('a,p,q')
         root = a ** p / a ** q
