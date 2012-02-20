@@ -3,8 +3,6 @@ This parser will parse the given input and build an expression tree. Grammar
 file for the supported mathematical expressions.
 """
 
-from node import ExpressionNode as Node, ExpressionLeaf as Leaf
-
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
 EXTERNAL_MODS = os.path.realpath('external')
@@ -16,7 +14,8 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_COMMA, OP_NEG
+from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
+        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
@@ -52,10 +51,8 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
-    tokens = ['NUMBER', 'IDENTIFIER', 'POSSIBILITIES',
-              'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA', 'HINT', 'REWRITE',
-              'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', 'SQRT']
+    tokens =  ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', \
+               'LPAREN', 'RPAREN'] + TOKEN_MAP.values()
 
     # ------------------------------
     # precedences
@@ -74,13 +71,20 @@ class Parser(BisonParser):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
-        self.possibilities = self.last_possibilities = []
 
+        self.reset()
+
+    def reset(self):
         self.read_buffer = ''
         self.read_queue = Queue.Queue()
 
-        self.subtree_map = {}
+        #self.subtree_map = {}
         self.root_node = None
+        self.possibilities = self.last_possibilities = []
+
+    def run(self, *args, **kwargs):
+        self.reset()
+        return super(Parser, self).run(*args, **kwargs)
 
     # Override default read method with a version that prompts for input.
     def read(self, nbytes):
@@ -186,32 +190,16 @@ class Parser(BisonParser):
         if not retval.negated and retval.type != TYPE_OPERATOR:
             return retval
 
-        if self.subtree_map and retval.type == TYPE_OPERATOR:
-            # Update the subtree map to let the subtree point to its parent
-            # node.
-            parent_nodes = self.subtree_map.keys()
-
-            for child in retval:
-                if child in parent_nodes:
-                    self.subtree_map[child] = retval
-
         if retval.type == TYPE_OPERATOR and retval.op in RULES:
             handlers = RULES[retval.op]
         else:
             handlers = []
 
         if retval.negated:
-            handlers += RULES[OP_NEG]
+            handlers = RULES[OP_NEG]
 
         for handler in handlers:
             possibilities = handler(retval)
-
-            # Record the subtree root node in order to avoid tree traversal.
-            # At this moment, the node is the root node since the expression is
-            # parser using the left-innermost parsing strategy.
-            for p in possibilities:
-                self.subtree_map[p.root] = None
-
             self.possibilities.extend(possibilities)
 
         return retval
@@ -231,8 +219,7 @@ class Parser(BisonParser):
         if not suggestion:
             return self.root_node
 
-        expression = apply_suggestion(self.root_node, self.subtree_map,
-                                    suggestion)
+        expression = apply_suggestion(self.root_node, suggestion)
 
         if self.verbose:
             print 'After application, expression=', expression
@@ -350,9 +337,14 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: NEG exp
-            node = values[1]
-            node.negated += 1
-            return node
+            # Add negation to the left-most child
+            if values[1].is_leaf or values[1].op != OP_MUL:
+                values[1].negated += 1
+            else:
+                child = Scope(values[1])[0]
+                child.negated += 1
+
+            return values[1]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -371,8 +363,18 @@ class Parser(BisonParser):
 
         if option == 4:  # rule: exp MINUS exp
             node = values[2]
-            node.negated += 1
-            return Node('+', values[0], node)
+
+            # Add negation to the left-most child
+            if node.is_leaf or node.op != OP_MUL:
+                node.negated += 1
+            else:
+                node = Scope(node)[0]
+                node.negated += 1
+
+            # Explicit call the hook handler on the created unary negation.
+            node = self.hook_handler('binary', 4, names, values, node)
+
+            return Node('+', values[0], values[2])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -387,6 +389,15 @@ class Parser(BisonParser):
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
+
+    # -----------------------------------------
+    # operator tokens
+    # -----------------------------------------
+    operators = ''
+
+    for op_str, op in OP_MAP.iteritems():
+        operators += '"%s"%s{ returntoken(%s); }\n' \
+                     % (op_str, ' ' * (8 - len(op_str)), TOKEN_MAP[op])
 
     # -----------------------------------------
     # raw lex script, verbatim here
@@ -415,8 +426,6 @@ class Parser(BisonParser):
             yylloc.first_column = yycolumn; \
             yylloc.last_column = yycolumn + yyleng; \
             yycolumn += yyleng;
-
-    /*[a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }*/
     %}
 
     %option yylineno
@@ -427,19 +436,11 @@ class Parser(BisonParser):
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
-    "+"       { returntoken(PLUS); }
-    "-"       { returntoken(MINUS); }
-    "*"       { returntoken(TIMES); }
-    "^"       { returntoken(POW); }
-    "/"       { returntoken(DIVIDE); }
     ","       { returntoken(COMMA); }
-    "??"      { returntoken(POSSIBILITIES); }
-    "?"       { returntoken(HINT); }
-    "@"       { returntoken(REWRITE); }
-    "quit"    { yyterminate(); returntoken(QUIT); }
+    """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
-    "sqrt"    { returntoken(SQRT); }
+    "quit"    { yyterminate(); returntoken(QUIT); }
 
     [ \t\v\f] { }
     [\n]      { yycolumn = 0; returntoken(NEWLINE); }

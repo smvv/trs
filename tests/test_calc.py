@@ -12,11 +12,11 @@ class TestCalc(unittest.TestCase):
                 == N('+', L(1), L(4))
 
     def test_basic_on_exp(self):
-        expressions = [('4',   L(4)),
+        expressions = [('4', L(4)),
                        ('3+4', L(3) + L(4)),
                        ('3-4', L(3) + -L(4)),
                        ('3/4', L(3) / L(4)),
-                       ('-4',  -L(4)),
+                       ('-4', -L(4)),
                        ('3^4', N('^', L(3), L(4))),
                        ('(2)', L(2))]
 

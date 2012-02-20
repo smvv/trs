@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from .utils import least_common_multiple
-from ..node import ExpressionLeaf as L, Scope, OP_DIV, OP_ADD, OP_MUL
+from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -112,10 +112,15 @@ def equalize_denominators(root, args):
         mult = denom / d.value
 
         if mult != 1:
-            n = L(n.value * mult) if n.is_numeric() else L(mult) * n
+            if n.is_numeric():
+                n = L(n.value * mult)
+            else:
+                n = L(mult) * n
 
-            scope.remove(fraction, negate(n / L(d.value * mult),
-                                          fraction.negated))
+            #n = L(n.value * mult) if n.is_numeric() else L(mult) * n
+
+            scope.replace(fraction, negate(n / L(d.value * mult),
+                                           fraction.negated))
 
     return scope.as_nary_node()
 
@@ -137,7 +142,7 @@ def add_nominators(root, args):
     scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(ab, (a + negate(cb[0], cb.negated)) / b)
+    scope.replace(ab, (a + cb[0].negate(cb.negated)) / b)
 
     # Remove the right node
     scope.remove(cb)

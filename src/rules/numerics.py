@@ -1,11 +1,12 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_DIV, OP_MUL
+from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_ADD, OP_DIV, \
+        OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-def add_numerics(root, args):
+def match_add_numerics(node):
     """
     Combine two constants to a single constant in an n-ary addition.
 
@@ -15,19 +16,43 @@ def add_numerics(root, args):
     -2 + 3   ->  1
     -2 + -3  ->  -5
     """
-    n0, n1, c0, c1 = args
-    scope = Scope(root)
+    assert node.is_op(OP_ADD)
+
+    p = []
+    scope = Scope(node)
+    numerics = filter(lambda n: n.is_numeric(), scope)
+
+    for c0, c1 in combinations(numerics, 2):
+        p.append(P(node, add_numerics, (scope, c0, c1)))
+
+    return p
+
+
+def add_numerics(root, args):
+    """
+    2 + 3    ->  5
+    2 + -3   ->  -1
+    -2 + 3   ->  1
+    -2 + -3  ->  -5
+    """
+    scope, c0, c1 = args
+    value = c0.actual_value() + c1.actual_value()
+
+    if value < 0:
+        leaf = Leaf(-value).negate()
+    else:
+        leaf = Leaf(value)
 
     # Replace the left node with the new expression
-    scope.remove(n0, Leaf(c0.actual_value() + c1.actual_value()))
+    scope.replace(c0, Leaf(abs(value)).negate(int(value < 0)))
 
     # Remove the right node
-    scope.remove(n1)
+    scope.remove(c1)
 
     return scope.as_nary_node()
 
 
-MESSAGES[add_numerics] = _('Combine the constants {1} and {2}.')
+MESSAGES[add_numerics] = _('Add the constants {2} and {3}.')
 
 
 #def match_subtract_numerics(node):
@@ -130,6 +155,42 @@ def multiply_zero(root, args):
 MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
 
 
+def match_multiply_one(node):
+    """
+    a * 1    ->  a
+    1 * a    ->  a
+    -1 * a   ->  -a
+    1 * -a   ->  -a
+    -1 * -a  ->  a
+    """
+    assert node.is_op(OP_MUL)
+
+    left, right = node
+
+    if left.value == 1:
+        return [P(node, multiply_one, (right, left))]
+
+    if right.value == 1:
+        return [P(node, multiply_one, (left, right))]
+
+    return []
+
+
+def multiply_one(root, args):
+    """
+    a * 1  ->  a
+    1 * a  ->  a
+    -1 * a   ->  -a
+    1 * -a   ->  -a
+    -1 * -a  ->  a
+    """
+    a, one = args
+    return a.negate(one.negated + root.negated)
+
+
+MESSAGES[multiply_one] = _('Multiplication with one yields the multiplicant.')
+
+
 def match_multiply_numerics(node):
     """
     3 * 2      ->  6
@@ -140,14 +201,11 @@ def match_multiply_numerics(node):
     assert node.is_op(OP_MUL)
 
     p = []
-    numerics = []
+    scope = Scope(node)
+    numerics = filter(lambda n: n.is_numeric(), scope)
 
-    for n in Scope(node):
-        if n.is_numeric():
-            numerics.append((n, n.actual_value()))
-
-    for (n0, v0), (n1, v1) in combinations(numerics, 2):
-        p.append(P(node, multiply_numerics, (n0, n1, v0, v1)))
+    for c0, c1 in combinations(numerics, 2):
+        p.append(P(node, multiply_numerics, (scope, c0, c1)))
 
     return p
 
@@ -159,24 +217,17 @@ def multiply_numerics(root, args):
     Example:
     2 * 3  ->  6
     """
-    n0, n1, v0, v1 = args
-    scope = []
-    value = v0 * v1
+    scope, c0, c1 = args
 
-    if value > 0:
-        substitution = Leaf(value)
-    else:
-        substitution = -Leaf(-value)
-
-    scope = Scope(root)
 
     # Replace the left node with the new expression
-    scope.remove(n0, substitution)
+    substitution = Leaf(c0.value * c1.value).negate(c0.negated + c1.negated)
+    scope.replace(c0, substitution)
 
     # Remove the right node
-    scope.remove(n1)
+    scope.remove(c1)
 
     return scope.as_nary_node()
 
 
-MESSAGES[multiply_numerics] = _('Multiply constant {1} with {2}.')
+MESSAGES[multiply_numerics] = _('Multiply constant {2} with {3}.')

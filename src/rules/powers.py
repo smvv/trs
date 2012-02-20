@@ -17,8 +17,9 @@ def match_add_exponents(node):
 
     p = []
     powers = {}
+    scope = Scope(node)
 
-    for n in Scope(node):
+    for n in scope:
         if n.is_identifier():
             s = n
             exponent = L(1)
@@ -26,7 +27,7 @@ def match_add_exponents(node):
             # Order powers by their roots, e.g. a^p and a^q are put in the same
             # list because of the mutual 'a'
             s, exponent = n
-        else:
+        else:  # pragma: nocover
             continue
 
         s_str = str(s)
@@ -41,7 +42,7 @@ def match_add_exponents(node):
         # create a single power with that root
         if len(occurrences) > 1:
             for (n0, e1, a0), (n1, e2, a1) in combinations(occurrences, 2):
-                p.append(P(node, add_exponents, (n0, n1, a0, e1, e2)))
+                p.append(P(node, add_exponents, (scope, n0, n1, a0, e1, e2)))
 
     return p
 
@@ -50,11 +51,10 @@ def add_exponents(root, args):
     """
     a^p * a^q  ->  a^(p + q)
     """
-    n0, n1, a, p, q = args
-    scope = Scope(root)
+    scope, n0, n1, a, p, q = args
 
     # Replace the left node with the new expression
-    scope.remove(n0, a ** (p + q))
+    scope.replace(n0, a ** (p + q))
 
     # Remove the right node
     scope.remove(n1)
@@ -62,7 +62,7 @@ def add_exponents(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}.')
+MESSAGES[add_exponents] = _('Add the exponents of {2} and {3}.')
 
 
 def match_subtract_exponents(node):
@@ -162,7 +162,7 @@ MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
 
 def match_remove_negative_exponent(node):
     """
-    a^-p  ->  1 / a^p
+    a ^ -p  ->  1 / a ^ p
     """
     assert node.is_op(OP_POW)
 
@@ -237,3 +237,40 @@ def extend_exponent(root, args):
         return left * left ** L(right.value - 1)
 
     return left * left
+
+
+def match_constant_exponent(node):
+    """
+    (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # n > 1
+    """
+    assert node.is_op(OP_POW)
+
+    exponent = node[1]
+
+    if exponent == 0:
+        return [P(node, remove_power_of_zero, ())]
+
+    if exponent == 1:
+        return [P(node, remove_power_of_one, ())]
+
+    return []
+
+
+def remove_power_of_zero(root, args):
+    """
+    a ^ 0  ->  1
+    """
+    return L(1)
+
+
+MESSAGES[remove_power_of_zero] = _('Power of zero {0} rewrites to 1.')
+
+
+def remove_power_of_one(root, args):
+    """
+    a ^ 1  ->  a
+    """
+    return root[0]
+
+
+MESSAGES[remove_power_of_one] = _('Remove the power of one in {0}.')
