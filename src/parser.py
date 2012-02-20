@@ -193,20 +193,6 @@ class Parser(BisonParser):
         if not retval.negated and retval.type != TYPE_OPERATOR:
             return retval
 
-        #if self.subtree_map and retval.type == TYPE_OPERATOR:
-        #    # Update the subtree map to let the subtree point to its parent
-        #    # node.
-        #    parent_nodes = self.subtree_map.keys()
-
-        #    #if retval.is_leaf:
-        #    #    if retval in parent_nodes:
-        #    #        self.subtree_map[retval] = None
-        #    #else:
-        #    for child in retval:
-        #        print 'child:', child, 'in', parent_nodes
-        #        if child in parent_nodes:
-        #            self.subtree_map[child] = retval
-
         if retval.type == TYPE_OPERATOR and retval.op in RULES:
             handlers = RULES[retval.op]
         else:
@@ -217,13 +203,6 @@ class Parser(BisonParser):
 
         for handler in handlers:
             possibilities = handler(retval)
-
-            # Record the subtree root node in order to avoid tree traversal.
-            # At this moment, the node is the root node since the expression is
-            # parser using the left-innermost parsing strategy.
-            #for p in possibilities:
-            #    self.subtree_map[p.root] = None
-
             self.possibilities.extend(possibilities)
 
         return retval
