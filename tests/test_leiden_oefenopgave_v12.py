@@ -24,11 +24,14 @@ class TestLeidenOefenopgaveV12(TestCase):
             'x(-72 * x ^ 2 + 96x) + x * -32',
             'x * -72 * x ^ 2 + x * 96x + x * -32',
             '-x * 72 * x ^ 2 + x * 96x + x * -32',
-            '-x * 72 * x ^ 2 + x ^ (1 + 1) * 96 + x * -32',
-            '-x * 72 * x ^ 2 + x ^ 2 * 96 + x * -32',
-            '-x * 72 * x ^ 2 + x ^ 2 * 96 - x * 32'])
-            # FIXME: '-x ^ (1 + 2) * 72 + x ^ 2 * 96 - x * 32',
-            # FIXME: '-x ^ 3 * 72 + x ^ 2 * 96 - x * 32',
+            '-(x ^ (1 + 2)) * 72 + x * 96x + x * -32',
+            '-(x ^ 3) * 72 + x * 96x + x * -32',
+            '-(x ^ 3) * 72 + x ^ (1 + 1) * 96 + x * -32',
+            '-(x ^ 3) * 72 + x ^ 2 * 96 + x * -32',
+            '-(x ^ 3) * 72 + x ^ 2 * 96 - x * 32',
+            '-(x ^ 3) * 72 + x ^ 2 * 96 - x * 32'])
+            # TODO: Should powers have a higher precedence than negation in
+            #       printing?
             # FIXME: '-72x ^ 3 + x ^ 2 * 96 - x * 32',
             # FIXME: '-72x ^ 3 + 96x ^ 2 - x * 32',
             # FIXME: '-72x ^ 3 + 96x ^ 2 - 32x'])

@@ -47,6 +47,14 @@ class TestRulesPowers(RulesTestCase):
         self.assertEqualPos(possibilities,
                 [P(root, add_exponents, (Scope(root), n0, n1, a, p, q))])
 
+    def test_match_add_exponents_negated(self):
+        a, q = tree('a,q')
+        n0, n1 = root = (-a) * a ** q
+
+        possibilities = match_add_exponents(root)
+        self.assertEqualPos(possibilities,
+                [P(root, add_exponents, (Scope(root), n0, n1, a, 1, q))])
+
     def test_match_subtract_exponents_powers(self):
         a, p, q = tree('a,p,q')
         root = a ** p / a ** q
