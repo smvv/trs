@@ -84,3 +84,8 @@ smvv@multivac ~/work/trs $ printf "0/1\n??" | ./main.py
 <Possibility root="0 / 1" handler=divide_numerics args=(0, 1)>
 Division of 0 by 1 reduces to 0.
 Division of 0 by 1 reduces to 0.
+
+ - Should powers have a higher precedence thatn negation while printing?
+   the current situation: -(x ^ 2) and -x ^ 2 (the latter instead of (-x) ^ 2)
+   might be desired: -x ^ 2 instead of -(x ^ 2), and explicit parentheses for
+   (-x) ^ 2
