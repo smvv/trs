@@ -154,7 +154,7 @@ class Parser(BisonParser):
             left, right = filter(None, match.groups())
 
             # Filter words (otherwise they will be preprocessed as well)
-            if left + right in ['graph', 'raise']:
+            if (left + right).upper() in self.tokens:
                 return left + right
 
             # If all characters on the right are numbers. e.g. "a4", the
