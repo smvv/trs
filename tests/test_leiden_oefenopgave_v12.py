@@ -34,5 +34,3 @@ class TestLeidenOefenopgaveV12(TestCase):
             '-72x ^ 3 + 96x ^ 2 - x * 32',
             '-72x ^ 3 + 96x ^ 2 + 32 * -x',
             '-72x ^ 3 + 96x ^ 2 - 32x'])
-            # TODO: Should powers have a higher precedence than negation
-            #       while printing?

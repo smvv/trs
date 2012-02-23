@@ -13,5 +13,4 @@ class TestRulesGoniometry(RulesTestCase):
 
     def test_add_quadrants(self):
         return
-        root = tree('sin(x) ^ 2 + cos(x) ^ 2')
-        self.assertEqual(add_quadrants(root, ()), 1)
+        self.assertEqual(add_quadrants(None, ()), 1)
