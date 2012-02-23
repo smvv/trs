@@ -1,5 +1,5 @@
-from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-        OP_ADD, OP_POW, OP_MUL, OP_SIN, OP_COS, OP_TAN
+from ..node import ExpressionLeaf as L, Scope, OP_ADD, OP_POW, OP_MUL, \
+        OP_SIN, OP_COS, OP_TAN
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
