@@ -11,13 +11,15 @@ from .fractions import match_constant_division, match_add_constant_fractions, \
         match_expand_and_add_fractions
 from .negation import match_negated_factor, match_negate_polynome, \
         match_negated_division
+from .sort import match_sort_multiplicants
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
                  match_combine_groups],
         OP_MUL: [match_multiply_numerics, match_expand, match_add_exponents,
                  match_expand_and_add_fractions, match_multiply_zero,
-                 match_negated_factor, match_multiply_one],
+                 match_negated_factor, match_multiply_one,
+                 match_sort_multiplicants],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
                  match_constant_division, match_negated_division],
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
