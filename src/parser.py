@@ -51,8 +51,8 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
-    tokens =  ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', \
-               'LPAREN', 'RPAREN'] + TOKEN_MAP.values()
+    tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', \
+              'LPAREN', 'RPAREN'] + TOKEN_MAP.values()
 
     # ------------------------------
     # precedences

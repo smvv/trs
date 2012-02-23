@@ -90,7 +90,7 @@ TOKEN_MAP = {
         OP_HINT: 'HINT',
         OP_REWRITE_ALL: 'REWRITE_ALL',
         OP_REWRITE: 'REWRITE',
-}
+        }
 
 
 def to_expression(obj):
