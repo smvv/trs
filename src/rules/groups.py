@@ -1,7 +1,7 @@
 from itertools import combinations
 
-from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, Scope, \
-        OP_ADD, OP_MUL, nary_node, negate
+from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_MUL, nary_node, \
+        negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 

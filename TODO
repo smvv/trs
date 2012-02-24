@@ -2,47 +2,9 @@
 
  - Sort polynom by its exponents?
 
- - No possibilities found for:
-   >>> a2b3 + a2b3
-   a ^ 2 * b ^ 3 + a ^ 2 * b ^ 3
-
- - 2 + 3 + 4 rewrites to 5 instead of 5 + 4
-   -> the problem is that the 'root' of the application is actually a subtree
-   of the entire expression. This means that the parent of each possibility
-   root (or 'subtree') must me stored to be able to replace the subtree.
-
  - MESSAGES needs to be expanded.
 
- - rewrite match_combine_polynomes to an even more generic form:
-   match_combine_factors.
-
- - "--ab + c" has no rewrite possibility. The graph of "--ab + c" is also
-   not valid:
-
-     -
-     │
-      +
-    ╭─┴╮
-    *  c
-   ╭┴╮
-   - b
-   │
-   a
-
- - The following expression gives a cycle in the possibilities:
-
-   >>> ab + ba
-   possibilities:
-     Group "ab" is multiplied by 1 and 1, combine them.
-   >>> (1 + 1) * ab
-   (1 + 1)ab
-   possibilities:
-     Combine the constants 1 and 1.
-     Group "1" is multiplied by 1 and 1, combine them.
-     Expand a(1 + 1).
-     Expand b(1 + 1).
-
- - Fix division by zero caused by "0/0".
+ - Fix division by zero caused by "0/0": Catch exception in front-end
 
 smvv@multivac ~/work/trs $ printf "a/0\n??" | ./main.py
 Traceback (most recent call last):
@@ -84,3 +46,10 @@ smvv@multivac ~/work/trs $ printf "0/1\n??" | ./main.py
 <Possibility root="0 / 1" handler=divide_numerics args=(0, 1)>
 Division of 0 by 1 reduces to 0.
 Division of 0 by 1 reduces to 0.
+
+ - Fractions constant rewrite rules.
+
+ - >>> (sin x) ^ 2 + (cos x) ^ 2
+   sin(x) ^ 2 + cos(x) ^ 2
+   >>> sin(x) ^ 2 + cos(x) ^ 2
+   sin(x ^ 2) + cos(x ^ 2)

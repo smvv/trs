@@ -1,7 +1,19 @@
-from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-        OP_ADD, OP_POW, OP_MUL, OP_SIN, OP_COS, OP_TAN
+from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_ADD, \
+        OP_POW, OP_MUL, OP_SIN, OP_COS, OP_TAN
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
+
+
+def sin(*args):
+    return N('sin', *args)
+
+
+def cos(*args):
+    return N('cos', *args)
+
+
+def tan(*args):
+    return N('tan', *args)
 
 
 def match_add_quadrants(node):

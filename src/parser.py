@@ -61,8 +61,10 @@ class Parser(BisonParser):
         ('left', ('COMMA', )),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
+        ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
+        ('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
         )
 
     interactive = 0
@@ -154,7 +156,7 @@ class Parser(BisonParser):
             left, right = filter(None, match.groups())
 
             # Filter words (otherwise they will be preprocessed as well)
-            if left + right in ['graph', 'raise']:
+            if (left + right).upper() in self.tokens:
                 return left + right
 
             # If all characters on the right are numbers. e.g. "a4", the
@@ -334,6 +336,12 @@ class Parser(BisonParser):
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
+              | SIN exp
+              | COS exp
+              | TAN exp
+              | INT exp
+              | SOLVE exp
+              | SQRT exp
         """
 
         if option == 0:  # rule: NEG exp
@@ -346,6 +354,11 @@ class Parser(BisonParser):
 
             return values[1]
 
+        if option < 7:  # rule: SIN exp | COS exp | TAN exp | INT exp
+            if values[1].type == TYPE_OPERATOR and values[1].op == OP_COMMA:
+                return Node(values[0], *values[1])
+            return Node(*values)
+
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
@@ -355,13 +368,14 @@ class Parser(BisonParser):
                | exp TIMES exp
                | exp DIVIDE exp
                | exp POW exp
+               | exp EQ exp
                | exp MINUS exp
         """
 
-        if 0 <= option < 4:  # rule: exp {PLUS,TIMES,DIVIDES,POW} exp
+        if 0 <= option < 5:  # rule: exp {PLUS,TIMES,DIVIDES,POW,EQ} exp
             return Node(values[1], values[0], values[2])
 
-        if option == 4:  # rule: exp MINUS exp
+        if option == 5:  # rule: exp MINUS exp
             node = values[2]
 
             # Add negation to the left-most child
@@ -436,7 +450,6 @@ class Parser(BisonParser):
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
-    ","       { returntoken(COMMA); }
     """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }

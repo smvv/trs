@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-                   OP_MUL, OP_DIV, OP_POW, OP_ADD
+                   OP_MUL, OP_DIV, OP_POW, OP_ADD, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -12,6 +12,7 @@ def match_add_exponents(node):
     a * a^q    ->  a^(1 + q)
     a^p * a    ->  a^(p + 1)
     a * a      ->  a^(1 + 1)
+    -a * a^q   ->  -a^(1 + q)
     """
     assert node.is_op(OP_MUL)
 
@@ -20,12 +21,12 @@ def match_add_exponents(node):
     scope = Scope(node)
 
     for n in scope:
+        # Order powers by their roots, e.g. a^p and a^q are put in the same
+        # list because of the mutual 'a'
         if n.is_identifier():
-            s = n
+            s = negate(n, 0)
             exponent = L(1)
         elif n.is_op(OP_POW):
-            # Order powers by their roots, e.g. a^p and a^q are put in the same
-            # list because of the mutual 'a'
             s, exponent = n
         else:  # pragma: nocover
             continue
@@ -53,8 +54,10 @@ def add_exponents(root, args):
     """
     scope, n0, n1, a, p, q = args
 
+    # TODO: combine exponent negations
+
     # Replace the left node with the new expression
-    scope.replace(n0, a ** (p + q))
+    scope.replace(n0, (a ** (p + q)).negate(n0.negated + n1.negated))
 
     # Remove the right node
     scope.remove(n1)

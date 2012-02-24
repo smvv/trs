@@ -38,11 +38,6 @@ def add_numerics(root, args):
     scope, c0, c1 = args
     value = c0.actual_value() + c1.actual_value()
 
-    if value < 0:
-        leaf = Leaf(-value).negate()
-    else:
-        leaf = Leaf(value)
-
     # Replace the left node with the new expression
     scope.replace(c0, Leaf(abs(value)).negate(int(value < 0)))
 
