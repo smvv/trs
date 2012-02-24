@@ -133,7 +133,7 @@ class TestLeidenOefenopgave(TestCase):
                             '0x + 16x ^ 2 - 25',
                             '0 + 16x ^ 2 - 25',
                             '-25 + 16x ^ 2'])
-                            # FIXME: '16 * x ^ 2 - 25'])
+                            # FIXME: '16x ^ 2 - 25'])
 
     def test_2(self):
         pass
@@ -149,8 +149,8 @@ class TestLeidenOefenopgave(TestCase):
         self.assertRewrite(['2/7 - 4/11', '22 / 77 - 28 / 77',
                             '(22 - 28) / 77', '-6 / 77'])
 
-    #def test_4_3(self):
-    #    self.assertRewrite(['(7/3) * (3/5)', '7 / 5'])
+    def test_4_3(self):
+        self.assertRewrite(['(7/3) * (3/5)', '7 / 5'])
 
     #def test_4_4(self):
     #    self.assertRewrite(['(3/4) / (5/6)', '9 / 10'])

@@ -46,3 +46,5 @@ smvv@multivac ~/work/trs $ printf "0/1\n??" | ./main.py
 <Possibility root="0 / 1" handler=divide_numerics args=(0, 1)>
 Division of 0 by 1 reduces to 0.
 Division of 0 by 1 reduces to 0.
+
+ - Fractions constant rewrite rules.
