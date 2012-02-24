@@ -63,8 +63,8 @@ class Parser(BisonParser):
         ('left', ('TIMES', 'DIVIDE')),
         ('left', ('EQ', )),
         ('left', ('NEG', )),
-        ('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
         ('right', ('POW', )),
+        ('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
         )
 
     interactive = 0
