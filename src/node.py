@@ -98,8 +98,6 @@ TOKEN_MAP = {
         OP_REWRITE: 'REWRITE',
         }
 
-FUNCTIONS = [OP_SQRT, OP_SIN, OP_COS, OP_TAN, OP_INT, OP_SOLVE]
-
 
 def to_expression(obj):
     return obj if isinstance(obj, ExpressionBase) else ExpressionLeaf(obj)

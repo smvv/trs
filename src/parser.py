@@ -314,7 +314,6 @@ class Parser(BisonParser):
         """
         exp : NUMBER
             | IDENTIFIER
-            | function
             | LPAREN exp RPAREN
             | unary
             | binary
@@ -330,13 +329,10 @@ class Parser(BisonParser):
         if option == 1:  # rule: IDENTIFIER
             return Leaf(values[0])
 
-        if option == 2:  # rule: function
-            return values[0]
-
-        if option == 3:  # rule: LPAREN exp RPAREN
+        if option == 2:  # rule: LPAREN exp RPAREN
             return values[1]
 
-        if option in [4, 5, 6]:  # rule: unary | binary | nary
+        if option in [3, 4, 5]:  # rule: unary | binary | nary
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -405,45 +401,6 @@ class Parser(BisonParser):
 
         if option == 0:  # rule: exp COMMA exp
             return Node(*combine(',', OP_COMMA, values[0], values[2]))
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_function(self, target, option, names, values):
-        """
-        function : function_name LPAREN arglist RPAREN
-        """
-
-        if option == 0:  # rule: function_name LPAREN arglist RPAREN
-            print 'FUNCTION:', values[0], values[2]
-            return Node(values[0], *values[2])
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_function_name(self, target, option, names, values):
-        """
-        function_name : SQRT | SIN | COS | TAN | INT | SOLVE
-        """
-
-        if 0 <= option <= 5:  # rule: SQRT | SIN | COS | TAN | INT | SOLVE
-            return values[0]
-            #return TOKEN_OP_MAP[values[0]]
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_arglist(self, target, option, names, values):
-        """
-        arglist : arglist COMMA exp
-                | exp
-        """
-
-        if option == 0:  # rule: arglist COMMA exp
-            return values[0] + [values[2]]
-
-        if option == 1:  # rule: exp
-            return [values[0]]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
