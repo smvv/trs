@@ -51,8 +51,9 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
-    tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', \
-              'LPAREN', 'RPAREN'] + TOKEN_MAP.values()
+    tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
+              'LPAREN', 'RPAREN', 'FUNCTION'] \
+             + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
     # precedences
@@ -64,7 +65,8 @@ class Parser(BisonParser):
         ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
-        ('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
+        ('right', ('FUNCTION', )),
+        #('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
         )
 
     interactive = 0
@@ -152,11 +154,14 @@ class Parser(BisonParser):
                 + '|([a-z])\s*([0-9])'    # match: a4  result: a ^ 4
                 + '|([0-9])\s+([0-9]))')  # match: 4 4 result: 4 * 4
 
+        words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
+                            OP_MAP.iteritems()))[0] + ('raise', 'graph')
+
         def preprocess_data(match):
             left, right = filter(None, match.groups())
 
             # Filter words (otherwise they will be preprocessed as well)
-            if (left + right).upper() in self.tokens:
+            if left + right in words:
                 return left + right
 
             # If all characters on the right are numbers. e.g. "a4", the
@@ -336,12 +341,7 @@ class Parser(BisonParser):
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
-              | SIN exp
-              | COS exp
-              | TAN exp
-              | INT exp
-              | SOLVE exp
-              | SQRT exp
+              | FUNCTION exp
         """
 
         if option == 0:  # rule: NEG exp
@@ -354,9 +354,10 @@ class Parser(BisonParser):
 
             return values[1]
 
-        if option < 7:  # rule: SIN exp | COS exp | TAN exp | INT exp
-            if values[1].type == TYPE_OPERATOR and values[1].op == OP_COMMA:
+        if option == 1:  # rule: FUNCTION exp
+            if values[1].is_op(OP_COMMA):
                 return Node(values[0], *values[1])
+
             return Node(*values)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -408,10 +409,19 @@ class Parser(BisonParser):
     # operator tokens
     # -----------------------------------------
     operators = ''
+    functions = []
 
     for op_str, op in OP_MAP.iteritems():
-        operators += '"%s"%s{ returntoken(%s); }\n' \
-                     % (op_str, ' ' * (8 - len(op_str)), TOKEN_MAP[op])
+        if TOKEN_MAP[op] == 'FUNCTION':
+            functions.append(op_str)
+        else:
+            operators += '"%s"%s{ returntoken(%s); }\n' \
+                         % (op_str, ' ' * (8 - len(op_str)), TOKEN_MAP[op])
+
+    # Put all functions in a single regex
+    if functions:
+        operators += '("%s") { returntoken(FUNCTION); }\n' \
+                     % '"|"'.join(functions)
 
     # -----------------------------------------
     # raw lex script, verbatim here
