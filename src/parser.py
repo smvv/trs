@@ -15,7 +15,7 @@ from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
-        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope
+        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope, PI
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
@@ -156,7 +156,7 @@ class Parser(BisonParser):
             left, right = filter(None, match.groups())
 
             # Filter words (otherwise they will be preprocessed as well)
-            if (left + right).upper() in self.tokens:
+            if (left + right).upper() in self.tokens + [PI.upper()]:
                 return left + right
 
             # If all characters on the right are numbers. e.g. "a4", the
@@ -405,9 +405,10 @@ class Parser(BisonParser):
                                % (option, target))  # pragma: nocover
 
     # -----------------------------------------
-    # operator tokens
+    # PI and operator tokens
     # -----------------------------------------
-    operators = ''
+    operators = '"%s"%s{ returntoken(IDENTIFIER); }\n' \
+                % (PI, ' ' * (8 - len(PI)))
 
     for op_str, op in OP_MAP.iteritems():
         operators += '"%s"%s{ returntoken(%s); }\n' \

@@ -45,6 +45,9 @@ OP_HINT = 17
 OP_REWRITE_ALL = 18
 OP_REWRITE = 19
 
+# Special identifierd
+PI = 'pi'
+
 
 TYPE_MAP = {
         int: TYPE_INTEGER,
@@ -352,7 +355,17 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         return self.negated == other.negated and self.type == other.type \
                and self.value == other.value
 
+    def __str__(self):
+        val = str(self.value)
+
+        # Replace PI leaf by the Greek character
+        if val == PI:
+            val = 'π'
+
+        return '-' * self.negated + val
+
     def __repr__(self):
+        return str(self)
         return '-' * self.negated + str(self.value)
 
     def equals(self, other, ignore_negation=False):
