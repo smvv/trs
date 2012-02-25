@@ -18,7 +18,7 @@ def tan(*args):
 
 def match_add_quadrants(node):
     """
-    sin(x) ^ 2 + cos(x) ^ 2  ->  1
+    sin(t) ^ 2 + cos(t) ^ 2  ->  1
     """
     assert node.is_op(OP_ADD)
 
@@ -36,9 +36,49 @@ def match_add_quadrants(node):
 
 def add_quadrants(root, args):
     """
-    sin(x) ^ 2 + cos(x) ^ 2  ->  1
+    sin(t) ^ 2 + cos(t) ^ 2  ->  1
     """
     return L(1)
 
 
 MESSAGES[add_quadrants] = _('Add the sinus and cosinus quadrants to 1.')
+
+
+def match_negated_parameter(node):
+    """
+    sin(-t)  ->  -sin(t)
+    cos(-t)  ->  cos(t)
+    """
+    assert node.is_op(OP_SIN) or node.is_op(OP_COS)
+
+    t = node[0]
+
+    if t.negated:
+        if node.op == OP_SIN:
+            return [P(node, negated_sinus_parameter, (t,))]
+
+        return [P(node, negated_cosinus_parameter, (t,))]
+
+    return []
+
+
+def negated_sinus_parameter(root, args):
+    """
+    sin(-t)  ->  -sin(t)
+    """
+    return -sin(+args[0])
+
+
+MESSAGES[negated_sinus_parameter] = \
+        _('Bring the negation from the sinus parameter {1} to the outside.')
+
+
+def negated_cosinus_parameter(root, args):
+    """
+    cos(-t)  ->  cos(t)
+    """
+    return cos(+args[0])
+
+
+MESSAGES[negated_cosinus_parameter] = \
+        _('Remove the negation from the cosinus parameter {1}.')
