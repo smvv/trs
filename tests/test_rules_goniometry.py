@@ -17,7 +17,7 @@ class TestRulesGoniometry(RulesTestCase):
         self.assertEqual(add_quadrants(None, ()), 1)
 
     def test_match_negated_parameter(self):
-        s, c = tree('(sin -t), cos -t')
+        s, c = tree('sin -t, cos -t')
         t = s[0]
 
         self.assertEqualPos(match_negated_parameter(s), \
