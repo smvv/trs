@@ -1,5 +1,6 @@
+from .utils import is_fraction
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_ADD, \
-        OP_POW, OP_MUL, OP_SIN, OP_COS, OP_TAN
+        OP_POW, OP_MUL, OP_SIN, OP_COS, OP_TAN, PI
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -82,3 +83,34 @@ def negated_cosinus_parameter(root, args):
 
 MESSAGES[negated_cosinus_parameter] = \
         _('Remove the negation from the cosinus parameter {1}.')
+
+
+def match_half_pi_subtraction(node):
+    """
+    sin(pi / 2 - t)  ->  cos(t)
+    cos(pi / 2 - t)  ->  sin(t)
+    """
+    assert node.is_op(OP_SIN) or node.is_op(OP_COS)
+
+    if node[0].is_op(OP_ADD):
+        half_pi, t = node[0]
+
+        if half_pi == L(PI) / 2:
+            if node.op == OP_SIN:
+                return [P(node, half_pi_subtraction_sinus, (t,))]
+
+    return []
+
+
+def match_standard_radian(node):
+    """
+    Apply a direct constant calculation from the following table.
+
+        | 0 | pi / 6    | pi / 4    | pi / 3    | pi / 2
+    ----+---+-----------+-----------+-----------+-------
+    sin | 0 | 1/2       | sqrt(2)/2 | sqrt(3)/2 | 1
+    cos | 1 | sqrt(3)/2 | sqrt(2)/2 | 1/2       | 0
+    tan | 0 | sqrt(3)/3 | 1         | sqrt(3)   | -
+    """
+    # TODO: implement
+    pass
