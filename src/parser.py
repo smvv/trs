@@ -43,6 +43,10 @@ class Parser(BisonParser):
     docstrings. Scanner rules are in the 'lexscript' attribute.
     """
 
+    # Words to be ignored by preprocessor
+    words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
+                        OP_MAP.iteritems()))[0] + ('raise', 'graph')
+
     # Output directory of generated pybison files, including a trailing slash.
     buildDirectory = PYBISON_BUILD + '/'
 
@@ -154,14 +158,11 @@ class Parser(BisonParser):
                 + '|([a-z])\s*([0-9])'    # match: a4  result: a ^ 4
                 + '|([0-9])\s+([0-9]))')  # match: 4 4 result: 4 * 4
 
-        words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
-                            OP_MAP.iteritems()))[0] + ('raise', 'graph')
-
         def preprocess_data(match):
             left, right = filter(None, match.groups())
 
             # Filter words (otherwise they will be preprocessed as well)
-            if left + right in words:
+            if left + right in Parser.words:
                 return left + right
 
             # If all characters on the right are numbers. e.g. "a4", the
