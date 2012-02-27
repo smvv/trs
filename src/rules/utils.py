@@ -1,9 +1,9 @@
 from ..node import ExpressionLeaf as L, OP_MUL, OP_DIV
 
 
-def gcd(a, b):
+def greatest_common_divisor(a, b):
     """
-    Return greatest common divisor using Euclid's Algorithm.
+    Return greatest common divisor of a and b using Euclid's Algorithm.
     """
     while b:
         a, b = b, a % b
@@ -15,7 +15,7 @@ def lcm(a, b):
     """
     Return least common multiple of a and b.
     """
-    return a * b // gcd(a, b)
+    return a * b // greatest_common_divisor(a, b)
 
 
 def least_common_multiple(*args):
