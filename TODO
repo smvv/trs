@@ -59,3 +59,14 @@ Division of 0 by 1 reduces to 0.
  - validation traversal implementatie vergelijken met andere implementaties.
 
  - Testen: 4^2 ; 1 / b^3 * b^2 ; 2/4 -> 1/2
+
+ - Fix the following loop using strategy (reduce_fraction_constants):
+   >>> 2 / 7 - 4 / 11
+   2 / 7 - 4 / 11
+   >>> @
+   22 / 77 - 28 / 77
+   >>> @
+   2 / 7 - 28 / 77
+   >>> @
+   2 / 7 + 4 / 11
+
