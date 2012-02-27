@@ -54,15 +54,6 @@ def filter_duplicates(possibilities):
     return unique
 
 
-def pick_suggestion(possibilities):
-    if not possibilities:
-        return
-
-    # TODO: pick the best suggestion.
-    suggestion = 0
-    return possibilities[suggestion]
-
-
 def find_parent_node(root, child):
     nodes = [root]
 

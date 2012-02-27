@@ -1,7 +1,22 @@
-from tests.rulestestcase import RulesTestCase as TestCase, rewrite
+from tests.rulestestcase import RulesTestCase as TestCase
 
 
 class TestLeidenOefenopgaveV12(TestCase):
+    def test_1_a(self):
+        self.assertRewrite(['-5(x2 - 3x + 6)',
+                            '-5(x ^ 2 - 3x) - 5 * 6',
+                            '-5x ^ 2 - 5 * -3x - 5 * 6',
+                            '-5x ^ 2 - -15x - 5 * 6',
+                            '-5x ^ 2 + 15x - 5 * 6',
+                            '-5x ^ 2 + 15x - 30'])
+
+    def test_1_d(self):
+        self.assertRewrite(['(2x + x)x',
+                            '(2 + 1)xx',
+                            '3xx',
+                            '3x ^ (1 + 1)',
+                            '3x ^ 2'])
+
     def test_1_e(self):
         self.assertRewrite([
             '-2(6x - 4) ^ 2x',
@@ -24,13 +39,14 @@ class TestLeidenOefenopgaveV12(TestCase):
             'x(-72x ^ 2 + 96x) + x * -32',
             'x * -72x ^ 2 + x * 96x + x * -32',
             '-x * 72x ^ 2 + x * 96x + x * -32',
-            '72 * -xx ^ 2 + x * 96x + x * -32',
-            '-72xx ^ 2 + x * 96x + x * -32',
-            '-72x ^ (1 + 2) + x * 96x + x * -32',
-            '-72x ^ 3 + x * 96x + x * -32',
-            '-72x ^ 3 + 96xx + x * -32',
-            '-72x ^ 3 + 96x ^ (1 + 1) + x * -32',
-            '-72x ^ 3 + 96x ^ 2 + x * -32',
+            '-x ^ (1 + 2) * 72 + x * 96x + x * -32',
+            '-x ^ 3 * 72 + x * 96x + x * -32',
+            '-x ^ 3 * 72 + x ^ (1 + 1) * 96 + x * -32',
+            '-x ^ 3 * 72 + x ^ 2 * 96 + x * -32',
+            '-x ^ 3 * 72 + x ^ 2 * 96 - x * 32',
+            '72 * -x ^ 3 + x ^ 2 * 96 - x * 32',
+            '-72x ^ 3 + x ^ 2 * 96 - x * 32',
             '-72x ^ 3 + 96x ^ 2 - x * 32',
             '-72x ^ 3 + 96x ^ 2 + 32 * -x',
-            '-72x ^ 3 + 96x ^ 2 - 32x'])
+            '-72x ^ 3 + 96x ^ 2 - 32x',
+        ])

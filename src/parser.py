@@ -17,7 +17,8 @@ from graph_drawing.graph import generate_graph
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
         TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope, PI
 from rules import RULES
-from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
+from strategy import pick_suggestion
+from possibilities import filter_duplicates, apply_suggestion
 
 import Queue
 
