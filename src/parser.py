@@ -259,6 +259,7 @@ class Parser(BisonParser):
         """
         input :
               | input line
+              | input REWRITE NEWLINE
         """
         if option == 1:
             # Interactive mode is enabled if the term rewriting system is used
@@ -269,6 +270,10 @@ class Parser(BisonParser):
 
             return values[1]
 
+        if option == 2:  # rule: input REWRITE NEWLINE
+            self.root_node = self.rewrite()
+            return self.root_node
+
     def on_line(self, target, option, names, values):
         """
         line : NEWLINE
@@ -276,7 +281,6 @@ class Parser(BisonParser):
              | debug NEWLINE
              | HINT NEWLINE
              | POSSIBILITIES NEWLINE
-             | REWRITE NEWLINE
              | RAISE NEWLINE
         """
         if option == 1:  # rule: EXP NEWLINE
@@ -295,11 +299,7 @@ class Parser(BisonParser):
             self.display_possibilities()
             return
 
-        if option == 5:  # rule: REWRITE NEWLINE
-            self.root_node = self.rewrite()
-            return self.root_node
-
-        if option == 6:
+        if option == 5:
             raise RuntimeError('on_line: exception raised')
 
     def on_debug(self, target, option, names, values):
