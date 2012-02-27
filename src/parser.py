@@ -175,6 +175,9 @@ class Parser(BisonParser):
             # match: ab | abc | abcd (where left = "a")
             return '*'.join([left] + list(right))
 
+        if self.verbose:  # pragma: nocover
+            data_before = data
+
         # Iteratively replace all matches.
         while True:
             data_after = re.sub(pattern, preprocess_data, data)
@@ -182,12 +185,12 @@ class Parser(BisonParser):
             if data == data_after:
                 break
 
-            if self.verbose:  # pragma: nocover
-                print 'hook_read_after() modified the input data:'
-                print 'before:', data.replace('\n', '\\n')
-                print 'after :', data_after.replace('\n', '\\n')
-
             data = data_after
+
+        if self.verbose and data_before != data_after:  # pragma: nocover
+            print 'hook_read_after() modified the input data:'
+            print 'before:', repr(data_before)
+            print 'after :', repr(data_after)
 
         return data
 
