@@ -52,7 +52,8 @@ class TestLeidenOefenopgaveV12(TestCase):
         ])
 
     def test_2_a(self):
-        self.assertRewrite(['(a2b^-1)^3(ab2)',
+        self.assertRewrite([
+            '(a2b^-1)^3(ab2)',
             '(a ^ 2 * (1 / b ^ 1)) ^ 3 * ab ^ 2',
             '(a ^ 2 * (1 / b)) ^ 3 * ab ^ 2',
             '(a ^ 2) ^ 3 * (1 / b) ^ 3 * ab ^ 2',
@@ -60,28 +61,34 @@ class TestLeidenOefenopgaveV12(TestCase):
             'a ^ 6 * (1 / b) ^ 3 * ab ^ 2',
             'a ^ (6 + 1)(1 / b) ^ 3 * b ^ 2',
             'a ^ 7 * (1 / b) ^ 3 * b ^ 2',
-            ])
+        ])
 
     def test_2_b(self):
-        self.assertRewrite(['a3b2a3',
+        self.assertRewrite([
+            'a3b2a3',
             'a ^ (3 + 3)b ^ 2',
-            'a ^ 6 * b ^ 2'])
+            'a ^ 6 * b ^ 2',
+        ])
 
     def test_2_c(self):
-        self.assertRewrite(['a5+a3',
-            'a ^ 5 + a ^ 3'])
+        self.assertRewrite([
+            'a5+a3',
+            'a ^ 5 + a ^ 3',
+        ])
 
     def test_2_d(self):
-        self.assertRewrite(['a2+a2',
+        self.assertRewrite([
+            'a2+a2',
             '(1 + 1)a ^ 2',
-            '2a ^ 2'])
+            '2a ^ 2',
+        ])
 
     def test_2_e(self):
         self.assertRewrite([
             '4b^-2',
             '4(1 / b ^ 2)',
             # FIXME: '4 * 1/b ^ 2',
-            ])
+        ])
 
     def test_2_f(self):
         self.assertRewrite([
@@ -89,7 +96,6 @@ class TestLeidenOefenopgaveV12(TestCase):
             '4 ^ -2 * b ^ -2',
             '1 / 4 ^ 2 * b ^ -2',
             '1 / 16 * b ^ -2',
-            '1 / 16 * (1 / b ^ 2)',
             '1 / 16 * (1 / b ^ 2)',
             '1 * 1 / (16b ^ 2)',
             '1 / (16b ^ 2)',
