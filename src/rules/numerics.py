@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_ADD, OP_DIV, \
-        OP_MUL
+        OP_MUL, OP_POW
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -243,3 +243,33 @@ def multiply_numerics(root, args):
 
 
 MESSAGES[multiply_numerics] = _('Multiply constant {2} with {3}.')
+
+
+def match_raise_numerics(node):
+    """
+    2 ^ 3     ->  8
+    (-2) ^ 3  ->  -8
+    (-2) ^ 2  ->  4
+    """
+    assert node.is_op(OP_POW)
+
+    r, e = node
+
+    if r.is_numeric() and e.is_numeric() and not e.negated:
+        return [P(node, raise_numerics, (r, e))]
+
+    return []
+
+
+def raise_numerics(root, args):
+    """
+    2 ^ 3     ->  8
+    (-2) ^ 3  ->  -8
+    (-2) ^ 2  ->  4
+    """
+    r, e = args
+
+    return Leaf(r.value ** e.value).negate(r.negated * e.value)
+
+
+MESSAGES[raise_numerics] = _('Raise constant {1} with {2}.')
