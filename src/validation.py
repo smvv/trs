@@ -1,9 +1,6 @@
 from src.parser import Parser
 from tests.parser import ParserWrapper
-
-
-class ValidationNode(object):
-    pass
+from src.possibilities import apply_suggestion
 
 
 def validate(exp, result):
@@ -11,23 +8,25 @@ def validate(exp, result):
     Validate that exp =>* result.
     """
     parser = ParserWrapper(Parser)
-
-    exp = parser.run([exp])
     result = parser.run([result])
 
-    return validate_graph(exp, result)
+    return traverse_preorder(parser, exp, result)
 
 
-def iter_preorder(exp, possibility):
+def traverse_preorder(parser, exp, result):
     """
     Traverse the possibility tree using pre-order traversal.
     """
-    pass
+    root = parser.run([exp])
 
+    if root.equals(result):
+        return root
 
-def validate_graph(exp, result):
-    """
-    Validate that "exp" =>* "result".
-    """
-    # TODO: Traverse the tree of possibility applications
-    return False
+    possibilities = parser.parser.possibilities
+
+    for p in possibilities:
+        child = apply_suggestion(root, p)
+        next_root = traverse_preorder(parser, str(child), result)
+
+        if next_root:
+            return next_root
