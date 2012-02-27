@@ -1,6 +1,7 @@
 from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_constant_fractions, \
         equalize_denominators, add_nominators
+from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
@@ -51,12 +52,14 @@ class TestRulesFractions(RulesTestCase):
         n0, n1 = root = l1 / l2 + l3 / l4
         possibilities = match_add_constant_fractions(root)
         self.assertEqualPos(possibilities,
-                [P(root, equalize_denominators, (n0, n1, 4))])
+                [P(root, equalize_denominators, (Scope(root), n0, n1, 4)),
+                 P(root, equalize_denominators, (Scope(root), n0, n1, 8))])
 
         (((n0, n1), n2), n3), n4 = root = a + l1 / l2 + b + l3 / l4 + c
         possibilities = match_add_constant_fractions(root)
         self.assertEqualPos(possibilities,
-                [P(root, equalize_denominators, (n1, n3, 4))])
+                [P(root, equalize_denominators, (Scope(root), n1, n3, 4)),
+                 P(root, equalize_denominators, (Scope(root), n1, n3, 8))])
 
         n0, n1 = root = l2 / l4 + l3 / l4
         possibilities = match_add_constant_fractions(root)
@@ -74,7 +77,8 @@ class TestRulesFractions(RulesTestCase):
         (((n0, n1), n2), n3), n4 = root = a + l2 / l2 + b + (-l3 / l4) + c
         possibilities = match_add_constant_fractions(root)
         self.assertEqualPos(possibilities,
-                [P(root, equalize_denominators, (n1, n3, 4))])
+                [P(root, equalize_denominators, (Scope(root), n1, n3, 4)),
+                 P(root, equalize_denominators, (Scope(root), n1, n3, 8))])
 
         (((n0, n1), n2), n3), n4 = root = a + l2 / l4 + b + (-l3 / l4) + c
         possibilities = match_add_constant_fractions(root)
@@ -85,22 +89,23 @@ class TestRulesFractions(RulesTestCase):
         a, b, l1, l2, l3, l4 = tree('a,b,1,2,3,4')
 
         n0, n1 = root = l1 / l2 + l3 / l4
-        self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
-                              l2 / l4 + l3 / l4)
+        self.assertEqualNodes(equalize_denominators(root,
+                              (Scope(root), n0, n1, 4)), l2 / l4 + l3 / l4)
 
         n0, n1 = root = a / l2 + b / l4
-        self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
-                              (l2 * a) / l4 + b / l4)
+        self.assertEqualNodes(equalize_denominators(root,
+                              (Scope(root), n0, n1, 4)), (l2 * a) / l4 + b /
+                              l4)
 
         #2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4  # Equalize denominators
         n0, n1 = root = l1 / l2 + (-l3 / l4)
-        self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
-                              l2 / l4 + (-l3 / l4))
+        self.assertEqualNodes(equalize_denominators(root,
+            (Scope(root), n0, n1, 4)), l2 / l4 + (-l3 / l4))
 
         #2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4  # Equalize denominators
         n0, n1 = root = a / l2 + (-b / l4)
-        self.assertEqualNodes(equalize_denominators(root, (n0, n1, 4)),
-                              (l2 * a) / l4 + (-b / l4))
+        self.assertEqualNodes(equalize_denominators(root,
+            (Scope(root), n0, n1, 4)), (l2 * a) / l4 + (-b / l4))
 
     def test_add_nominators(self):
         a, b, c = tree('a,b,c')

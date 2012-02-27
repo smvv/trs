@@ -70,17 +70,20 @@ MESSAGES[division_by_self] = _('Division of {1} by {1} reduces to 1.')
 def match_add_constant_fractions(node):
     """
     1 / 2 + 3 / 4  ->  2 / 4 + 3 / 4  # Equalize denominators
+    2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4
     2 / 4 + 3 / 4  ->  5 / 4          # Equal denominators, so nominators can
                                       # be added
-    2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4  # Equalize denominators
-    2 / 4 - 3 / 4  ->  -1 / 4         # Equal denominators, so nominators can
-                                      # be subtracted
+    2 / 4 - 3 / 4  ->  -1 / 4
+    1 / 2 + 3 / 4  ->  4 / 8 + 6 / 8  # Equalize denominators by multiplying
+                                      # them with eachother
+
     """
     assert node.is_op(OP_ADD)
 
     p = []
+    scope = Scope(node)
 
-    fractions = filter(lambda node: node.is_op(OP_DIV), Scope(node))
+    fractions = filter(lambda node: node.is_op(OP_DIV), scope)
 
     for a, b in combinations(fractions, 2):
         na, da = a
@@ -94,7 +97,12 @@ def match_add_constant_fractions(node):
             # least common multiple of their denominators. Later, the
             # nominators will be added
             denom = least_common_multiple(da.value, db.value)
-            p.append(P(node, equalize_denominators, (a, b, denom)))
+            p.append(P(node, equalize_denominators, (scope, a, b, denom)))
+
+            # Also, add the (non-recommended) possibility to multiply the
+            # denominators
+            p.append(P(node, equalize_denominators, (scope, a, b,
+                                                     da.value * db.value)))
 
     return p
 
@@ -104,10 +112,9 @@ def equalize_denominators(root, args):
     1 / 2 + 3 / 4  ->  2 / 4 + 3 / 4
     a / 2 + b / 4  ->  2a / 4 + b / 4
     """
-    denom = args[2]
-    scope = Scope(root)
+    scope, denom = args[::3]
 
-    for fraction in args[:2]:
+    for fraction in args[1:3]:
         n, d = fraction
         mult = denom / d.value
 
@@ -125,8 +132,8 @@ def equalize_denominators(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[equalize_denominators] = _('Equalize the denominators of division'
-    ' of {1} by {2}.')
+MESSAGES[equalize_denominators] = _('Equalize the denominators of divisions'
+    ' {2} and {3} to {4}.')
 
 
 def add_nominators(root, args):
