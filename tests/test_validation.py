@@ -16,5 +16,5 @@ class TestValidation(TestCase):
     def test_intermediate_failure(self):
         self.assertFalse(validate('3a+a+b+2b', '4a+4b'))
 
-    #def test_intermediate_failure(self):
+    #def test_advanced_failure(self):
     #    self.assertFalse(validate('(x-1)^3+(x-1)^3', '4a+4b'))
