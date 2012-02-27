@@ -58,4 +58,4 @@ Division of 0 by 1 reduces to 0.
 
  - validation traversal implementatie vergelijken met andere implementaties.
 
- - Testen: 4^2 ; 1 / 2 * (2 / 3) ; 1 / b^3 * b^2
+ - Testen: 4^2 ; 1 / b^3 * b^2 ; 2/4 -> 1/2
