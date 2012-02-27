@@ -1,7 +1,7 @@
 from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_constant_fractions, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
-        multiply_fractions
+        multiply_fractions, multiply_with_fraction
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -127,9 +127,14 @@ class TestRulesFractions(RulesTestCase):
 
     def test_match_multiply_fractions(self):
         (a, b), (c, d) = ab, cd = root = tree('a / b * (c / d)')
-
         self.assertEqualPos(match_multiply_fractions(root),
                 [P(root, multiply_fractions, (Scope(root), ab, cd))])
+
+        (ab, e), cd = root = tree('a / b * e * (c / d)')
+        self.assertEqualPos(match_multiply_fractions(root),
+                [P(root, multiply_fractions, (Scope(root), ab, cd)),
+                 P(root, multiply_with_fraction, (Scope(root), e, ab)),
+                 P(root, multiply_with_fraction, (Scope(root), e, cd))])
 
     def test_multiply_fractions(self):
         (a, b), (c, d) = ab, cd = root = tree('a / b * (c / d)')

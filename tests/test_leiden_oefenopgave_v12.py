@@ -56,11 +56,16 @@ class TestLeidenOefenopgaveV12(TestCase):
             '(a2b^-1)^3(ab2)',
             '(a ^ 2 * (1 / b ^ 1)) ^ 3 * ab ^ 2',
             '(a ^ 2 * (1 / b)) ^ 3 * ab ^ 2',
-            '(a ^ 2) ^ 3 * (1 / b) ^ 3 * ab ^ 2',
-            'a ^ (2 * 3)(1 / b) ^ 3 * ab ^ 2',
-            'a ^ 6 * (1 / b) ^ 3 * ab ^ 2',
-            'a ^ (6 + 1)(1 / b) ^ 3 * b ^ 2',
-            'a ^ 7 * (1 / b) ^ 3 * b ^ 2',
+            '(a ^ 2 * 1 / b) ^ 3 * ab ^ 2',
+            '(a ^ 2 / b) ^ 3 * ab ^ 2',
+            '(a ^ 2) ^ 3 / b ^ 3 * ab ^ 2',
+            'a ^ (2 * 3) / b ^ 3 * ab ^ 2',
+            'a ^ 6 / b ^ 3 * ab ^ 2',
+            'aa ^ 6 / b ^ 3 * b ^ 2',
+            'a ^ (1 + 6) / b ^ 3 * b ^ 2',
+            'a ^ 7 / b ^ 3 * b ^ 2',
+            # FIXME: 'b ^ 2 * a ^ 7 / b ^ 3',
+            # FIXME: 'b ^ (2 - 3) * a ^ 7',
         ])
 
     def test_2_b(self):
@@ -87,7 +92,7 @@ class TestLeidenOefenopgaveV12(TestCase):
         self.assertRewrite([
             '4b^-2',
             '4(1 / b ^ 2)',
-            # FIXME: '4 * 1/b ^ 2',
+            '4 * 1 / b ^ 2',
         ])
 
     def test_2_f(self):

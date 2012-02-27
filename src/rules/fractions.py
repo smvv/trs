@@ -1,6 +1,6 @@
-from itertools import combinations
+from itertools import combinations, product
 
-from .utils import least_common_multiple
+from .utils import least_common_multiple, partition
 from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
@@ -178,16 +178,19 @@ def match_expand_and_add_fractions(node):
 def match_multiply_fractions(node):
     """
     a / b * (c / d)  ->  ac / (bd)
+    a * (b / c)      ->  ab / c
     """
-    # TODO: is 'add' Appropriate when rewriting to "(a + (-d)) / * (b / c)"?
     assert node.is_op(OP_MUL)
 
     p = []
     scope = Scope(node)
-    fractions = filter(lambda n: n.is_op(OP_DIV), scope)
+    fractions, others = partition(lambda n: n.is_op(OP_DIV), scope)
 
     for ab, cd in combinations(fractions, 2):
         p.append(P(node, multiply_fractions, (scope, ab, cd)))
+
+    for a, bc in product(others, fractions):
+        p.append(P(node, multiply_with_fraction, (scope, a, bc)))
 
     return p
 
@@ -207,3 +210,19 @@ def multiply_fractions(root, args):
 
 
 MESSAGES[multiply_fractions] = _('Multiply fractions {2} and {3}.')
+
+
+def multiply_with_fraction(root, args):
+    """
+    a * (b / c)  ->  ab / c
+    """
+    scope, a, bc = args
+    b, c = bc
+
+    scope.replace(a, a * b / c)
+    scope.remove(bc)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[multiply_with_fraction] = _('Multiply {2} with fraction {3}.')

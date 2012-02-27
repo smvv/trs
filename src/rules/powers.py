@@ -138,10 +138,10 @@ def match_duplicate_exponent(node):
     """
     assert node.is_op(OP_POW)
 
-    left, right = node
+    root, exponent = node
 
-    if left.is_op(OP_MUL):
-        return [P(node, duplicate_exponent, (list(Scope(left)), right))]
+    if root.is_op(OP_MUL):
+        return [P(node, duplicate_exponent, (list(Scope(root)), exponent))]
 
     return []
 
@@ -161,6 +161,33 @@ def duplicate_exponent(root, args):
 
 
 MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
+
+
+def match_raised_fraction(node):
+    """
+    (a / b) ^ p  ->  a^p / b^p
+    """
+    assert node.is_op(OP_POW)
+
+    root, exponent = node
+
+    if root.is_op(OP_DIV):
+        return [P(node, raised_fraction, (root, exponent))]
+
+    return []
+
+
+def raised_fraction(root, args):
+    """
+    (a / b) ^ p  ->  a^p / b^p
+    """
+    (a, b), p = args
+
+    return a ** p / b ** p
+
+
+MESSAGES[raised_fraction] = _('Apply the exponent {2} to the nominator and'
+        ' denominator of fraction {1}.')
 
 
 def match_remove_negative_exponent(node):

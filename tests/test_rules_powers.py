@@ -2,6 +2,7 @@ from src.rules.powers import match_add_exponents, add_exponents, \
         match_subtract_exponents, subtract_exponents, \
         match_multiply_exponents, multiply_exponents, \
         match_duplicate_exponent, duplicate_exponent, \
+        match_raised_fraction, raised_fraction, \
         match_remove_negative_exponent, remove_negative_exponent, \
         match_exponent_to_root, exponent_to_root, \
         match_constant_exponent, remove_power_of_zero, remove_power_of_one
@@ -94,6 +95,18 @@ class TestRulesPowers(RulesTestCase):
         possibilities = match_duplicate_exponent(root)
         self.assertEqualPos(possibilities,
                 [P(root, duplicate_exponent, ([a, b], p))])
+
+    def test_match_raised_fraction(self):
+        ab, p = root = tree('(a / b) ^ p')
+
+        self.assertEqualPos(match_raised_fraction(root),
+                [P(root, raised_fraction, (ab, p))])
+
+    def test_raised_fraction(self):
+        ab, p = root = tree('(a / b) ^ p')
+        a, b = ab
+
+        self.assertEqual(raised_fraction(root, (ab, p)), a ** p / b ** p)
 
     def test_match_remove_negative_exponent(self):
         a, p = tree('a,p')

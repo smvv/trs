@@ -54,3 +54,20 @@ def is_fraction(node, nominator, denominator):
                or (right == nominator and left == fraction)
 
     return False
+
+
+def partition(callback, iterable):
+    """
+    Partition an iterable into two parts using a callback that returns a
+    boolean.
+
+    Example:
+    >>> partition(lambda x: x & 1, range(6))
+    ([1, 3, 5], [0, 2, 4])
+    """
+    a, b = [], []
+
+    for item in iterable:
+        (a if callback(item) else b).append(item)
+
+    return a, b
