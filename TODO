@@ -71,3 +71,14 @@ Division of 0 by 1 reduces to 0.
    2 / 7 + 4 / 11
 
  - filter_duplicates does not seem to work anymore...
+
+ - Fix error while parsing unicode PI:
+   >>> sin(1/2 * pi)
+   sin(1 / 2 * π)
+   >>> @
+   unknown char � ignored.
+   unknown char � ignored.
+   ERROR: 41.7-41.8: "syntax error, unexpected TIMES" near "*".
+   ERROR: 41.14-41.15: "syntax error, unexpected RPAREN" near ")".
+
+ - No matches for sin(pi), sin(2pi), sin(4pi), etc...
