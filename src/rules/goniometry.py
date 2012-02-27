@@ -1,6 +1,6 @@
 from .utils import is_fraction
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_ADD, \
-        OP_POW, OP_MUL, OP_SIN, OP_COS, OP_TAN, PI
+        OP_POW, OP_MUL, OP_DIV, OP_SIN, OP_COS, OP_TAN, PI, TYPE_OPERATOR
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -102,9 +102,44 @@ def match_half_pi_subtraction(node):
     return []
 
 
+def is_pi_frac(node, denominator):
+    """
+    Check if a node is a fraction of 1 multiplied with PI.
+
+    Example:
+    >>> print is_pi_frac(L(1) / 2 * L(PI), 2)
+    True
+    """
+    if not node.is_op(OP_MUL):
+        return False
+
+    frac, pi = node
+
+    if not frac.is_op(OP_DIV) or not pi.is_leaf or pi.value != PI:
+        return False
+
+    n, d = frac
+
+    return n == 1 and d == denominator
+
+
+def sqrt(value):
+    return N('sqrt', L(value))
+
+
+l0, l1, sq2, sq3 = L(0), L(1), sqrt(2), sqrt(3)
+half = l1 / 2
+
+CONSTANTS = {
+    OP_SIN: [l0, half, half * sq2, half * sq3, l1],
+    OP_COS: [l1, half * sq3, half * sq2, half, l0],
+    OP_TAN: [l0, l1 / 3 * sq3, l1, sq3]
+}
+
+
 def match_standard_radian(node):
     """
-    Apply a direct constant calculation from the following table.
+    Apply a direct constant calculation from the constants table.
 
         | 0 | pi / 6    | pi / 4    | pi / 3    | pi / 2
     ----+---+-----------+-----------+-----------+-------
@@ -112,5 +147,29 @@ def match_standard_radian(node):
     cos | 1 | sqrt(3)/2 | sqrt(2)/2 | 1/2       | 0
     tan | 0 | sqrt(3)/3 | 1         | sqrt(3)   | -
     """
-    # TODO: implement
-    pass
+    assert node.type == TYPE_OPERATOR and node.op in (OP_SIN, OP_COS, OP_TAN)
+
+    t = node[0]
+
+    if t == 0:
+        return [P(node, standard_radian, (node.op, 0))]
+
+    denoms = [6, 4, 3]
+
+    if node.op != OP_TAN:
+        denoms.append(2)
+
+    for i, denominator in enumerate(denoms):
+        if is_pi_frac(t, denominator):
+            return [P(node, standard_radian, (node.op, i + 1))]
+
+    return []
+
+
+def standard_radian(root, args):
+    op, column = args
+
+    return CONSTANTS[op][column].clone()
+
+
+MESSAGES[standard_radian] = _('Replace standard radian {0}.')
