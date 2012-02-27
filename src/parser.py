@@ -118,13 +118,13 @@ class Parser(BisonParser):
 
     def hook_read_before(self):
         if self.possibilities:
-            if self.interactive:  # pragma: nocover
+            if self.verbose:  # pragma: nocover
                 print 'possibilities:'
 
             items = filter_duplicates(self.possibilities)
             self.last_possibilities = self.possibilities
 
-            if self.interactive:  # pragma: nocover
+            if self.verbose:  # pragma: nocover
                 print '  ' + '\n  '.join(map(str, items))
 
     def hook_read_after(self, data):
