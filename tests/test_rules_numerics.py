@@ -1,6 +1,6 @@
 from src.rules.numerics import match_add_numerics, add_numerics, \
-        match_divide_numerics, divide_numerics, match_multiply_numerics, \
-        multiply_numerics
+        match_divide_numerics, divide_numerics, reduce_fraction_constants, \
+        fraction_to_int_fraction, match_multiply_numerics, multiply_numerics
 from src.node import ExpressionLeaf as L, Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -37,7 +37,7 @@ class TestRulesNumerics(RulesTestCase):
         self.assertEqual(add_numerics(r, (Scope(r), l1, ml2)), -1)
 
     def test_match_divide_numerics(self):
-        a, b, i2, i3, i6, f1, f2, f3 = tree('a,b,2,3,6,1.0,2.0,3.0')
+        a, b, i2, i3, i4, i6, f1, f2, f3 = tree('a,b,2,3,4,6,1.0,2.0,3.0')
 
         root = i6 / i2
         possibilities = match_divide_numerics(root)
@@ -46,7 +46,13 @@ class TestRulesNumerics(RulesTestCase):
 
         root = i3 / i2
         possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities, [])
+        self.assertEqualPos(possibilities,
+                [P(root, fraction_to_int_fraction, (1, 1, 2))])
+
+        root = i2 / i4
+        possibilities = match_divide_numerics(root)
+        self.assertEqualPos(possibilities,
+                [P(root, reduce_fraction_constants, (2,))])
 
         root = f3 / i2
         possibilities = match_divide_numerics(root)
@@ -79,6 +85,15 @@ class TestRulesNumerics(RulesTestCase):
         self.assertEqual(divide_numerics(f3 / i2, (3.0, 2)), 1.5)
         self.assertEqual(divide_numerics(i3 / f2, (3, 2.0)), 1.5)
         self.assertEqual(divide_numerics(f3 / f2, (3.0, 2.0)), 1.5)
+
+    def test_reduce_fraction_constants(self):
+        l1, l2 = tree('1,2')
+        self.assertEqual(reduce_fraction_constants(l2 / 4, (2,)), l1 / l2)
+
+    def test_fraction_to_int_fraction(self):
+        l1, l4 = tree('1,4')
+        self.assertEqual(fraction_to_int_fraction(l4 / 3, (1, 1, 3)),
+                         l1 + l1 / 3)
 
     def test_match_multiply_numerics(self):
         i2, i3, i6, f2, f3, f6 = tree('2,3,6,2.0,3.0,6.0')
