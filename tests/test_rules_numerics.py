@@ -1,6 +1,7 @@
 from src.rules.numerics import match_add_numerics, add_numerics, \
         match_divide_numerics, divide_numerics, reduce_fraction_constants, \
-        fraction_to_int_fraction, match_multiply_numerics, multiply_numerics
+        fraction_to_int_fraction, match_multiply_numerics, multiply_numerics, \
+        raise_numerics
 from src.node import ExpressionLeaf as L, Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -146,3 +147,13 @@ class TestRulesNumerics(RulesTestCase):
         l5_neg, l6 = mul
         self.assertEqualNodes(multiply_numerics(mul, (Scope(mul),
                                                       l5_neg, l6)), -l30)
+
+    def test_raise_numerics(self):
+        l1, l2 = root = tree('2 ^ 3')
+        self.assertEqualNodes(raise_numerics(root, (l1, l2)), L(8))
+
+        l1_neg, l2 = root = tree('(-2) ^ 2')
+        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2)), --L(4))
+
+        l1_neg, l2 = root = tree('(-2) ^ 3')
+        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2)), ---L(8))
