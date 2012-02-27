@@ -93,7 +93,7 @@ def match_divide_numerics(node):
     3.0 / 2.0  ->  1.5
     3 / 1.0    ->  3          # Exceptional case: division of integer by 1.0
                               # keeps integer precision
-    2 / 4      ->  1 / 2      # denominator % nominator == 0
+    2 / 4      ->  1 / 2      # 1 < greatest common divisor <= nominator
     4 / 3      ->  1 + 1 / 3  # nominator > denominator
     """
     assert node.is_op(OP_DIV)
@@ -182,7 +182,8 @@ def fraction_to_int_fraction(root, args):
     return integer + nominator / denominator
 
 
-MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')
+MESSAGES[fraction_to_int_fraction] = _('Expand fraction with nominator greater'
+    ' than denominator {0} to an integer plus a fraction.')
 
 
 def match_multiply_zero(node):
