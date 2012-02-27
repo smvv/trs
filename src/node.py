@@ -9,6 +9,8 @@ from graph_drawing.graph import generate_graph
 from graph_drawing.line import generate_line
 from graph_drawing.node import Node, Leaf
 
+from unicode_math import PI as u_PI
+
 
 TYPE_OPERATOR = 1
 TYPE_IDENTIFIER = 2
@@ -360,7 +362,7 @@ class ExpressionLeaf(Leaf, ExpressionBase):
 
         # Replace PI leaf by the Greek character
         if val == PI:
-            val = 'π'
+            val = u_PI
 
         return '-' * self.negated + val
 
