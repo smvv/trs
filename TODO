@@ -70,3 +70,4 @@ Division of 0 by 1 reduces to 0.
    >>> @
    2 / 7 + 4 / 11
 
+ - filter_duplicates does not seem to work anymore...
