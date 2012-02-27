@@ -9,6 +9,8 @@ from graph_drawing.graph import generate_graph
 from graph_drawing.line import generate_line
 from graph_drawing.node import Node, Leaf
 
+from unicode_math import PI as u_PI
+
 
 TYPE_OPERATOR = 1
 TYPE_IDENTIFIER = 2
@@ -44,6 +46,9 @@ OP_POSSIBILITIES = 16
 OP_HINT = 17
 OP_REWRITE_ALL = 18
 OP_REWRITE = 19
+
+# Special identifierd
+PI = 'pi'
 
 
 TYPE_MAP = {
@@ -352,7 +357,17 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         return self.negated == other.negated and self.type == other.type \
                and self.value == other.value
 
+    def __str__(self):
+        val = str(self.value)
+
+        # Replace PI leaf by the Greek character
+        if val == PI:
+            val = u_PI
+
+        return '-' * self.negated + val
+
     def __repr__(self):
+        return str(self)
         return '-' * self.negated + str(self.value)
 
     def equals(self, other, ignore_negation=False):

@@ -15,7 +15,7 @@ from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
-        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope
+        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope, PI
 from rules import RULES
 from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
 
@@ -45,7 +45,7 @@ class Parser(BisonParser):
 
     # Words to be ignored by preprocessor
     words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
-                        OP_MAP.iteritems()))[0] + ('raise', 'graph')
+                        OP_MAP.iteritems()))[0] + ('raise', 'graph', PI)
 
     # Output directory of generated pybison files, including a trailing slash.
     buildDirectory = PYBISON_BUILD + '/'
@@ -418,9 +418,10 @@ class Parser(BisonParser):
                                % (option, target))  # pragma: nocover
 
     # -----------------------------------------
-    # operator tokens
+    # PI and operator tokens
     # -----------------------------------------
-    operators = ''
+    operators = '"%s"%s{ returntoken(IDENTIFIER); }\n' \
+                % (PI, ' ' * (8 - len(PI)))
     functions = []
 
     for op_str, op in OP_MAP.iteritems():
