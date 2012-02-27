@@ -285,6 +285,13 @@ class Parser(BisonParser):
         """
         if option == 1:  # rule: EXP NEWLINE
             self.root_node = values[0]
+
+            # Clear list of last possibilities when current expression has no
+            # possibilities. Otherwise, an invalid expression gets the last
+            # possibilities of a valid expression.
+            if not self.possibilities:
+                self.last_possibilities = []
+
             return values[0]
 
         if option == 2:  # rule: DEBUG NEWLINE
