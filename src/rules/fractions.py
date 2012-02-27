@@ -173,3 +173,37 @@ def match_expand_and_add_fractions(node):
     p = []
 
     return p
+
+
+def match_multiply_fractions(node):
+    """
+    a / b * (c / d)  ->  ac / (bd)
+    """
+    # TODO: is 'add' Appropriate when rewriting to "(a + (-d)) / * (b / c)"?
+    assert node.is_op(OP_MUL)
+
+    p = []
+    scope = Scope(node)
+    fractions = filter(lambda n: n.is_op(OP_DIV), scope)
+
+    for ab, cd in combinations(fractions, 2):
+        p.append(P(node, multiply_fractions, (scope, ab, cd)))
+
+    return p
+
+
+def multiply_fractions(root, args):
+    """
+    a / b * (c / d)  ->  ac / (bd)
+    """
+    scope, ab, cd = args
+    a, b = ab
+    c, d = cd
+
+    scope.replace(ab, a * c / (b * d))
+    scope.remove(cd)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[multiply_fractions] = _('Multiply fractions {2} and {3}.')
