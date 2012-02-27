@@ -219,7 +219,8 @@ class Parser(BisonParser):
         print pick_suggestion(self.last_possibilities)
 
     def display_possibilities(self):
-        print '\n'.join(map(str, self.last_possibilities))
+        if self.last_possibilities:
+            print '\n'.join(map(str, self.last_possibilities))
 
     def rewrite(self):
         suggestion = pick_suggestion(self.last_possibilities)
