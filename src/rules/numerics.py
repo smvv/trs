@@ -15,17 +15,35 @@ def match_add_numerics(node):
     2 + -3   ->  -1
     -2 + 3   ->  1
     -2 + -3  ->  -5
+    0 + 3    ->  3
+    0 + -3   ->  -3
     """
     assert node.is_op(OP_ADD)
 
     p = []
     scope = Scope(node)
-    numerics = filter(lambda n: n.is_numeric(), scope)
+    numerics = []
+
+    for n in scope:
+        if n == 0:
+            p.append(P(node, remove_zero, (scope, n)))
+        elif n.is_numeric():
+            numerics.append(n)
 
     for c0, c1 in combinations(numerics, 2):
         p.append(P(node, add_numerics, (scope, c0, c1)))
 
     return p
+
+
+def remove_zero(root, args):
+    """
+    0 + a  ->  a
+    """
+    scope, n = args
+    scope.remove(n)
+
+    return scope.as_nary_node()
 
 
 def add_numerics(root, args):
