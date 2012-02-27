@@ -48,3 +48,8 @@ Division of 0 by 1 reduces to 0.
 Division of 0 by 1 reduces to 0.
 
  - Fractions constant rewrite rules.
+
+ - >>> (sin x) ^ 2 + (cos x) ^ 2
+   sin(x) ^ 2 + cos(x) ^ 2
+   >>> sin(x) ^ 2 + cos(x) ^ 2
+   sin(x ^ 2) + cos(x ^ 2)

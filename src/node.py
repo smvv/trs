@@ -79,18 +79,18 @@ TOKEN_MAP = {
         OP_MUL: 'TIMES',
         OP_DIV: 'DIVIDE',
         OP_POW: 'POW',
-        OP_SQRT: 'SQRT',
-        OP_SIN: 'SIN',
-        OP_COS: 'COS',
-        OP_TAN: 'TAN',
-        OP_INT: 'INT',
-        OP_SOLVE: 'SOLVE',
+        OP_SQRT: 'FUNCTION',
+        OP_SIN: 'FUNCTION',
+        OP_COS: 'FUNCTION',
+        OP_TAN: 'FUNCTION',
+        OP_INT: 'FUNCTION',
+        OP_SOLVE: 'FUNCTION',
         OP_EQ: 'EQ',
         OP_POSSIBILITIES: 'POSSIBILITIES',
         OP_HINT: 'HINT',
         OP_REWRITE_ALL: 'REWRITE_ALL',
         OP_REWRITE: 'REWRITE',
-}
+        }
 
 
 def to_expression(obj):

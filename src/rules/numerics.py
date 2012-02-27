@@ -214,7 +214,6 @@ def multiply_numerics(root, args):
     """
     scope, c0, c1 = args
 
-
     # Replace the left node with the new expression
     substitution = Leaf(c0.value * c1.value).negate(c0.negated + c1.negated)
     scope.replace(c0, substitution)
