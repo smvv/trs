@@ -1,5 +1,6 @@
 from itertools import combinations
 
+from .utils import greatest_common_divisor
 from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_ADD, OP_DIV, \
         OP_MUL, OP_POW
 from ..possibilities import Possibility as P, MESSAGES
@@ -86,23 +87,39 @@ def match_divide_numerics(node):
 
     Example:
     6 / 2      ->  3
-    3 / 2      ->  3 / 2  # 1.5 would mean a decrease in precision
+    3 / 2      ->  3 / 2      # 1.5 would mean a decrease in precision
     3.0 / 2    ->  1.5
     3 / 2.0    ->  1.5
     3.0 / 2.0  ->  1.5
-    3 / 1.0    ->  3      # Exceptional case: division of integer by 1.0 keeps
-                          # integer precision
+    3 / 1.0    ->  3          # Exceptional case: division of integer by 1.0
+                              # keeps integer precision
+    2 / 4      ->  1 / 2      # denominator % nominator == 0
+    4 / 3      ->  1 + 1 / 3  # nominator > denominator
     """
     assert node.is_op(OP_DIV)
 
     n, d = node
     divide = False
-    dv = d.value
+    nv, dv = n.value, d.value
 
     if n.is_int() and d.is_int():
-        # 6 / 2  ->  3
-        # 3 / 2  ->  3 / 2
-        divide = not divmod(n.value, dv)[1]
+        mod = nv % dv
+
+        if not mod:
+            # 6 / 2  ->  3
+            # 3 / 2  ->  3 / 2
+            return [P(node, divide_numerics, (nv, dv))]
+
+        gcd = greatest_common_divisor(nv, dv)
+
+        if 1 < gcd <= nv:
+            # 2 / 4  ->  1 / 2
+            return [P(node, reduce_fraction_constants, (gcd,))]
+
+        if nv > dv:
+            # 4 / 3  ->  1 + 1 / 3
+            return [P(node, fraction_to_int_fraction,
+                      ((nv - mod) / dv, mod, dv))]
     elif n.is_numeric() and d.is_numeric():
         if d == 1.0:
             # 3 / 1.0  ->  3
@@ -111,14 +128,14 @@ def match_divide_numerics(node):
         # 3.0 / 2  ->  1.5
         # 3 / 2.0  ->  1.5
         # 3.0 / 2.0  ->  1.5
-        divide = True
+        return [P(node, divide_numerics, (nv, dv))]
 
-    return [P(node, divide_numerics, (n.value, dv))] if divide else []
+    return []
 
 
 def divide_numerics(root, args):
     """
-    Combine two constants to a single constant in a division.
+    Combine two divided constants into a single constant.
 
     Examples:
     6 / 2      ->  3
@@ -130,6 +147,39 @@ def divide_numerics(root, args):
     n, d = args
 
     return Leaf(n / d)
+
+
+MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')
+
+
+def reduce_fraction_constants(root, args):
+    """
+    Reduce the nominator and denominator of a fraction with a given greatest
+    common divisor.
+
+    Example:
+    2 / 4  ->  1 / 2
+    """
+    gcd = args[0]
+    a, b = root
+
+    return Leaf(a.value / gcd).negate(a.negated) \
+           / Leaf(b.value / gcd).negate(b.negated)
+
+
+MESSAGES[reduce_fraction_constants] = _('Simplify fraction {0}.')
+
+
+def fraction_to_int_fraction(root, args):
+    """
+    Combine two divided integer into an integer with a fraction.
+
+    Examples:
+    4 / 3  ->  1 + 1 / 3
+    """
+    integer, nominator, denominator = map(Leaf, args)
+
+    return integer + nominator / denominator
 
 
 MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')
