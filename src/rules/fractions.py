@@ -227,6 +227,97 @@ def multiply_with_fraction(root, args):
 MESSAGES[multiply_with_fraction] = _('Multiply {2} with fraction {3}.')
 
 
+def match_divide_fractions(node):
+    """
+    Reduce divisions of fractions to a single fraction.
+
+    Examples:
+    a / b / c        ->  a / (bc)
+    a / (b / c)      ->  ac / b
+    """
+    # TODO: IMPLICIT: a / b / (c / d)  ->*  ad / bd  ->  validation test!
+    assert node.is_op(OP_DIV)
+
+    nom, denom = node
+    p = []
+
+    if nom.is_op(OP_DIV):
+        p.append(P(node, divide_fraction, tuple(nom) + (denom,)))
+
+    if denom.is_op(OP_DIV):
+        p.append(P(node, divide_by_fraction, (nom,) + tuple(denom)))
+
+    return p
+
+
+def divide_fraction(root, args):
+    """
+    a / b / c        ->  a / (bc)
+    """
+    a, b, c = args
+
+    return a / (b * c)
+
+
+MESSAGES[divide_fraction] = _('Move {2} to denominator of fraction {0[0]}.')
+
+
+def divide_by_fraction(root, args):
+    """
+    a / (b / c)      ->  ac / b
+    """
+    a, b, c = args
+
+    return a * c / b
+
+
+MESSAGES[divide_by_fraction] = \
+        _('Move {3} to nominator of fraction {1} / {2}.')
+
+
+#def match_extract_divided_fractions(node):
+#    """
+#    Reduce divisions of fractions to a single fraction.
+#
+#    Examples:
+#    a / b / c        ->  a / bc
+#    a / (b / c)      ->  ac / b
+#    # IMPLICIT: a / b / (c / d)  ->*  ad / bd  ->  validation test!
+#    """
+#    assert node.is_op(OP_DIV)
+#
+#    nom, denom = node
+#    n_scope, d_scope = fraction_scopes(node)
+#    is_division = lambda n: n.is_op(OP_DIV)
+#    n_fractions, n_others = partition(is_division, n_scope)
+#    d_fractions, d_others = partition(is_division, d_scope)
+#
+#
+#    return []
+
+
+def fraction_scopes(node):
+    """
+    Get the multiplication scopes of the nominator and denominator of a
+    fraction.
+    """
+    assert node.is_op(OP_DIV)
+
+    nominator, denominator = node
+
+    if nominator.is_op(OP_MUL):
+        n_scope = list(Scope(nominator))
+    else:
+        n_scope = [nominator]
+
+    if denominator.is_op(OP_MUL):
+        d_scope = list(Scope(denominator))
+    else:
+        d_scope = [denominator]
+
+    return n_scope, d_scope
+
+
 def match_equal_fraction_parts(node):
     """
     Divide nominator and denominator by the same part.
@@ -245,17 +336,7 @@ def match_equal_fraction_parts(node):
     assert node.is_op(OP_DIV)
 
     nominator, denominator = node
-
-    if nominator.is_op(OP_MUL):
-        n_scope = list(Scope(nominator))
-    else:
-        n_scope = [nominator]
-
-    if denominator.is_op(OP_MUL):
-        d_scope = list(Scope(denominator))
-    else:
-        d_scope = [denominator]
-
+    n_scope, d_scope = fraction_scopes(node)
     p = []
 
     # Look for matching parts in scopes
@@ -330,6 +411,11 @@ MESSAGES[divide_fraction_parts] = \
 
 
 def extract_divided_roots(root, args):
+    """
+    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
+    a ^ p * b / a      ->  a ^ p / a * b / 1
+    a * b / a ^ q      ->  a / a ^ q * b / 1
+    """
     a, n_scope, d_scope, i, j = args
     n, d = root
     ap, aq, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)

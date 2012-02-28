@@ -1,9 +1,9 @@
 from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_constant_fractions, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
-        multiply_fractions, multiply_with_fraction, \
-        match_equal_fraction_parts, divide_fraction_parts, \
-        extract_divided_roots
+        multiply_fractions, multiply_with_fraction, match_divide_fractions, \
+        divide_fraction, divide_by_fraction, match_equal_fraction_parts, \
+        divide_fraction_parts, extract_divided_roots
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -146,6 +146,23 @@ class TestRulesFractions(RulesTestCase):
         (ab, e), cd = root = tree('a / b * e * (c / d)')
         self.assertEqual(multiply_fractions(root, (Scope(root), ab, cd)),
                          a * c / (b * d) * e)
+
+    def test_match_divide_fractions(self):
+        (a, b), c = root = tree('a / b / c')
+        self.assertEqualPos(match_divide_fractions(root),
+                [P(root, divide_fraction, (a, b, c))])
+
+        root = tree('a / (b / c)')
+        self.assertEqualPos(match_divide_fractions(root),
+                [P(root, divide_by_fraction, (a, b, c))])
+
+    def test_divide_fraction(self):
+        (a, b), c = root = tree('a / b / c')
+        self.assertEqual(divide_fraction(root, (a, b, c)), a / (b * c))
+
+    def test_divide_by_fraction(self):
+        a, (b, c) = root = tree('a / (b / c)')
+        self.assertEqual(divide_by_fraction(root, (a, b, c)), a * c / b)
 
     def test_match_equal_fraction_parts(self):
         (a, b), (c, a) = root = tree('ab / (ca)')
