@@ -9,7 +9,7 @@ def match_negated_factor(node):
     brought to the most left node in the multiplication's scope.
 
     Example:
-    a * -b  ->  -(ab)
+    a * -b  ->  -ab
     """
     assert node.is_op(OP_MUL)
 
@@ -115,24 +115,21 @@ def match_negated_division(node):
 
     if a.negated and b.negated:
         return [P(node, double_negated_division, ())]
-    elif a.negated:
-        return [P(node, single_negated_division, (+a, b))]
     elif b.negated:
-        return [P(node, single_negated_division, (a, +b))]
+        return [P(node, single_negated_division, (a, b))]
 
     return []
 
 
 def single_negated_division(root, args):
     """
-    -a / b  ->  -(a / b)
-    a / -b  ->  -(a / b)
+    a / -b  ->  -a / b
     """
     a, b = args
 
     # FIXME: "-a/b" results in "-(a/b)", which will cause a loop.
 
-    return -(a / b)
+    return -a / +b
 
 
 MESSAGES[single_negated_division] = \
