@@ -368,7 +368,6 @@ class ExpressionLeaf(Leaf, ExpressionBase):
 
     def __repr__(self):
         return str(self)
-        return '-' * self.negated + str(self.value)
 
     def equals(self, other, ignore_negation=False):
         """
