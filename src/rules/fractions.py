@@ -1,7 +1,8 @@
 from itertools import combinations, product
 
 from .utils import least_common_multiple, partition
-from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, OP_MUL
+from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, \
+        OP_MUL, nary_node
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -226,3 +227,84 @@ def multiply_with_fraction(root, args):
 
 
 MESSAGES[multiply_with_fraction] = _('Multiply {2} with fraction {3}.')
+
+
+def match_equal_fraction_parts(node):
+    """
+    Divide nominator and denominator by the same part.
+
+    Examples:
+    ab / (ac)  ->  b / c
+    ab / a     ->  b / 1
+    a / (ab)   ->  1 / b
+    """
+    assert node.is_op(OP_DIV)
+
+    nominator, denominator = node
+
+    if nominator.is_op(OP_MUL):
+        n_scope = list(Scope(nominator))
+    else:
+        n_scope = [nominator]
+
+    if denominator.is_op(OP_MUL):
+        d_scope = list(Scope(denominator))
+    else:
+        d_scope = [denominator]
+
+    p = []
+
+    # Look for in scope
+    for i, n in enumerate(n_scope):
+        for j, d in enumerate(d_scope):
+            if n == d:
+                p.append(P(node, divide_fraction_parts,
+                           (n, n_scope, d_scope, i, j)))
+
+    return p
+
+
+def divide_fraction_parts(root, args):
+    """
+    Divide nominator and denominator by the same part.
+
+    Examples:
+    ab / (ac)  ->  b / c
+    ab / a     ->  b / 1
+    a / (ab)   ->  1 / b
+    """
+    a, n_scope, d_scope, i, j = args
+    n, d = root
+
+    del n_scope[i]
+    del d_scope[j]
+
+    if not n_scope:
+        # Last element of nominator scope, replace by 1
+        nom = L(1)
+    elif len(n_scope) == 1:
+        # Only one element left, no multiplication
+        nom = n_scope[0]
+    else:
+        # Still a multiplication
+        nom = nary_node('*', n_scope)
+
+    if not d_scope:
+        denom = L(1)
+    elif len(n_scope) == 1:
+        denom = d_scope[0]
+    else:
+        denom = nary_node('*', d_scope)
+
+    return nom.negate(n.negated) / denom.negate(d.negated)
+
+
+MESSAGES[divide_fraction_parts] = \
+        _('Divide nominator and denominator in {0} by {1}')
+
+
+def match_multiplied_power_division(node):
+    """
+    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b
+    """
+    assert node.is_op(OP_DIV)

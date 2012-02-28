@@ -1,7 +1,8 @@
 from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_constant_fractions, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
-        multiply_fractions, multiply_with_fraction
+        multiply_fractions, multiply_with_fraction, \
+        match_equal_fraction_parts, divide_fraction_parts
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -144,3 +145,47 @@ class TestRulesFractions(RulesTestCase):
         (ab, e), cd = root = tree('a / b * e * (c / d)')
         self.assertEqual(multiply_fractions(root, (Scope(root), ab, cd)),
                          a * c / (b * d) * e)
+
+    def test_match_equal_fraction_parts(self):
+        (a, b), (c, a) = root = tree('ab / (ca)')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, divide_fraction_parts, (a, [a, b], [c, a], 0, 1))])
+
+        (a, b), a = root = tree('ab / a')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, divide_fraction_parts, (a, [a, b], [a], 0, 0))])
+
+        a, (a, b) = root = tree('a / (ab)')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, divide_fraction_parts, (a, [a], [a, b], 0, 0))])
+
+        root = tree('abc / (cba)')
+        ((a, b), c) = root[0]
+        s0, s1 = [a, b, c], [c, b, a]
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, divide_fraction_parts, (a, s0, s1, 0, 2)),
+                 P(root, divide_fraction_parts, (b, s0, s1, 1, 1)),
+                 P(root, divide_fraction_parts, (c, s0, s1, 2, 0))])
+
+    def test_divide_fraction_parts(self):
+        (a, b), (c, a) = root = tree('ab / (ca)')
+        result = divide_fraction_parts(root, (a, [a, b], [c, a], 0, 1))
+        self.assertEqual(result, b / c)
+
+        (a, b), a = root = tree('ab / a')
+        result = divide_fraction_parts(root, (a, [a, b], [a], 0, 0))
+        self.assertEqual(result, b / 1)
+
+        root, l1 = tree('a / (ab), 1')
+        a, (a, b) = root
+        result = divide_fraction_parts(root, (a, [a], [a, b], 0, 0))
+        self.assertEqual(result, l1 / b)
+
+        root = tree('abc / (cba)')
+        ((a, b), c) = root[0]
+        result = divide_fraction_parts(root, (a, [a, b, c], [c, b, a], 0, 2))
+        self.assertEqual(result, b * c / (c * b))
+        result = divide_fraction_parts(root, (b, [a, b, c], [c, b, a], 1, 1))
+        self.assertEqual(result, a * c / (c * a))
+        result = divide_fraction_parts(root, (c, [a, b, c], [c, b, a], 2, 0))
+        self.assertEqual(result, a * b / (b * a))
