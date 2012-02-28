@@ -114,10 +114,12 @@ def match_divide_numerics(node):
 
         if 1 < gcd <= nv:
             # 2 / 4  ->  1 / 2
+            # TODO: Test with negations!
             return [P(node, reduce_fraction_constants, (gcd,))]
 
         if nv > dv:
             # 4 / 3  ->  1 + 1 / 3
+            # TODO: Test with negations!
             return [P(node, fraction_to_int_fraction,
                       ((nv - mod) / dv, mod, dv))]
     elif n.is_numeric() and d.is_numeric():
