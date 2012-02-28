@@ -61,7 +61,7 @@ class TestRulesNegation(RulesTestCase):
         l1, l2 = root = tree('1 / -2')
         possibilities = match_negated_division(root)
         self.assertEqualPos(possibilities,
-                [P(root, single_negated_division, (l1, l2))])
+                [P(root, single_negated_division, (l1, +l2))])
 
     def test_match_negated_division_double(self):
         root = tree('-1 / -2')
@@ -72,7 +72,7 @@ class TestRulesNegation(RulesTestCase):
 
     def test_single_negated_division(self):
         l1, l2 = root = tree('1 / -2')
-        self.assertEqualNodes(single_negated_division(root, (l1, l2)),
+        self.assertEqualNodes(single_negated_division(root, (l1, +l2)),
                               -l1 / +l2)
 
     def test_double_negated_division(self):
