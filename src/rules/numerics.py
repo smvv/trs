@@ -108,7 +108,7 @@ def match_divide_numerics(node):
         if not mod:
             # 6 / 2  ->  3
             # 3 / 2  ->  3 / 2
-            return [P(node, divide_numerics, (nv, dv))]
+            return [P(node, divide_numerics, (nv, dv, n.negated + d.negated))]
 
         gcd = greatest_common_divisor(nv, dv)
 
@@ -130,7 +130,7 @@ def match_divide_numerics(node):
         # 3.0 / 2  ->  1.5
         # 3 / 2.0  ->  1.5
         # 3.0 / 2.0  ->  1.5
-        return [P(node, divide_numerics, (nv, dv))]
+        return [P(node, divide_numerics, (nv, dv, n.negated + d.negated))]
 
     return []
 
@@ -146,9 +146,9 @@ def divide_numerics(root, args):
     3.0 / 2.0  ->  1.5
     3 / 1.0    ->  3
     """
-    n, d = args
+    n, d, negated = args
 
-    return Leaf(n / d)
+    return Leaf(n / d).negate(negated)
 
 
 MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')

@@ -43,7 +43,12 @@ class TestRulesNumerics(RulesTestCase):
         root = i6 / i2
         possibilities = match_divide_numerics(root)
         self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (6, 2))])
+                [P(root, divide_numerics, (6, 2, 0))])
+
+        root = -i6 / i2
+        possibilities = match_divide_numerics(root)
+        self.assertEqualPos(possibilities,
+                [P(root, divide_numerics, (6, 2, 1))])
 
         root = i3 / i2
         possibilities = match_divide_numerics(root)
@@ -58,22 +63,22 @@ class TestRulesNumerics(RulesTestCase):
         root = f3 / i2
         possibilities = match_divide_numerics(root)
         self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3.0, 2))])
+                [P(root, divide_numerics, (3.0, 2, 0))])
 
         root = i3 / f2
         possibilities = match_divide_numerics(root)
         self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3, 2.0))])
+                [P(root, divide_numerics, (3, 2.0, 0))])
 
         root = f3 / f2
         possibilities = match_divide_numerics(root)
         self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3.0, 2.0))])
+                [P(root, divide_numerics, (3.0, 2.0, 0))])
 
         root = i3 / f1
         possibilities = match_divide_numerics(root)
         self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3, 1))])
+                [P(root, divide_numerics, (3, 1, 0))])
 
         root = a / b
         possibilities = match_divide_numerics(root)
@@ -82,10 +87,13 @@ class TestRulesNumerics(RulesTestCase):
     def test_divide_numerics(self):
         i2, i3, i6, f2, f3 = tree('2,3,6,2.0,3.0')
 
-        self.assertEqual(divide_numerics(i6 / i2, (6, 2)), 3)
-        self.assertEqual(divide_numerics(f3 / i2, (3.0, 2)), 1.5)
-        self.assertEqual(divide_numerics(i3 / f2, (3, 2.0)), 1.5)
-        self.assertEqual(divide_numerics(f3 / f2, (3.0, 2.0)), 1.5)
+        self.assertEqual(divide_numerics(i6 / i2, (6, 2, 0)), 3)
+        self.assertEqual(divide_numerics(f3 / i2, (3.0, 2, 0)), 1.5)
+        self.assertEqual(divide_numerics(i3 / f2, (3, 2.0, 0)), 1.5)
+        self.assertEqual(divide_numerics(f3 / f2, (3.0, 2.0, 0)), 1.5)
+
+        self.assertEqual(divide_numerics(i6 / i2, (6, 2, 1)), -3)
+        self.assertEqual(divide_numerics(i6 / i2, (6, 2, 2)), --i3)
 
     def test_reduce_fraction_constants(self):
         l1, l2 = tree('1,2')

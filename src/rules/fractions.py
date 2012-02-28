@@ -2,7 +2,7 @@ from itertools import combinations, product
 
 from .utils import least_common_multiple, partition
 from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, \
-        OP_MUL, nary_node
+        OP_MUL, nary_node, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -255,9 +255,9 @@ def match_equal_fraction_parts(node):
     # Look for in scope
     for i, n in enumerate(n_scope):
         for j, d in enumerate(d_scope):
-            if n == d:
+            if n.equals(d, ignore_negation=True):
                 p.append(P(node, divide_fraction_parts,
-                           (n, n_scope, d_scope, i, j)))
+                           (negate(n, 0), n_scope, d_scope, i, j)))
 
     return p
 
@@ -270,9 +270,11 @@ def divide_fraction_parts(root, args):
     ab / (ac)  ->  b / c
     ab / a     ->  b / 1
     a / (ab)   ->  1 / b
+    -ab / a     ->  -b / 1
     """
     a, n_scope, d_scope, i, j = args
     n, d = root
+    a_n, a_d = n_scope[i], d_scope[j]
 
     del n_scope[i]
     del d_scope[j]
@@ -294,7 +296,9 @@ def divide_fraction_parts(root, args):
     else:
         denom = nary_node('*', d_scope)
 
-    return nom.negate(n.negated) / denom.negate(d.negated)
+    # Move negation of removed part to nominator and denominator
+    return nom.negate(n.negated + a_n.negated) \
+           / denom.negate(d.negated + a_d.negated)
 
 
 MESSAGES[divide_fraction_parts] = \

@@ -167,6 +167,10 @@ class TestRulesFractions(RulesTestCase):
                  P(root, divide_fraction_parts, (b, s0, s1, 1, 1)),
                  P(root, divide_fraction_parts, (c, s0, s1, 2, 0))])
 
+        root = tree('-a / a')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, divide_fraction_parts, (a, [-a], [a], 0, 0))])
+
     def test_divide_fraction_parts(self):
         (a, b), (c, a) = root = tree('ab / (ca)')
         result = divide_fraction_parts(root, (a, [a, b], [c, a], 0, 1))
@@ -189,3 +193,7 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqual(result, a * c / (c * a))
         result = divide_fraction_parts(root, (c, [a, b, c], [c, b, a], 2, 0))
         self.assertEqual(result, a * b / (b * a))
+
+        (a, b), a = root = tree('-ab / a')
+        result = divide_fraction_parts(root, (a, [-a, b], [a], 0, 0))
+        self.assertEqual(result, -b / 1)
