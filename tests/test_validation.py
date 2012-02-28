@@ -12,6 +12,7 @@ class TestValidation(TestCase):
 
     def test_intermediate_success(self):
         self.assertTrue(validate('3a+a+b+2b', '4a+3b'))
+        self.assertTrue(validate('a/b/(c/d)', 'ad/(bc)'))
 
     def test_intermediate_failure(self):
         self.assertFalse(validate('3a+a+b+2b', '4a+4b'))

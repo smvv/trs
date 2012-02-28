@@ -235,7 +235,6 @@ def match_divide_fractions(node):
     a / b / c        ->  a / (bc)
     a / (b / c)      ->  ac / b
     """
-    # TODO: IMPLICIT: a / b / (c / d)  ->*  ad / bd  ->  validation test!
     assert node.is_op(OP_DIV)
 
     nom, denom = node
