@@ -1,3 +1,5 @@
+# vim: set fileencoding=utf-8 :
+
  - Fix BisonSyntaxError location tracking.
 
  - Sort polynom by its exponents?
@@ -69,6 +71,24 @@ Division of 0 by 1 reduces to 0.
    2 / 7 - 28 / 77
    >>> @
    2 / 7 + 4 / 11
+
+ - Cancel terms before multiplying constants: (3 * ...) / (3 * ...) -> ... / ...
+    >>> (7/3)*(3/5)
+    7 / 3 * (3 / 5)
+    >>> ??
+    Expand fraction with nominator greater than denominator 7 / 3 to an integer
+    plus a fraction.
+    Multiply fractions 7 / 3 and 3 / 5.
+    >>> @
+    7 * 3 / (3 * 5)
+    >>> ?
+    Multiply constant 7 with 3.
+    >>> @
+    21 / (3 * 5)
+    >>> @
+    21 / 15
+    >>> @
+    7 / 5
 
  - filter_duplicates does not seem to work anymore...
 
