@@ -15,7 +15,7 @@ from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
-        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, Scope, PI
+        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, Scope, PI
 from rules import RULES
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
@@ -358,14 +358,15 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: NEG exp
+            node = values[1]
             # Add negation to the left-most child
-            if values[1].is_leaf or values[1].op != OP_MUL:
-                values[1].negated += 1
+            if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
+                node.negated += 1
             else:
-                child = Scope(values[1])[0]
+                child = Scope(node)[0]
                 child.negated += 1
 
-            return values[1]
+            return node
 
         if option == 1:  # rule: FUNCTION exp
             if values[1].is_op(OP_COMMA):
@@ -393,7 +394,7 @@ class Parser(BisonParser):
             node = values[2]
 
             # Add negation to the left-most child
-            if node.is_leaf or node.op != OP_MUL:
+            if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
                 node.negated += 1
             else:
                 node = Scope(node)[0]

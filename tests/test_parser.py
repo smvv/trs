@@ -38,6 +38,14 @@ class TestParser(unittest.TestCase):
 
         self.assertNotEqual(possibilities1, possibilities2)
 
+    def test_moved_negation(self):
+        a, b = tree('a,b')
+
+        self.assertEqual(tree('-ab'), (-a) * b)
+        self.assertEqual(tree('-(ab)'), (-a) * b)
+        self.assertEqual(tree('-a / b'), (-a) / b)
+        self.assertEqual(tree('-(a / b)'), (-a) / b)
+
     def test_functions(self):
         root, x = tree('sin x, x')
 

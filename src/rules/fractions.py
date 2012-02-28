@@ -111,6 +111,7 @@ def match_add_constant_fractions(node):
 def equalize_denominators(root, args):
     """
     1 / 2 + 3 / 4  ->  2 / 4 + 3 / 4
+    1 / 2 - 3 / 4  ->  2 / 4 - 3 / 4
     a / 2 + b / 4  ->  2a / 4 + b / 4
     """
     scope, denom = args[::3]
@@ -121,14 +122,11 @@ def equalize_denominators(root, args):
 
         if mult != 1:
             if n.is_numeric():
-                n = L(n.value * mult)
+                nom = L(n.value * mult)
             else:
-                n = L(mult) * n
+                nom = L(mult) * n
 
-            #n = L(n.value * mult) if n.is_numeric() else L(mult) * n
-
-            scope.replace(fraction, negate(n / L(d.value * mult),
-                                           fraction.negated))
+            scope.replace(fraction, negate(nom / L(d.value * mult), n.negated))
 
     return scope.as_nary_node()
 
