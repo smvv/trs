@@ -133,7 +133,7 @@ def single_negated_division(root, args):
 
 
 MESSAGES[single_negated_division] = \
-        _('Bring negation outside of the division: -({1} / {2}).')
+        _('Bring negation outside of the division: -{1} / {2}.')
 
 
 def double_negated_division(root, args):
