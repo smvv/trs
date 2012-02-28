@@ -65,10 +65,14 @@ class TestLeidenOefenopgaveV12(TestCase):
             'a ^ (1 + 6) / b ^ 3 * b ^ 2',
             'a ^ 7 / b ^ 3 * b ^ 2',
             'b ^ 2 * a ^ 7 / b ^ 3',
-            # FIXME: 'b ^ 2 / b ^ 3 * a ^ 7',
-            # FIXME: 'b ^ (2 - 3) * a ^ 7',
-            # FIXME: 'b ^ 5 * a ^ 7',
-            # FIXME: 'a ^ 7 * b ^ 5',
+            'b ^ 2 / b ^ 3 * a ^ 7 / 1',
+            'b ^ (2 - 3)a ^ 7 / 1',
+            'b ^ -1 * a ^ 7 / 1',
+            '1 / b ^ 1 * a ^ 7 / 1',
+            '1 / b * a ^ 7 / 1',
+            'a ^ 7 * 1 / b / 1',
+            'a ^ 7 / b / 1',
+            'a ^ 7 / b',
         ])
 
     def test_2_b(self):
