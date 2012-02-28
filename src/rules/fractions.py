@@ -2,7 +2,7 @@ from itertools import combinations, product
 
 from .utils import least_common_multiple, partition
 from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, \
-        OP_MUL, nary_node, negate
+        OP_MUL, OP_POW, nary_node, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -235,6 +235,12 @@ def match_equal_fraction_parts(node):
     ab / (ac)  ->  b / c
     ab / a     ->  b / 1
     a / (ab)   ->  1 / b
+
+    If the same root appears in both nominator and denominator, extrct it so
+    that it can be reduced to a single power by power division rules.
+    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
+    a ^ p * b / a      ->  a ^ p / a * b / 1
+    a * b / a ^ q      ->  a / a ^ q * b / 1
     """
     assert node.is_op(OP_DIV)
 
@@ -252,28 +258,29 @@ def match_equal_fraction_parts(node):
 
     p = []
 
-    # Look for in scope
+    # Look for matching parts in scopes
     for i, n in enumerate(n_scope):
         for j, d in enumerate(d_scope):
             if n.equals(d, ignore_negation=True):
                 p.append(P(node, divide_fraction_parts,
                            (negate(n, 0), n_scope, d_scope, i, j)))
 
+            if n.is_op(OP_POW):
+                a = n[0]
+
+                if d == a or (d.is_op(OP_POW) and d[0] == a):
+                    # a ^ p * b / a  ->  a ^ p / a * b
+                    p.append(P(node, extract_divided_roots,
+                               (a, n_scope, d_scope, i, j)))
+            elif d.is_op(OP_POW) and n == d[0]:
+                # a * b / a ^ q  ->  a / a ^ q * b
+                p.append(P(node, extract_divided_roots,
+                           (d[0], n_scope, d_scope, i, j)))
+
     return p
 
 
-def divide_fraction_parts(root, args):
-    """
-    Divide nominator and denominator by the same part.
-
-    Examples:
-    ab / (ac)  ->  b / c
-    ab / a     ->  b / 1
-    a / (ab)   ->  1 / b
-    -ab / a     ->  -b / 1
-    """
-    a, n_scope, d_scope, i, j = args
-    n, d = root
+def remove_from_scopes(n_scope, d_scope, i, j):
     a_n, a_d = n_scope[i], d_scope[j]
 
     del n_scope[i]
@@ -296,17 +303,39 @@ def divide_fraction_parts(root, args):
     else:
         denom = nary_node('*', d_scope)
 
+    return a_n, a_d, nom, denom
+
+
+def divide_fraction_parts(root, args):
+    """
+    Divide nominator and denominator by the same part.
+
+    Examples:
+    ab / (ac)  ->  b / c
+    ab / a     ->  b / 1
+    a / (ab)   ->  1 / b
+    -ab / a     ->  -b / 1
+    """
+    a, n_scope, d_scope, i, j = args
+    n, d = root
+    a_n, a_d, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)
+
     # Move negation of removed part to nominator and denominator
     return nom.negate(n.negated + a_n.negated) \
            / denom.negate(d.negated + a_d.negated)
 
 
 MESSAGES[divide_fraction_parts] = \
-        _('Divide nominator and denominator in {0} by {1}')
+        _('Divide nominator and denominator in {0} by {1}.')
 
 
-def match_multiplied_power_division(node):
-    """
-    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b
-    """
-    assert node.is_op(OP_DIV)
+def extract_divided_roots(root, args):
+    a, n_scope, d_scope, i, j = args
+    n, d = root
+    ap, aq, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)
+
+    return ap / aq * nom.negate(n.negated) / denom.negate(d.negated)
+
+
+MESSAGES[extract_divided_roots] = \
+        _('Extrct the root {1} from nominator and denominator in {0}.')

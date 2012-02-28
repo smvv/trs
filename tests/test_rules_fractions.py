@@ -2,7 +2,8 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_constant_fractions, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
         multiply_fractions, multiply_with_fraction, \
-        match_equal_fraction_parts, divide_fraction_parts
+        match_equal_fraction_parts, divide_fraction_parts, \
+        extract_divided_roots
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -171,6 +172,18 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqualPos(match_equal_fraction_parts(root),
                 [P(root, divide_fraction_parts, (a, [-a], [a], 0, 0))])
 
+        (ap, b), aq = root = tree('a ^ p * b / a ^ q')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, extract_divided_roots, (a, [ap, b], [aq], 0, 0))])
+
+        (a, b), aq = root = tree('a * b / a ^ q')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, extract_divided_roots, (a, [a, b], [aq], 0, 0))])
+
+        (ap, b), a = root = tree('a ^ p * b / a')
+        self.assertEqualPos(match_equal_fraction_parts(root),
+                [P(root, extract_divided_roots, (a, [ap, b], [a], 0, 0))])
+
     def test_divide_fraction_parts(self):
         (a, b), (c, a) = root = tree('ab / (ca)')
         result = divide_fraction_parts(root, (a, [a, b], [c, a], 0, 1))
@@ -197,3 +210,17 @@ class TestRulesFractions(RulesTestCase):
         (a, b), a = root = tree('-ab / a')
         result = divide_fraction_parts(root, (a, [-a, b], [a], 0, 0))
         self.assertEqual(result, -b / 1)
+
+    def test_extract_divided_roots(self):
+        r, a = tree('a ^ p * b / a ^ q, a')
+        ((a, p), b), (a, q) = (ap, b), aq = r
+        self.assertEqual(extract_divided_roots(r, (a, [ap, b], [aq], 0, 0)),
+                         a ** p / a ** q * b / 1)
+
+        r = tree('a * b / a ^ q, a')
+        self.assertEqual(extract_divided_roots(r, (a, [a, b], [aq], 0, 0)),
+                         a / a ** q * b / 1)
+
+        r = tree('a ^ p * b / a, a')
+        self.assertEqual(extract_divided_roots(r, (a, [ap, b], [a], 0, 0)),
+                         a ** p / a * b / 1)
