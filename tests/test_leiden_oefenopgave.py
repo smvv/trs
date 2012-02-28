@@ -143,14 +143,18 @@ class TestLeidenOefenopgave(TestCase):
         self.assertRewrite(['2/7 - 4/11', '22 / 77 - 28 / 77',
                             '(22 - 28) / 77', '-6 / 77'])
 
-    #def test_4_3(self):
-    #    self.assertRewrite(['(7/3) * (3/5)', '7 / 5'])
+    def test_4_3(self):
+        self.assertRewrite(['(7/3) * (3/5)',
+                            '7 * 3 / (3 * 5)',
+                            '21 / (3 * 5)',
+                            '21 / 15',
+                            '7 / 5'])
 
     #def test_4_4(self):
     #    self.assertRewrite(['(3/4) / (5/6)', '9 / 10'])
 
-    #def test_4_5(self):
-    #    self.assertRewrite(['1/4 * 1/x', '1 / (4x)'])
+    def test_4_5(self):
+        self.assertRewrite(['1/4 * 1/x', '1 / 4 / x', ])  # FIXME: '1 / (4x)'])
 
     #def test_4_6(self):
     #    self.assertRewrite(['(3/x^2) / (x/7)', '21 / x^3'])
