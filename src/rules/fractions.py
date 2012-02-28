@@ -259,7 +259,7 @@ def divide_fraction(root, args):
     return a / (b * c)
 
 
-MESSAGES[divide_fraction] = _('Move {2} to denominator of fraction {0[0]}.')
+MESSAGES[divide_fraction] = _('Move {3} to denominator of fraction {1} / {2}.')
 
 
 def divide_by_fraction(root, args):
