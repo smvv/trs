@@ -154,7 +154,7 @@ class TestLeidenOefenopgave(TestCase):
     #    self.assertRewrite(['(3/4) / (5/6)', '9 / 10'])
 
     def test_4_5(self):
-        self.assertRewrite(['1/4 * 1/x', '1 / 4 / x', ])  # FIXME: '1 / (4x)'])
+        self.assertRewrite(['1/4 * 1/x', '1 / 4 / x', '1 / (4x)'])
 
     #def test_4_6(self):
     #    self.assertRewrite(['(3/x^2) / (x/7)', '21 / x^3'])
