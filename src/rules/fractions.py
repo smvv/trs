@@ -45,7 +45,7 @@ def division_by_one(root, args):
     return args[0]
 
 
-MESSAGES[division_by_one] = _('Division of {1} by 1 reduces to {1}.')
+MESSAGES[division_by_one] = _('Division by 1 yields the nominator.')
 
 
 def division_of_zero(root, args):
@@ -65,7 +65,7 @@ def division_by_self(root, args):
     return L(1)
 
 
-MESSAGES[division_by_self] = _('Division of {1} by {1} reduces to 1.')
+MESSAGES[division_by_self] = _('Division of {1} by itself reduces to 1.')
 
 
 def match_add_constant_fractions(node):
