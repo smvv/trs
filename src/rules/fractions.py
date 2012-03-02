@@ -423,4 +423,4 @@ def extract_divided_roots(root, args):
 
 
 MESSAGES[extract_divided_roots] = \
-        _('Extrct the root {1} from nominator and denominator in {0}.')
+        _('Extract the root {1} from nominator and denominator in {0}.')
