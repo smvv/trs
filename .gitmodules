@@ -4,3 +4,6 @@
 [submodule "external/graph_drawing"]
 	path = external/graph_drawing
 	url = git@kompiler.org:python/graph_drawing
+[submodule "external/mathjax"]
+	path = external/mathjax
+	url = http://github.com/mathjax/MathJax
