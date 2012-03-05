@@ -1,7 +1,7 @@
 from itertools import combinations
 
-from ..node import ExpressionNode as Node, ExpressionLeaf as Leaf, Scope, \
-        OP_ADD, OP_MUL, OP_NEG
+from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_MUL, nary_node, \
+        negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -18,50 +18,53 @@ def match_combine_groups(node):
     ab + 2ab  ->  3ab
     ab + ba   ->  2ab
     """
-    # TODO: handle OP_NEG nodes
     assert node.is_op(OP_ADD)
 
     p = []
     groups = []
+    scope = Scope(node)
 
-    for n in Scope(node):
-        groups.append((1, n, n))
+    for n in scope:
+        if not n.is_numeric():
+            groups.append((Leaf(1), n, n))
 
         # Each number multiplication yields a group, multiple occurences of
         # the same group can be replaced by a single one
         if n.is_op(OP_MUL):
-            scope = Scope(n)
-            l = len(scope)
+            n_scope = Scope(n)
+            l = len(n_scope)
 
-            for i, sub_node in enumerate(scope):
-                if sub_node.is_numeric() or (sub_node.is_op(OP_NEG)
-                                             and sub_node[0].is_numeric()):
-                    others = [scope[j] for j in range(i) + range(i + 1, l)]
+            for i, sub_node in enumerate(n_scope):
+                if sub_node.is_numeric():
+                    others = [n_scope[j] for j in range(i) + range(i + 1, l)]
 
                     if len(others) == 1:
                         g = others[0]
                     else:
-                        g = Node('*', *others)
+                        g = nary_node('*', others)
 
                     groups.append((sub_node, g, n))
 
-    for g0, g1 in combinations(groups, 2):
-        if g0[1].equals(g1[1]):
-            p.append(P(node, combine_groups, g0 + g1))
+    for (c0, g0, n0), (c1, g1, n1) in combinations(groups, 2):
+        if g0.equals(g1):
+            p.append(P(node, combine_groups, (scope, c0, g0, n0, c1, g1, n1)))
+        elif g0.equals(g1, ignore_negation=True):
+            # Move negations to constants
+            c0 = c0.negate(g0.negated)
+            c1 = c1.negate(g1.negated)
+            g0 = negate(g0, 0)
+            g1 = negate(g1, 0)
+
+            p.append(P(node, combine_groups, (scope, c0, g0, n0, c1, g1, n1)))
 
     return p
 
 
 def combine_groups(root, args):
-    c0, g0, n0, c1, g1, n1 = args
-
-    scope = Scope(root)
-
-    if not isinstance(c0, Leaf) and not isinstance(c0, Node):
-        c0 = Leaf(c0)
+    scope, c0, g0, n0, c1, g1, n1 = args
 
     # Replace the left node with the new expression
-    scope.remove(n0, (c0 + c1) * g0)
+    scope.replace(n0, (c0 + c1) * g0)
 
     # Remove the right node
     scope.remove(n1)
@@ -70,4 +73,4 @@ def combine_groups(root, args):
 
 
 MESSAGES[combine_groups] = \
-        _('Group "{2}" is multiplied by {1} and {4}, combine them.')
+        _('Group "{3}" is multiplied by {2} and {5}, combine them.')

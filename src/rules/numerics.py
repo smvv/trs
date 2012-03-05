@@ -1,11 +1,13 @@
 from itertools import combinations
 
-from ..node import ExpressionLeaf as Leaf, Scope, OP_DIV, OP_MUL, OP_NEG
+from .utils import greatest_common_divisor
+from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_ADD, OP_DIV, \
+        OP_MUL, OP_POW
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-def add_numerics(root, args):
+def match_add_numerics(node):
     """
     Combine two constants to a single constant in an n-ary addition.
 
@@ -14,31 +16,57 @@ def add_numerics(root, args):
     2 + -3   ->  -1
     -2 + 3   ->  1
     -2 + -3  ->  -5
+    0 + 3    ->  3
+    0 + -3   ->  -3
     """
-    n0, n1, c0, c1 = args
+    assert node.is_op(OP_ADD)
 
-    if c0.is_op(OP_NEG):
-        c0 = -c0[0].value
-    else:
-        c0 = c0.value
+    p = []
+    scope = Scope(node)
+    numerics = []
 
-    if c1.is_op(OP_NEG):
-        c1 = (-c1[0].value)
-    else:
-        c1 = c1.value
+    for n in scope:
+        if n == 0:
+            p.append(P(node, remove_zero, (scope, n)))
+        elif n.is_numeric():
+            numerics.append(n)
 
-    scope = Scope(root)
+    for c0, c1 in combinations(numerics, 2):
+        p.append(P(node, add_numerics, (scope, c0, c1)))
 
-    # Replace the left node with the new expression
-    scope.remove(n0, Leaf(c0 + c1))
+    return p
 
-    # Remove the right node
-    scope.remove(n1)
+
+def remove_zero(root, args):
+    """
+    0 + a  ->  a
+    """
+    scope, n = args
+    scope.remove(n)
 
     return scope.as_nary_node()
 
 
-MESSAGES[add_numerics] = _('Combine the constants {1} and {2}.')
+def add_numerics(root, args):
+    """
+    2 + 3    ->  5
+    2 + -3   ->  -1
+    -2 + 3   ->  1
+    -2 + -3  ->  -5
+    """
+    scope, c0, c1 = args
+    value = c0.actual_value() + c1.actual_value()
+
+    # Replace the left node with the new expression
+    scope.replace(c0, Leaf(abs(value)).negate(int(value < 0)))
+
+    # Remove the right node
+    scope.remove(c1)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[add_numerics] = _('Add the constants {2} and {3}.')
 
 
 #def match_subtract_numerics(node):
@@ -59,23 +87,41 @@ def match_divide_numerics(node):
 
     Example:
     6 / 2      ->  3
-    3 / 2      ->  3 / 2  # 1.5 would mean a decrease in precision
+    3 / 2      ->  3 / 2      # 1.5 would mean a decrease in precision
     3.0 / 2    ->  1.5
     3 / 2.0    ->  1.5
     3.0 / 2.0  ->  1.5
-    3 / 1.0    ->  3      # Exceptional case: division of integer by 1.0 keeps
-                          # integer precision
+    3 / 1.0    ->  3          # Exceptional case: division of integer by 1.0
+                              # keeps integer precision
+    2 / 4      ->  1 / 2      # 1 < greatest common divisor <= nominator
+    4 / 3      ->  1 + 1 / 3  # nominator > denominator
     """
     assert node.is_op(OP_DIV)
 
     n, d = node
     divide = False
-    dv = d.value
+    nv, dv = n.value, d.value
 
     if n.is_int() and d.is_int():
-        # 6 / 2  ->  3
-        # 3 / 2  ->  3 / 2
-        divide = not divmod(n.value, dv)[1]
+        mod = nv % dv
+
+        if not mod:
+            # 6 / 2  ->  3
+            # 3 / 2  ->  3 / 2
+            return [P(node, divide_numerics, (nv, dv, n.negated + d.negated))]
+
+        gcd = greatest_common_divisor(nv, dv)
+
+        if 1 < gcd <= nv:
+            # 2 / 4  ->  1 / 2
+            # TODO: Test with negations!
+            return [P(node, reduce_fraction_constants, (gcd,))]
+
+        if nv > dv:
+            # 4 / 3  ->  1 + 1 / 3
+            # TODO: Test with negations!
+            return [P(node, fraction_to_int_fraction,
+                      ((nv - mod) / dv, mod, dv))]
     elif n.is_numeric() and d.is_numeric():
         if d == 1.0:
             # 3 / 1.0  ->  3
@@ -84,14 +130,14 @@ def match_divide_numerics(node):
         # 3.0 / 2  ->  1.5
         # 3 / 2.0  ->  1.5
         # 3.0 / 2.0  ->  1.5
-        divide = True
+        return [P(node, divide_numerics, (nv, dv, n.negated + d.negated))]
 
-    return [P(node, divide_numerics, (n.value, dv))] if divide else []
+    return []
 
 
 def divide_numerics(root, args):
     """
-    Combine two constants to a single constant in a division.
+    Combine two divided constants into a single constant.
 
     Examples:
     6 / 2      ->  3
@@ -100,12 +146,46 @@ def divide_numerics(root, args):
     3.0 / 2.0  ->  1.5
     3 / 1.0    ->  3
     """
-    n, d = args
+    n, d, negated = args
 
-    return Leaf(n / d)
+    return Leaf(n / d).negate(negated)
 
 
 MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')
+
+
+def reduce_fraction_constants(root, args):
+    """
+    Reduce the nominator and denominator of a fraction with a given greatest
+    common divisor.
+
+    Example:
+    2 / 4  ->  1 / 2
+    """
+    gcd = args[0]
+    a, b = root
+
+    return Leaf(a.value / gcd).negate(a.negated) \
+           / Leaf(b.value / gcd).negate(b.negated)
+
+
+MESSAGES[reduce_fraction_constants] = _('Simplify fraction {0}.')
+
+
+def fraction_to_int_fraction(root, args):
+    """
+    Combine two divided integer into an integer with a fraction.
+
+    Examples:
+    4 / 3  ->  1 + 1 / 3
+    """
+    integer, nominator, denominator = map(Leaf, args)
+
+    return integer + nominator / denominator
+
+
+MESSAGES[fraction_to_int_fraction] = _('Expand fraction with nominator greater'
+    ' than denominator {0} to an integer plus a fraction.')
 
 
 def match_multiply_zero(node):
@@ -119,20 +199,12 @@ def match_multiply_zero(node):
     assert node.is_op(OP_MUL)
 
     left, right = node
-    is_zero = lambda n: n.is_leaf and n.value == 0
 
-    if is_zero(left):
-        negated = right.is_op(OP_NEG)
-    elif is_zero(right):
-        negated = left.is_op(OP_NEG)
-    elif left.is_op(OP_NEG) and is_zero(left[0]):
-        negated = not right.is_op(OP_NEG)
-    elif right.is_op(OP_NEG) and is_zero(right[0]):
-        negated = not left.is_op(OP_NEG)
-    else:
-        return []
+    if (left.is_leaf and left.value == 0) \
+            or (right.is_leaf and right.value == 0):
+        return [P(node, multiply_zero, (left.negated + right.negated,))]
 
-    return [P(node, multiply_zero, (negated,))]
+    return []
 
 
 def multiply_zero(root, args):
@@ -143,15 +215,46 @@ def multiply_zero(root, args):
     0 * -a   ->  -0
     -0 * -a  ->  0
     """
-    negated = args[0]
-
-    if negated:
-        return -Leaf(0)
-    else:
-        return Leaf(0)
+    return negate(Leaf(0), args[0])
 
 
 MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
+
+
+def match_multiply_one(node):
+    """
+    a * 1    ->  a
+    1 * a    ->  a
+    -1 * a   ->  -a
+    1 * -a   ->  -a
+    -1 * -a  ->  a
+    """
+    assert node.is_op(OP_MUL)
+
+    left, right = node
+
+    if left.value == 1:
+        return [P(node, multiply_one, (right, left))]
+
+    if right.value == 1:
+        return [P(node, multiply_one, (left, right))]
+
+    return []
+
+
+def multiply_one(root, args):
+    """
+    a * 1  ->  a
+    1 * a  ->  a
+    -1 * a   ->  -a
+    1 * -a   ->  -a
+    -1 * -a  ->  a
+    """
+    a, one = args
+    return a.negate(one.negated + root.negated)
+
+
+MESSAGES[multiply_one] = _('Multiplication with one yields the multiplicant.')
 
 
 def match_multiply_numerics(node):
@@ -164,16 +267,11 @@ def match_multiply_numerics(node):
     assert node.is_op(OP_MUL)
 
     p = []
-    numerics = []
+    scope = Scope(node)
+    numerics = filter(lambda n: n.is_numeric(), scope)
 
-    for n in Scope(node):
-        if n.is_numeric():
-            numerics.append((n, n.value))
-        elif n.is_op(OP_NEG) and n[0].is_numeric():
-            numerics.append((n, -n[0].value))
-
-    for (n0, v0), (n1, v1) in combinations(numerics, 2):
-        p.append(P(node, multiply_numerics, (n0, n1, v0, v1)))
+    for c0, c1 in combinations(numerics, 2):
+        p.append(P(node, multiply_numerics, (scope, c0, c1)))
 
     return p
 
@@ -185,24 +283,46 @@ def multiply_numerics(root, args):
     Example:
     2 * 3  ->  6
     """
-    n0, n1, v0, v1 = args
-    scope = []
-    value = v0 * v1
-
-    if value > 0:
-        substitution = Leaf(value)
-    else:
-        substitution = -Leaf(-value)
-
-    scope = Scope(root)
+    scope, c0, c1 = args
 
     # Replace the left node with the new expression
-    scope.remove(n0, substitution)
+    substitution = Leaf(c0.value * c1.value).negate(c0.negated + c1.negated)
+    scope.replace(c0, substitution)
 
     # Remove the right node
-    scope.remove(n1)
+    scope.remove(c1)
 
     return scope.as_nary_node()
 
 
-MESSAGES[multiply_numerics] = _('Multiply constant {1} with {2}.')
+MESSAGES[multiply_numerics] = _('Multiply constant {2} with {3}.')
+
+
+def match_raise_numerics(node):
+    """
+    2 ^ 3     ->  8
+    (-2) ^ 3  ->  -8
+    (-2) ^ 2  ->  4
+    """
+    assert node.is_op(OP_POW)
+
+    r, e = node
+
+    if r.is_numeric() and e.is_numeric() and not e.negated:
+        return [P(node, raise_numerics, (r, e))]
+
+    return []
+
+
+def raise_numerics(root, args):
+    """
+    2 ^ 3     ->  8
+    (-2) ^ 3  ->  -8
+    (-2) ^ 2  ->  4
+    """
+    r, e = args
+
+    return Leaf(r.value ** e.value).negate(r.negated * e.value)
+
+
+MESSAGES[raise_numerics] = _('Raise constant {1} with {2}.')

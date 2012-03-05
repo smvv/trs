@@ -1,3 +1,6 @@
+from node import TYPE_OPERATOR
+
+
 # Each rule will append its hint message to the following dictionary. The
 # function pointer to the apply function of the rule is used as key. The
 # corresponding value is a string, which will be used to produce the hint
@@ -51,16 +54,27 @@ def filter_duplicates(possibilities):
     return unique
 
 
-def pick_suggestion(possibilities):
-    if not possibilities:
-        return
+def find_parent_node(root, child):
+    nodes = [root]
 
-    # TODO: pick the best suggestion.
-    suggestion = 0
-    return possibilities[suggestion]
+    while nodes:
+        node = nodes.pop()
+
+        while node:
+
+            if node.type != TYPE_OPERATOR:
+                break
+
+            if child in node:
+                return node
+
+            if len(node) > 1:
+                nodes.append(node[1])
+
+            node = node[0]
 
 
-def apply_suggestion(root, subtree_map, suggestion):
+def apply_suggestion(root, suggestion):
     # TODO: clone the root node before modifying. After deep copying the root
     # node, the subtree_map cannot be used since the hash() of each node in the
     # deep copied root node has changed.
@@ -68,10 +82,7 @@ def apply_suggestion(root, subtree_map, suggestion):
 
     subtree = suggestion.handler(suggestion.root, suggestion.args)
 
-    if suggestion.root in subtree_map:
-        parent_node = subtree_map[suggestion.root]
-    else:
-        parent_node = None
+    parent_node = find_parent_node(root, suggestion.root)
 
     # There is either a parent node or the subtree is the root node.
     # FIXME: FAIL: test_diagnostic_test_application in tests/test_b1_ch08.py
@@ -85,4 +96,5 @@ def apply_suggestion(root, subtree_map, suggestion):
     if parent_node:
         parent_node.substitute(suggestion.root, subtree)
         return root
+
     return subtree

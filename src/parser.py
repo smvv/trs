@@ -3,8 +3,6 @@ This parser will parse the given input and build an expression tree. Grammar
 file for the supported mathematical expressions.
 """
 
-from node import ExpressionNode as Node, ExpressionLeaf as Leaf
-
 import os.path
 PYBISON_BUILD = os.path.realpath('build/external/pybison')
 EXTERNAL_MODS = os.path.realpath('external')
@@ -16,9 +14,11 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import TYPE_OPERATOR, OP_COMMA
+from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
+        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, Scope, PI
 from rules import RULES
-from possibilities import filter_duplicates, pick_suggestion, apply_suggestion
+from strategy import pick_suggestion
+from possibilities import filter_duplicates, apply_suggestion
 
 import Queue
 
@@ -44,6 +44,10 @@ class Parser(BisonParser):
     docstrings. Scanner rules are in the 'lexscript' attribute.
     """
 
+    # Words to be ignored by preprocessor
+    words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
+                        OP_MAP.iteritems()))[0] + ('raise', 'graph', PI)
+
     # Output directory of generated pybison files, including a trailing slash.
     buildDirectory = PYBISON_BUILD + '/'
 
@@ -52,10 +56,9 @@ class Parser(BisonParser):
     # ----------------------------------------------------------------
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
-    tokens = ['NUMBER', 'IDENTIFIER', 'POSSIBILITIES',
-              'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POW',
-              'LPAREN', 'RPAREN', 'COMMA', 'HINT', 'REWRITE',
-              'NEWLINE', 'QUIT', 'RAISE', 'GRAPH', 'SQRT']
+    tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
+              'LPAREN', 'RPAREN', 'FUNCTION'] \
+             + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
     # precedences
@@ -64,8 +67,11 @@ class Parser(BisonParser):
         ('left', ('COMMA', )),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
+        ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
+        ('right', ('FUNCTION', )),
+        #('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
         )
 
     interactive = 0
@@ -74,13 +80,20 @@ class Parser(BisonParser):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
-        self.possibilities = self.last_possibilities = []
 
+        self.reset()
+
+    def reset(self):
         self.read_buffer = ''
         self.read_queue = Queue.Queue()
 
-        self.subtree_map = {}
+        #self.subtree_map = {}
         self.root_node = None
+        self.possibilities = self.last_possibilities = []
+
+    def run(self, *args, **kwargs):
+        self.reset()
+        return super(Parser, self).run(*args, **kwargs)
 
     # Override default read method with a version that prompts for input.
     def read(self, nbytes):
@@ -106,13 +119,13 @@ class Parser(BisonParser):
 
     def hook_read_before(self):
         if self.possibilities:
-            if self.interactive:  # pragma: nocover
+            if self.verbose:  # pragma: nocover
                 print 'possibilities:'
 
             items = filter_duplicates(self.possibilities)
             self.last_possibilities = self.possibilities
 
-            if self.interactive:  # pragma: nocover
+            if self.verbose:  # pragma: nocover
                 print '  ' + '\n  '.join(map(str, items))
 
     def hook_read_after(self, data):
@@ -150,7 +163,7 @@ class Parser(BisonParser):
             left, right = filter(None, match.groups())
 
             # Filter words (otherwise they will be preprocessed as well)
-            if left + right in ['graph', 'raise']:
+            if left + right in Parser.words:
                 return left + right
 
             # If all characters on the right are numbers. e.g. "a4", the
@@ -163,6 +176,9 @@ class Parser(BisonParser):
             # match: ab | abc | abcd (where left = "a")
             return '*'.join([left] + list(right))
 
+        if self.verbose:  # pragma: nocover
+            data_before = data
+
         # Iteratively replace all matches.
         while True:
             data_after = re.sub(pattern, preprocess_data, data)
@@ -170,41 +186,32 @@ class Parser(BisonParser):
             if data == data_after:
                 break
 
-            if self.verbose:  # pragma: nocover
-                print 'hook_read_after() modified the input data:'
-                print 'before:', data.replace('\n', '\\n')
-                print 'after :', data_after.replace('\n', '\\n')
-
             data = data_after
+
+        if self.verbose and data_before != data_after:  # pragma: nocover
+            print 'hook_read_after() modified the input data:'
+            print 'before:', repr(data_before)
+            print 'after :', repr(data_after)
 
         return data
 
     def hook_handler(self, target, option, names, values, retval):
-        if target in ['exp', 'line', 'input'] or not retval \
-                or retval.type != TYPE_OPERATOR:
+        if target in ['exp', 'line', 'input'] or not retval:
             return retval
 
-        if self.subtree_map:
-            # Update the subtree map to let the subtree point to its parent
-            # node.
-            parent_nodes = self.subtree_map.keys()
-
-            for child in retval:
-                if child in parent_nodes:
-                    self.subtree_map[child] = retval
-
-        if retval.op not in RULES:
+        if not retval.negated and retval.type != TYPE_OPERATOR:
             return retval
 
-        for handler in RULES[retval.op]:
+        if retval.type == TYPE_OPERATOR and retval.op in RULES:
+            handlers = RULES[retval.op]
+        else:
+            handlers = []
+
+        if retval.negated:
+            handlers = RULES[OP_NEG]
+
+        for handler in handlers:
             possibilities = handler(retval)
-
-            # Record the subtree root node in order to avoid tree traversal.
-            # At this moment, the node is the root node since the expression is
-            # parser using the left-innermost parsing strategy.
-            for p in possibilities:
-                self.subtree_map[p.root] = None
-
             self.possibilities.extend(possibilities)
 
         return retval
@@ -213,7 +220,8 @@ class Parser(BisonParser):
         print pick_suggestion(self.last_possibilities)
 
     def display_possibilities(self):
-        print '\n'.join(map(str, self.last_possibilities))
+        if self.last_possibilities:
+            print '\n'.join(map(str, self.last_possibilities))
 
     def rewrite(self):
         suggestion = pick_suggestion(self.last_possibilities)
@@ -224,8 +232,7 @@ class Parser(BisonParser):
         if not suggestion:
             return self.root_node
 
-        expression = apply_suggestion(self.root_node, self.subtree_map,
-                                    suggestion)
+        expression = apply_suggestion(self.root_node, suggestion)
 
         if self.verbose:
             print 'After application, expression=', expression
@@ -254,6 +261,7 @@ class Parser(BisonParser):
         """
         input :
               | input line
+              | input REWRITE NEWLINE
         """
         if option == 1:
             # Interactive mode is enabled if the term rewriting system is used
@@ -264,6 +272,10 @@ class Parser(BisonParser):
 
             return values[1]
 
+        if option == 2:  # rule: input REWRITE NEWLINE
+            self.root_node = self.rewrite()
+            return self.root_node
+
     def on_line(self, target, option, names, values):
         """
         line : NEWLINE
@@ -271,11 +283,17 @@ class Parser(BisonParser):
              | debug NEWLINE
              | HINT NEWLINE
              | POSSIBILITIES NEWLINE
-             | REWRITE NEWLINE
              | RAISE NEWLINE
         """
         if option == 1:  # rule: EXP NEWLINE
             self.root_node = values[0]
+
+            # Clear list of last possibilities when current expression has no
+            # possibilities. Otherwise, an invalid expression gets the last
+            # possibilities of a valid expression.
+            if not self.possibilities:
+                self.last_possibilities = []
+
             return values[0]
 
         if option == 2:  # rule: DEBUG NEWLINE
@@ -290,11 +308,7 @@ class Parser(BisonParser):
             self.display_possibilities()
             return
 
-        if option == 5:  # rule: REWRITE NEWLINE
-            self.root_node = self.rewrite()
-            return self.root_node
-
-        if option == 6:
+        if option == 5:
             raise RuntimeError('on_line: exception raised')
 
     def on_debug(self, target, option, names, values):
@@ -340,10 +354,25 @@ class Parser(BisonParser):
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
+              | FUNCTION exp
         """
 
         if option == 0:  # rule: NEG exp
-            return Node('-', values[1])
+            node = values[1]
+            # Add negation to the left-most child
+            if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
+                node.negated += 1
+            else:
+                child = Scope(node)[0]
+                child.negated += 1
+
+            return node
+
+        if option == 1:  # rule: FUNCTION exp
+            if values[1].is_op(OP_COMMA):
+                return Node(values[0], *values[1])
+
+            return Node(*values)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -354,19 +383,27 @@ class Parser(BisonParser):
                | exp TIMES exp
                | exp DIVIDE exp
                | exp POW exp
+               | exp EQ exp
                | exp MINUS exp
         """
 
-        if 0 <= option < 4:  # rule: exp {PLUS,TIMES,DIVIDES,POW} exp
+        if 0 <= option < 5:  # rule: exp {PLUS,TIMES,DIVIDES,POW,EQ} exp
             return Node(values[1], values[0], values[2])
 
-        if option == 4:  # rule: exp MINUS exp
-            # It is necessary to call the hook_handler here explicitly, since
-            # the minus operator is internally represented as two nodes (unary
-            # negation and binary plus).
-            node = Node('-', values[2])
-            node = self.hook_handler(target, option, names, values, node)
-            return Node('+', values[0], node)
+        if option == 5:  # rule: exp MINUS exp
+            node = values[2]
+
+            # Add negation to the left-most child
+            if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
+                node.negated += 1
+            else:
+                node = Scope(node)[0]
+                node.negated += 1
+
+            # Explicit call the hook handler on the created unary negation.
+            node = self.hook_handler('binary', 4, names, values, node)
+
+            return Node('+', values[0], values[2])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -381,6 +418,25 @@ class Parser(BisonParser):
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
+
+    # -----------------------------------------
+    # PI and operator tokens
+    # -----------------------------------------
+    operators = '"%s"%s{ returntoken(IDENTIFIER); }\n' \
+                % (PI, ' ' * (8 - len(PI)))
+    functions = []
+
+    for op_str, op in OP_MAP.iteritems():
+        if TOKEN_MAP[op] == 'FUNCTION':
+            functions.append(op_str)
+        else:
+            operators += '"%s"%s{ returntoken(%s); }\n' \
+                         % (op_str, ' ' * (8 - len(op_str)), TOKEN_MAP[op])
+
+    # Put all functions in a single regex
+    if functions:
+        operators += '("%s") { returntoken(FUNCTION); }\n' \
+                     % '"|"'.join(functions)
 
     # -----------------------------------------
     # raw lex script, verbatim here
@@ -409,8 +465,6 @@ class Parser(BisonParser):
             yylloc.first_column = yycolumn; \
             yylloc.last_column = yycolumn + yyleng; \
             yycolumn += yyleng;
-
-    /*[a-zA-Z][0-9]+ { returntoken(CONCAT_POW); }*/
     %}
 
     %option yylineno
@@ -421,19 +475,10 @@ class Parser(BisonParser):
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
-    "+"       { returntoken(PLUS); }
-    "-"       { returntoken(MINUS); }
-    "*"       { returntoken(TIMES); }
-    "^"       { returntoken(POW); }
-    "/"       { returntoken(DIVIDE); }
-    ","       { returntoken(COMMA); }
-    "??"      { returntoken(POSSIBILITIES); }
-    "?"       { returntoken(HINT); }
-    "@"       { returntoken(REWRITE); }
-    "quit"    { yyterminate(); returntoken(QUIT); }
+    """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
-    "sqrt"    { returntoken(SQRT); }
+    "quit"    { yyterminate(); returntoken(QUIT); }
 
     [ \t\v\f] { }
     [\n]      { yycolumn = 0; returntoken(NEWLINE); }

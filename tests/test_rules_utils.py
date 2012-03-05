@@ -1,6 +1,7 @@
 import unittest
 
-from src.rules.utils import least_common_multiple
+from src.rules.utils import least_common_multiple, is_fraction, partition
+from tests.rulestestcase import tree
 
 
 class TestRulesUtils(unittest.TestCase):
@@ -9,3 +10,15 @@ class TestRulesUtils(unittest.TestCase):
         self.assertEqual(least_common_multiple(5, 6), 30)
         self.assertEqual(least_common_multiple(5, 6, 15), 30)
         self.assertEqual(least_common_multiple(2, 4), 4)
+
+    def test_is_fraction(self):
+        l1, a = tree('1, a')
+
+        self.assertTrue(is_fraction(a / 2, a, 2))
+        self.assertTrue(is_fraction(l1 / 2 * a, a, 2))
+        self.assertTrue(is_fraction(a * (l1 / 2), a, 2))
+        self.assertFalse(is_fraction(l1 / 3 * a, a, 2))
+
+    def test_partition(self):
+        self.assertEqual(partition(lambda x: x & 1, range(6)),
+                         ([1, 3, 5], [0, 2, 4]))

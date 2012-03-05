@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-                   OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_ADD
+                   OP_MUL, OP_DIV, OP_POW, OP_ADD, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -12,21 +12,23 @@ def match_add_exponents(node):
     a * a^q    ->  a^(1 + q)
     a^p * a    ->  a^(p + 1)
     a * a      ->  a^(1 + 1)
+    -a * a^q   ->  -a^(1 + q)
     """
     assert node.is_op(OP_MUL)
 
     p = []
     powers = {}
+    scope = Scope(node)
 
-    for n in Scope(node):
+    for n in scope:
+        # Order powers by their roots, e.g. a^p and a^q are put in the same
+        # list because of the mutual 'a'
         if n.is_identifier():
-            s = n
+            s = negate(n, 0)
             exponent = L(1)
         elif n.is_op(OP_POW):
-            # Order powers by their roots, e.g. a^p and a^q are put in the same
-            # list because of the mutual 'a'
             s, exponent = n
-        else:
+        else:  # pragma: nocover
             continue
 
         s_str = str(s)
@@ -41,7 +43,7 @@ def match_add_exponents(node):
         # create a single power with that root
         if len(occurrences) > 1:
             for (n0, e1, a0), (n1, e2, a1) in combinations(occurrences, 2):
-                p.append(P(node, add_exponents, (n0, n1, a0, e1, e2)))
+                p.append(P(node, add_exponents, (scope, n0, n1, a0, e1, e2)))
 
     return p
 
@@ -50,11 +52,12 @@ def add_exponents(root, args):
     """
     a^p * a^q  ->  a^(p + q)
     """
-    n0, n1, a, p, q = args
-    scope = Scope(root)
+    scope, n0, n1, a, p, q = args
+
+    # TODO: combine exponent negations
 
     # Replace the left node with the new expression
-    scope.remove(n0, a ** (p + q))
+    scope.replace(n0, (a ** (p + q)).negate(n0.negated + n1.negated))
 
     # Remove the right node
     scope.remove(n1)
@@ -62,7 +65,7 @@ def add_exponents(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[add_exponents] = _('Add the exponents of {1} and {2}.')
+MESSAGES[add_exponents] = _('Add the exponents of {2} and {3}.')
 
 
 def match_subtract_exponents(node):
@@ -91,6 +94,18 @@ def match_subtract_exponents(node):
     return []
 
 
+def subtract_exponents(root, args):
+    """
+    a^p / a^q  ->  a^(p - q)
+    """
+    a, p, q = args
+
+    return a ** (p - q)
+
+
+MESSAGES[subtract_exponents] = _('Substract the exponents {2} and {3}.')
+
+
 def match_multiply_exponents(node):
     """
     (a^p)^q  ->  a^(pq)
@@ -105,32 +120,100 @@ def match_multiply_exponents(node):
     return []
 
 
+def multiply_exponents(root, args):
+    """
+    (a^p)^q  ->  a^(pq)
+    """
+    a, p, q = args
+
+    return a ** (p * q)
+
+
+MESSAGES[multiply_exponents] = _('Multiply the exponents {2} and {3}.')
+
+
 def match_duplicate_exponent(node):
     """
     (ab)^p  ->  a^p * b^p
     """
     assert node.is_op(OP_POW)
 
-    left, right = node
+    root, exponent = node
 
-    if left.is_op(OP_MUL):
-        return [P(node, duplicate_exponent, (list(Scope(left)), right))]
+    if root.is_op(OP_MUL):
+        return [P(node, duplicate_exponent, (list(Scope(root)), exponent))]
 
     return []
+
+
+def duplicate_exponent(root, args):
+    """
+    (ab)^p   ->  a^p * b^p
+    (abc)^p  ->  a^p * b^p * c^p
+    """
+    ab, p = args
+    result = ab[0] ** p
+
+    for b in ab[1:]:
+        result *= b ** p
+
+    return result
+
+
+MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
+
+
+def match_raised_fraction(node):
+    """
+    (a / b) ^ p  ->  a^p / b^p
+    """
+    assert node.is_op(OP_POW)
+
+    root, exponent = node
+
+    if root.is_op(OP_DIV):
+        return [P(node, raised_fraction, (root, exponent))]
+
+    return []
+
+
+def raised_fraction(root, args):
+    """
+    (a / b) ^ p  ->  a^p / b^p
+    """
+    (a, b), p = args
+
+    return a ** p / b ** p
+
+
+MESSAGES[raised_fraction] = _('Apply the exponent {2} to the nominator and'
+        ' denominator of fraction {1}.')
 
 
 def match_remove_negative_exponent(node):
     """
-    a^-p  ->  1 / a^p
+    a ^ -p  ->  1 / a ^ p
     """
     assert node.is_op(OP_POW)
 
-    left, right = node
+    a, p = node
 
-    if right.is_op(OP_NEG):
-        return [P(node, remove_negative_exponent, (left, right[0]))]
+    if p.negated:
+        return [P(node, remove_negative_exponent, (a, p))]
 
     return []
+
+
+def remove_negative_exponent(root, args):
+    """
+    a^-p  ->  1 / a^p
+    """
+    a, p = args
+
+    return L(1) / a ** p.reduce_negation()
+
+
+MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
 
 
 def match_exponent_to_root(node):
@@ -146,6 +229,16 @@ def match_exponent_to_root(node):
         return [P(node, exponent_to_root, (left,) + tuple(right))]
 
     return []
+
+
+def exponent_to_root(root, args):
+    """
+    a^(1 / m)  ->  sqrt(a, m)
+    a^(n / m)  ->  sqrt(a^n, m)
+    """
+    a, n, m = args
+
+    return N('sqrt', a if n == 1 else a ** n, m)
 
 
 def match_extend_exponent(node):
@@ -176,64 +269,38 @@ def extend_exponent(root, args):
     return left * left
 
 
-def subtract_exponents(root, args):
+def match_constant_exponent(node):
     """
-    a^p / a^q  ->  a^(p - q)
+    (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # n > 1
     """
-    a, p, q = args
+    assert node.is_op(OP_POW)
 
-    return a ** (p - q)
+    exponent = node[1]
+
+    if exponent == 0:
+        return [P(node, remove_power_of_zero, ())]
+
+    if exponent == 1:
+        return [P(node, remove_power_of_one, ())]
+
+    return []
 
 
-MESSAGES[subtract_exponents] = _('Substract the exponents {2} and {3}.')
-
-
-def multiply_exponents(root, args):
+def remove_power_of_zero(root, args):
     """
-    (a^p)^q  ->  a^(pq)
+    a ^ 0  ->  1
     """
-    a, p, q = args
-
-    return a ** (p * q)
+    return L(1)
 
 
-MESSAGES[multiply_exponents] = _('Multiply the exponents {2} and {3}.')
+MESSAGES[remove_power_of_zero] = _('Power of zero {0} rewrites to 1.')
 
 
-def duplicate_exponent(root, args):
+def remove_power_of_one(root, args):
     """
-    (ab)^p   ->  a^p * b^p
-    (abc)^p  ->  a^p * b^p * c^p
+    a ^ 1  ->  a
     """
-    ab, p = args
-    result = ab[0] ** p
-
-    for b in ab[1:]:
-        result *= b ** p
-
-    return result
+    return root[0]
 
 
-MESSAGES[duplicate_exponent] = _('Duplicate the exponent {2}.')
-
-
-def remove_negative_exponent(root, args):
-    """
-    a^-p  ->  1 / a^p
-    """
-    a, p = args
-
-    return L(1) / a ** p
-
-
-MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
-
-
-def exponent_to_root(root, args):
-    """
-    a^(1 / m)  ->  sqrt(a, m)
-    a^(n / m)  ->  sqrt(a^n, m)
-    """
-    a, n, m = args
-
-    return N('sqrt', a if n == 1 else a ** n, m)
+MESSAGES[remove_power_of_one] = _('Remove the power of one in {0}.')

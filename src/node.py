@@ -9,6 +9,8 @@ from graph_drawing.graph import generate_graph
 from graph_drawing.line import generate_line
 from graph_drawing.node import Node, Leaf
 
+from unicode_math import PI as u_PI
+
 
 TYPE_OPERATOR = 1
 TYPE_IDENTIFIER = 2
@@ -29,9 +31,24 @@ OP_MOD = 7
 
 # N-ary (functions)
 OP_INT = 8
-OP_EXPAND = 9
-OP_COMMA = 10
-OP_SQRT = 11
+OP_COMMA = 9
+OP_SQRT = 10
+
+# Goniometry
+OP_SIN = 11
+OP_COS = 12
+OP_TAN = 13
+
+OP_SOLVE = 14
+OP_EQ = 15
+
+OP_POSSIBILITIES = 16
+OP_HINT = 17
+OP_REWRITE_ALL = 18
+OP_REWRITE = 19
+
+# Special identifierd
+PI = 'pi'
 
 
 TYPE_MAP = {
@@ -41,17 +58,43 @@ TYPE_MAP = {
         }
 
 OP_MAP = {
+        ',': OP_COMMA,
         '+': OP_ADD,
-        # Either substraction or negation. Skip the operator sign in 'x' (= 2).
-        '-': lambda x: OP_SUB if len(x) > 2 else OP_NEG,
+        '-': OP_SUB,
         '*': OP_MUL,
         '/': OP_DIV,
         '^': OP_POW,
-        'mod': OP_MOD,
-        'int': OP_INT,
-        'expand': OP_EXPAND,
+        'sin': OP_SIN,
+        'cos': OP_COS,
+        'tan': OP_TAN,
         'sqrt': OP_SQRT,
-        ',': OP_COMMA,
+        'int': OP_INT,
+        'solve': OP_SOLVE,
+        '=': OP_EQ,
+        '??': OP_POSSIBILITIES,
+        '?': OP_HINT,
+        '@@': OP_REWRITE_ALL,
+        '@': OP_REWRITE,
+        }
+
+TOKEN_MAP = {
+        OP_COMMA: 'COMMA',
+        OP_ADD: 'PLUS',
+        OP_SUB: 'MINUS',
+        OP_MUL: 'TIMES',
+        OP_DIV: 'DIVIDE',
+        OP_POW: 'POW',
+        OP_SQRT: 'FUNCTION',
+        OP_SIN: 'FUNCTION',
+        OP_COS: 'FUNCTION',
+        OP_TAN: 'FUNCTION',
+        OP_INT: 'FUNCTION',
+        OP_SOLVE: 'FUNCTION',
+        OP_EQ: 'EQ',
+        OP_POSSIBILITIES: 'POSSIBILITIES',
+        OP_HINT: 'HINT',
+        OP_REWRITE_ALL: 'REWRITE_ALL',
+        OP_REWRITE: 'REWRITE',
         }
 
 
@@ -60,6 +103,10 @@ def to_expression(obj):
 
 
 class ExpressionBase(object):
+
+    def __init__(self, *args, **kwargs):
+        self.negated = 0
+
     def clone(self):
         return copy.deepcopy(self)
 
@@ -86,16 +133,11 @@ class ExpressionBase(object):
         if self.is_leaf:
             if other.is_leaf:
                 # Both are leafs, string compare the value.
-                return str(self.value) < str(other.value)
-            # Self is a leaf, thus has less value than an expression node.
-            return True
+                self_value = '-' * (self.negated & 1) + str(self.value)
+                other_value = '-' * (other.negated & 1) + str(other.value)
 
-        if self.is_op(OP_NEG) and self[0].is_leaf:
-            if other.is_leaf:
-                # Both are leafs, string compare the value.
-                return ('-' + str(self.value)) < str(other.value)
-            if other.is_op(OP_NEG) and other[0].is_leaf:
-                return ('-' + str(self.value)) < ('-' + str(other.value))
+                return self_value < other_value
+
             # Self is a leaf, thus has less value than an expression node.
             return True
 
@@ -113,26 +155,11 @@ class ExpressionBase(object):
     def is_op(self, op):
         return not self.is_leaf and self.op == op
 
-    def is_op_or_negated(self, op):
-        if self.is_leaf:
+    def is_power(self, exponent=None):
+        if self.is_leaf or self.op != OP_POW:
             return False
 
-        if self.op == OP_NEG:
-            return self[0].is_op(op)
-
-        return self.op == op
-
-    def is_leaf_or_negated(self):
-        if  self.is_leaf:
-            return True
-
-        if self.is_op(OP_NEG):
-            return self[0].is_leaf
-
-        return False
-
-    def is_power(self):
-        return not self.is_leaf and self.op == OP_POW
+        return exponent == None or self[1] == exponent
 
     def is_nary(self):
         return not self.is_leaf and self.op in [OP_ADD, OP_SUB, OP_MUL]
@@ -164,8 +191,18 @@ class ExpressionBase(object):
     def __pow__(self, other):
         return ExpressionNode('^', self, to_expression(other))
 
-    def __neg__(self):
-        return ExpressionNode('-', self)
+    def __pos__(self):
+        return self.reduce_negation()
+
+    def reduce_negation(self, n=1):
+        """Remove n negation flags from the node."""
+        assert self.negated
+
+        return self.negate(-n)
+
+    def negate(self, n=1):
+        """Negate the node n times."""
+        return negate(self, self.negated + n)
 
 
 class ExpressionNode(Node, ExpressionBase):
@@ -174,9 +211,6 @@ class ExpressionNode(Node, ExpressionBase):
         self.type = TYPE_OPERATOR
         self.op = OP_MAP[args[0]]
 
-        if hasattr(self.op, '__call__'):
-            self.op = self.op(args)
-
     def __str__(self):  # pragma: nocover
         return generate_line(self)
 
@@ -184,10 +218,8 @@ class ExpressionNode(Node, ExpressionBase):
         """
         Check strict equivalence.
         """
-        if isinstance(other, ExpressionNode):
-            return self.op == other.op and self.nodes == other.nodes
-
-        return False
+        return isinstance(other, ExpressionNode) and self.op == other.op \
+               and self.negated == other.negated and self.nodes == other.nodes
 
     def substitute(self, old_child, new_child):
         self.nodes[self.nodes.index(old_child)] = new_child
@@ -226,8 +258,10 @@ class ExpressionNode(Node, ExpressionBase):
             return (ExpressionLeaf(1), self[0], self[1])
 
         # rule: -r -> (1, r, 1)
-        if self.is_op(OP_NEG):
-            return (ExpressionLeaf(1), -self[0], ExpressionLeaf(1))
+        # rule: --r -> (1, r, 1)
+        # rule: ---r -> (1, r, 1)
+        if self.negated:
+            return (ExpressionLeaf(1), self, ExpressionLeaf(1))
 
         if self.op != OP_MUL:
             return
@@ -257,7 +291,7 @@ class ExpressionNode(Node, ExpressionBase):
             return (self[0], self[1], ExpressionLeaf(1))
         return (self[1], self[0], ExpressionLeaf(1))
 
-    def equals(self, other):
+    def equals(self, other, ignore_negation=False):
         """
         Perform a non-strict equivalence check between two nodes:
         - If the other node is a leaf, it cannot be equal to this node.
@@ -268,18 +302,14 @@ class ExpressionNode(Node, ExpressionBase):
         - If both nodes are divisions, the nominator and denominator have to be
           non-strictly equal.
         """
-        if not other.is_op(self.op):
-            # FIXME: this is if-clause is a problem. To fix this problem
-            # permanently, normalize ("x * -1" -> "-1x") before comparing to
-            # the other node.
-
+        if not isinstance(other, ExpressionNode) or other.op != self.op:
             return False
 
         if self.op in (OP_ADD, OP_MUL):
             s0 = Scope(self)
             s1 = set(Scope(other))
 
-            # Scopes sould be of equal size
+            # Scopes should be of equal size
             if len(s0) != len(s1):
                 return False
 
@@ -303,13 +333,15 @@ class ExpressionNode(Node, ExpressionBase):
                 if not child.equals(other[i]):
                     return False
 
-        return True
+        if ignore_negation:
+            return True
+
+        return self.negated == other.negated
 
 
 class ExpressionLeaf(Leaf, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
-
         self.type = TYPE_MAP[type(args[0])]
 
     def __eq__(self, other):
@@ -319,16 +351,42 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         other_type = type(other)
 
         if other_type in TYPE_MAP:
-            return TYPE_MAP[other_type] == self.type and self.value == other
+            return TYPE_MAP[other_type] == self.type \
+                   and self.actual_value() == other
 
-        return other.type == self.type and self.value == other.value
+        return self.negated == other.negated and self.type == other.type \
+               and self.value == other.value
 
-    def equals(self, other):
+    def __str__(self):
+        val = str(self.value)
+
+        # Replace PI leaf by the Greek character
+        if val == PI:
+            val = u_PI
+
+        return '-' * self.negated + val
+
+    def __repr__(self):
+        return str(self)
+
+    def equals(self, other, ignore_negation=False):
         """
         Check non-strict equivalence.
-        Between leaves, this is the same as strict equivalence.
+        Between leaves, this is the same as strict equivalence, except when
+        negations must be ignored.
         """
-        return self == other
+        if ignore_negation:
+            other_type = type(other)
+
+            if other_type in (int, float):
+                return TYPE_MAP[other_type] == self.type \
+                    and self.value == abs(other)
+            elif other_type == str:
+                return self.type == TYPE_IDENTIFIER and self.value == other
+
+            return self.type == other.type and self.value == other.value
+        else:
+            return self == other
 
     def extract_polynome_properties(self):
         """
@@ -338,6 +396,11 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         """
         # rule: 1 * r ^ 1 -> (1, r, 1)
         return (ExpressionLeaf(1), self, ExpressionLeaf(1))
+
+    def actual_value(self):
+        assert self.is_numeric()
+
+        return (1 - 2 * (self.negated & 1)) * self.value
 
 
 class Scope(object):
@@ -358,7 +421,14 @@ class Scope(object):
     def __iter__(self):
         return iter(self.nodes)
 
-    def remove(self, node, replacement=None):
+    def __eq__(self, other):
+        return isinstance(other, Scope) and self.node == other.node \
+               and self.nodes == other.nodes
+
+    def __repr__(self):
+        return '<Scope of "%s">' % repr(self.node)
+
+    def remove(self, node, **kwargs):
         if node.is_leaf:
             node_cmp = hash(node)
         else:
@@ -371,8 +441,8 @@ class Scope(object):
                 n_cmp = n
 
             if n_cmp == node_cmp:
-                if replacement != None:
-                    self[i] = replacement
+                if 'replacement' in kwargs:
+                    self[i] = kwargs['replacement']
                 else:
                     del self.nodes[i]
 
@@ -381,8 +451,11 @@ class Scope(object):
         raise ValueError('Node "%s" is not in the scope of "%s".'
                          % (node, self.node))
 
+    def replace(self, node, replacement):
+        self.remove(node, replacement=replacement)
+
     def as_nary_node(self):
-        return nary_node(self.node.value, self.nodes)
+        return nary_node(self.node.value, self.nodes).negate(self.node.negated)
 
 
 def nary_node(operator, scope):
@@ -409,3 +482,13 @@ def get_scope(node):
             scope.append(child)
 
     return scope
+
+
+def negate(node, n=1):
+    """Negate the given node n times."""
+    assert n >= 0
+
+    new_node = node.clone()
+    new_node.negated = n
+
+    return new_node
