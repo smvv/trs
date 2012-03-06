@@ -7,3 +7,6 @@
 [submodule "external/mathjax"]
 	path = external/mathjax
 	url = http://github.com/mathjax/MathJax
+[submodule "external/jquery"]
+	path = external/jquery
+	url = https://github.com/jquery/jquery.git
