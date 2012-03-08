@@ -15,7 +15,8 @@ from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
-        TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, Scope, PI
+        OP_DERIV, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
+        Scope, PI
 from rules import RULES
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
@@ -57,7 +58,8 @@ class Parser(BisonParser):
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
-              'LPAREN', 'RPAREN', 'FUNCTION'] \
+              'LPAREN', 'RPAREN', 'FUNCTION', 'LBRACKET', 'RBRACKET', \
+              'APOSTROPH'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -331,6 +333,7 @@ class Parser(BisonParser):
             | unary
             | binary
             | nary
+            | derivative
         """
         #    | concat
 
@@ -345,8 +348,25 @@ class Parser(BisonParser):
         if option == 2:  # rule: LPAREN exp RPAREN
             return values[1]
 
-        if option in [3, 4, 5]:  # rule: unary | binary | nary
+        if option in [3, 4, 5, 6]:  # rule: unary | binary | nary | derivative
             return values[0]
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_derivative(self, target, option, names, values):
+        """
+        derivative : LBRACKET exp RBRACKET APOSTROPH
+                   | derivative APOSTROPH
+        """
+
+        op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
+
+        if option == 0:  # rule: LBRACKET exp RBRACKET APOSTROPH
+            return Node(op, values[1])
+
+        if option == 1:  # rule: derivative APOSTROPH
+            return Node(op, values[0])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -482,6 +502,9 @@ class Parser(BisonParser):
 
     [ \t\v\f] { }
     [\n]      { yycolumn = 0; returntoken(NEWLINE); }
+    "["       { returntoken(LBRACKET); }
+    "]"       { returntoken(RBRACKET); }
+    "'"       { returntoken(APOSTROPH); }
     .         { printf("unknown char %c ignored.\n", yytext[0]); }
 
     %%

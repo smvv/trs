@@ -6,6 +6,7 @@ from src.node import ExpressionNode as Node, ExpressionLeaf as Leaf
 from tests.parser import ParserWrapper, run_expressions, line, graph
 from tests.rulestestcase import tree
 from src.rules.goniometry import sin, cos
+from src.rules.derivatives import der
 
 
 class TestParser(unittest.TestCase):
@@ -47,12 +48,18 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('-(a / b)'), (-a) / b)
 
     def test_functions(self):
-        root, x = tree('sin x, x')
+        x = tree('x')
 
-        self.assertEqual(root, sin(x))
+        self.assertEqual(tree('sin x'), sin(x))
+        self.assertEqual(tree('sin(x)'), sin(x))
         self.assertEqual(tree('sin x ^ 2'), sin(x) ** 2)
         self.assertEqual(tree('sin(x) ^ 2'), sin(x) ** 2)
         self.assertEqual(tree('sin (x) ^ 2'), sin(x) ** 2)
         self.assertEqual(tree('sin(x ^ 2)'), sin(x ** 2))
         self.assertEqual(tree('sin cos x'), sin(cos(x)))
         self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x)) ** 2)
+
+    def test_derivative(self):
+        x = tree('x')
+
+        self.assertEqual(tree('[x]\''), der(x))
