@@ -33,19 +33,20 @@ OP_MOD = 7
 OP_INT = 8
 OP_COMMA = 9
 OP_SQRT = 10
+OP_DERIV = 11
 
 # Goniometry
-OP_SIN = 11
-OP_COS = 12
-OP_TAN = 13
+OP_SIN = 12
+OP_COS = 13
+OP_TAN = 14
 
-OP_SOLVE = 14
-OP_EQ = 15
+OP_SOLVE = 15
+OP_EQ = 16
 
-OP_POSSIBILITIES = 16
-OP_HINT = 17
-OP_REWRITE_ALL = 18
-OP_REWRITE = 19
+OP_POSSIBILITIES = 17
+OP_HINT = 18
+OP_REWRITE_ALL = 19
+OP_REWRITE = 20
 
 # Special identifierd
 PI = 'pi'
@@ -69,6 +70,7 @@ OP_MAP = {
         'tan': OP_TAN,
         'sqrt': OP_SQRT,
         'int': OP_INT,
+        'der': OP_DERIV,
         'solve': OP_SOLVE,
         '=': OP_EQ,
         '??': OP_POSSIBILITIES,
@@ -89,6 +91,7 @@ TOKEN_MAP = {
         OP_COS: 'FUNCTION',
         OP_TAN: 'FUNCTION',
         OP_INT: 'FUNCTION',
+        OP_DERIV: 'FUNCTION',
         OP_SOLVE: 'FUNCTION',
         OP_EQ: 'EQ',
         OP_POSSIBILITIES: 'POSSIBILITIES',
@@ -164,8 +167,12 @@ class ExpressionBase(object):
     def is_nary(self):
         return not self.is_leaf and self.op in [OP_ADD, OP_SUB, OP_MUL]
 
-    def is_identifier(self):
-        return self.type == TYPE_IDENTIFIER
+    def is_identifier(self, identifier=None):
+        return self.type == TYPE_IDENTIFIER \
+               and (identifier == None or self.value == identifier)
+
+    def is_variable(self):
+        return self.type == TYPE_IDENTIFIER and self.value != PI
 
     def is_int(self):
         return self.type == TYPE_INTEGER
