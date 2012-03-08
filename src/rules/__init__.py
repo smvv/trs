@@ -1,5 +1,5 @@
 from ..node import OP_ADD, OP_MUL, OP_DIV, OP_POW, OP_NEG, OP_SIN, OP_COS, \
-        OP_TAN
+        OP_TAN, OP_DERIV
 from .groups import match_combine_groups
 from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
@@ -17,6 +17,7 @@ from .negation import match_negated_factor, match_negate_polynome, \
 from .sort import match_sort_multiplicants
 from .goniometry import match_add_quadrants, match_negated_parameter, \
         match_half_pi_subtraction, match_standard_radian
+from src.rules.derivatives import match_constant_derivative
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -38,4 +39,5 @@ RULES = {
         OP_COS: [match_negated_parameter, match_half_pi_subtraction,
                  match_standard_radian],
         OP_TAN: [match_standard_radian],
+        OP_DERIV: [match_constant_derivative],
         }

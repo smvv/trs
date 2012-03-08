@@ -1,6 +1,7 @@
 import unittest
 
-from src.rules.utils import least_common_multiple, is_fraction, partition
+from src.rules.utils import least_common_multiple, is_fraction, partition, \
+        find_variables
 from tests.rulestestcase import tree
 
 
@@ -22,3 +23,11 @@ class TestRulesUtils(unittest.TestCase):
     def test_partition(self):
         self.assertEqual(partition(lambda x: x & 1, range(6)),
                          ([1, 3, 5], [0, 2, 4]))
+
+    def test_find_variables(self):
+        x, l2, add, mul0, mul1 = tree('x, 2, x + 2, 2x, xy')
+        self.assertSetEqual(find_variables(x), set(['x']))
+        self.assertSetEqual(find_variables(l2), set())
+        self.assertSetEqual(find_variables(add), set(['x']))
+        self.assertSetEqual(find_variables(mul0), set(['x']))
+        self.assertSetEqual(find_variables(mul1), set(['x', 'y']))
