@@ -63,3 +63,4 @@ class TestParser(unittest.TestCase):
         x = tree('x')
 
         self.assertEqual(tree('[x]\''), der(x))
+        self.assertEqual(tree('[x]\'\''), der(der(x)))
