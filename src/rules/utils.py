@@ -71,3 +71,16 @@ def partition(callback, iterable):
         (a if callback(item) else b).append(item)
 
     return a, b
+
+
+def find_variables(node):
+    """
+    Find all variables in a node.
+    """
+    if node.is_variable():
+        return set([node.value])
+
+    if not node.is_leaf:
+        return reduce(lambda a, b: a | b, map(find_variables, node))
+
+    return set()
