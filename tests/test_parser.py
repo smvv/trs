@@ -66,7 +66,9 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('[x]\'\''), der(der(x)))
 
     def test_bracket_derivative(self):
-        exp, x = tree('x ^ 2, x')
+        exp, x, d = tree('x ^ 2, x, d')
 
         self.assertEqual(tree('d/dx x ^ 2'), der(exp, x))
-        #self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))
+        self.assertEqual(tree('d / dx x ^ 2'), der(exp, x))
+        self.assertEqual(tree('d/d'), d / d)
+        # FIXME: self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))
