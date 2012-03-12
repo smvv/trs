@@ -17,7 +17,9 @@ from .negation import match_negated_factor, match_negate_polynome, \
 from .sort import match_sort_multiplicants
 from .goniometry import match_add_quadrants, match_negated_parameter, \
         match_half_pi_subtraction, match_standard_radian
-from src.rules.derivatives import match_constant_derivative
+from src.rules.derivatives import match_zero_derivative, \
+        match_one_derivative, match_variable_power, \
+        match_const_deriv_multiplication
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -27,7 +29,7 @@ RULES = {
                  match_negated_factor, match_multiply_one,
                  match_sort_multiplicants, match_multiply_fractions],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
-                 match_constant_division, match_divide_fractions, \
+                 match_constant_division, match_divide_fractions,
                  match_negated_division, match_equal_fraction_parts],
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
                  match_raised_fraction, match_remove_negative_exponent,
@@ -39,5 +41,6 @@ RULES = {
         OP_COS: [match_negated_parameter, match_half_pi_subtraction,
                  match_standard_radian],
         OP_TAN: [match_standard_radian],
-        OP_DERIV: [match_constant_derivative],
+        OP_DERIV: [match_zero_derivative, match_one_derivative,
+                   match_variable_power, match_const_deriv_multiplication],
         }
