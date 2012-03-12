@@ -59,8 +59,14 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('sin cos x'), sin(cos(x)))
         self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x)) ** 2)
 
-    def test_derivative(self):
+    def test_bracket_derivative(self):
         x = tree('x')
 
         self.assertEqual(tree('[x]\''), der(x))
         self.assertEqual(tree('[x]\'\''), der(der(x)))
+
+    def test_bracket_derivative(self):
+        exp, x = tree('x ^ 2, x')
+
+        self.assertEqual(tree('d/dx x ^ 2'), der(exp, x))
+        self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))

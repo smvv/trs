@@ -101,3 +101,5 @@ Division of 0 by 1 reduces to 0.
    ERROR: 41.14-41.15: "syntax error, unexpected RPAREN" near ")".
 
  - No matches for sin(pi), sin(2pi), sin(4pi), etc...
+
+ - Line generator: 'der(f(x), x)'  ->  'd/dx f(x)'
