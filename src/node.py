@@ -50,8 +50,9 @@ OP_HINT = 20
 OP_REWRITE_ALL = 21
 OP_REWRITE = 22
 
-# Special identifierd
+# Special identifiers
 PI = 'pi'
+E = 'e'
 
 
 TYPE_MAP = {
@@ -178,7 +179,7 @@ class ExpressionBase(object):
                and (identifier == None or self.value == identifier)
 
     def is_variable(self):
-        return self.type == TYPE_IDENTIFIER and self.value != PI
+        return self.type == TYPE_IDENTIFIER and self.value not in (PI, E)
 
     def is_int(self):
         return self.type == TYPE_INTEGER
@@ -216,6 +217,20 @@ class ExpressionBase(object):
     def negate(self, n=1):
         """Negate the node n times."""
         return negate(self, self.negated + n)
+
+    def contains(self, node, include_self=True):
+        """
+        Check if a node equal to the specified one exists within this node.
+        """
+        if include_self and self == node:
+            return True
+
+        if not self.is_leaf:
+            for child in self:
+                if child.contains(node, include_self=True):
+                    return True
+
+        return False
 
 
 class ExpressionNode(Node, ExpressionBase):

@@ -209,3 +209,12 @@ class TestNode(RulesTestCase):
         n = tree('-(a + b)')
         self.assertEqualNodes(Scope(n).as_nary_node(), n)
         self.assertEqualNodes(Scope(-n).as_nary_node(), -n)
+
+    def test_contains(self):
+        a, ab, bc, ln0, ln1 = tree('a, ab, bc, ln(a) + 1, ln(b) + 1')
+
+        self.assertTrue(a.contains(a))
+        self.assertTrue(ab.contains(a))
+        self.assertFalse(bc.contains(a))
+        self.assertTrue(ln0.contains(a))
+        self.assertFalse(ln1.contains(a))
