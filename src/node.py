@@ -34,19 +34,21 @@ OP_INT = 8
 OP_COMMA = 9
 OP_SQRT = 10
 OP_DERIV = 11
+OP_LOG = 12
+OP_LN = 13
 
 # Goniometry
-OP_SIN = 12
-OP_COS = 13
-OP_TAN = 14
+OP_SIN = 14
+OP_COS = 15
+OP_TAN = 16
 
-OP_SOLVE = 15
-OP_EQ = 16
+OP_SOLVE = 17
+OP_EQ = 18
 
-OP_POSSIBILITIES = 17
-OP_HINT = 18
-OP_REWRITE_ALL = 19
-OP_REWRITE = 20
+OP_POSSIBILITIES = 19
+OP_HINT = 20
+OP_REWRITE_ALL = 21
+OP_REWRITE = 22
 
 # Special identifierd
 PI = 'pi'
@@ -72,6 +74,8 @@ OP_MAP = {
         'int': OP_INT,
         'der': OP_DERIV,
         'solve': OP_SOLVE,
+        'log': OP_LOG,
+        'ln': OP_LN,
         '=': OP_EQ,
         '??': OP_POSSIBILITIES,
         '?': OP_HINT,
@@ -93,6 +97,8 @@ TOKEN_MAP = {
         OP_INT: 'FUNCTION',
         OP_DERIV: 'FUNCTION',
         OP_SOLVE: 'FUNCTION',
+        OP_LOG: 'FUNCTION',
+        OP_LN: 'FUNCTION',
         OP_EQ: 'EQ',
         OP_POSSIBILITIES: 'POSSIBILITIES',
         OP_HINT: 'HINT',
