@@ -59,7 +59,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
               'LPAREN', 'RPAREN', 'FUNCTION', 'LBRACKET', 'RBRACKET', \
-              'APOSTROPH', 'DELTA'] \
+              'APOSTROPH', 'DERIVATIVE'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -153,13 +153,13 @@ class Parser(BisonParser):
         #   - "4a" with "4*a".
         #   - "a4" with "a^4".
 
-        pattern = ('(?:(\))\s*(\()'            # match: )(  result: ) * (
-                + '|([a-ce-z0-9])\s*(\()'      # match: a(  result: a * (
-                + '|(\))\s*([a-ce-z0-9])'      # match: )a  result: ) * a
-                + '|([a-ce-z])\s*([a-ce-z]+)'  # match: ab  result: a * b
-                + '|([0-9])\s*([a-ce-z])'      # match: 4a  result: 4 * a
-                + '|([a-ce-z])\s*([0-9])'      # match: a4  result: a ^ 4
-                + '|([0-9])\s+([0-9]))')       # match: 4 4 result: 4 * 4
+        pattern = ('(?:(\))\s*(\()'       # match: )(    result: ) * (
+                + '|([a-z0-9])\s*(\()'    # match: a(    result: a * (
+                + '|(\))\s*([a-z0-9])'    # match: )a    result: ) * a
+                + '|([a-z])\s*([a-z]+)'   # match: ab    result: a * b
+                + '|([0-9])\s*([a-z])'    # match: 4a    result: 4 * a
+                + '|([a-z])\s*([0-9])'    # match: a4    result: a ^ 4
+                + '|([0-9])\s+([0-9]))')  # match: 4 4   result: 4 * 4
 
         def preprocess_data(match):
             left, right = filter(None, match.groups())
@@ -183,7 +183,10 @@ class Parser(BisonParser):
 
         # Iteratively replace all matches.
         while True:
-            data_after = re.sub(pattern, preprocess_data, data)
+            # match: d/dx  result: der_x
+            data_after = re.sub(r'd\s*/\s*d([a-z])', r'der_\1', data)
+
+            data_after = re.sub(pattern, preprocess_data, data_after)
 
             if data == data_after:
                 break
@@ -333,8 +336,6 @@ class Parser(BisonParser):
             | unary
             | binary
             | nary
-            | bracket_derivative
-            | delta_derivative
         """
         #    | concat
 
@@ -349,51 +350,35 @@ class Parser(BisonParser):
         if option == 2:  # rule: LPAREN exp RPAREN
             return values[1]
 
-        if 3 <= option <= 7:  # rule: unary | binary | nary
-                              # | bracket_derivative | delta_derivative
+        if 3 <= option <= 5:  # rule: unary | binary | nary
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
-    def on_bracket_derivative(self, target, option, names, values):
-        """
-        bracket_derivative : LBRACKET exp RBRACKET APOSTROPH
-                           | bracket_derivative APOSTROPH
-        """
+    #def on_delta_derivative(self, target, option, names, values):
+    #    """
+    #    delta_derivative : DELTA DIVIDE DELTA IDENTIFIER TIMES exp
+    #                     | DELTA LPAREN exp RPAREN DIVIDE DELTA IDENTIFIER
+    #    """
 
-        op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
+    #    op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
 
-        if option == 0:  # rule: LBRACKET exp RBRACKET APOSTROPH
-            return Node(op, values[1])
+    #    if option == 0:  # rule: DELTA DIVIDE DELTA IDENTIFIER TIMES exp
+    #        return Node(op, values[5], Leaf(values[3]))
 
-        if option == 1:  # rule: bracket_derivative APOSTROPH
-            return Node(op, values[0])
+    #    if option == 1:  # rule: DELTA LPAREN exp RPAREN DIVIDE DELTA IDENTIFIER
+    #        return Node(op, values[2], Leaf(values[6]))
 
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_delta_derivative(self, target, option, names, values):
-        """
-        delta_derivative : DELTA DIVIDE DELTA IDENTIFIER TIMES exp
-                         | DELTA LPAREN exp RPAREN DIVIDE DELTA IDENTIFIER
-        """
-
-        op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
-
-        if option == 0:  # rule: DELTA DIVIDE DELTA IDENTIFIER TIMES exp
-            return Node(op, values[5], Leaf(values[3]))
-
-        if option == 1:  # rule: DELTA LPAREN exp RPAREN DIVIDE DELTA IDENTIFIER
-            return Node(op, values[2], Leaf(values[6]))
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
+    #    raise BisonSyntaxError('Unsupported option %d in target "%s".'
+    #                           % (option, target))  # pragma: nocover
 
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
               | FUNCTION exp
+              | DERIVATIVE TIMES exp
+              | bracket_derivative
         """
 
         if option == 0:  # rule: NEG exp
@@ -412,6 +397,31 @@ class Parser(BisonParser):
                 return Node(values[0], *values[1])
 
             return Node(*values)
+
+        if option == 2:  # rule: DERIVATIVE exp
+            op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
+
+            return Node(op, values[2], Leaf(values[0][-1]))
+
+        if option == 3:  # rule: bracket_derivative
+            return values[0]
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_bracket_derivative(self, target, option, names, values):
+        """
+        bracket_derivative : LBRACKET exp RBRACKET APOSTROPH
+                           | bracket_derivative APOSTROPH
+        """
+
+        op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
+
+        if option == 0:  # rule: LBRACKET exp RBRACKET APOSTROPH
+            return Node(op, values[1])
+
+        if option == 1:  # rule: bracket_derivative APOSTROPH
+            return Node(op, values[0])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -511,9 +521,9 @@ class Parser(BisonParser):
 
     %%
 
-    "d"       { returntoken(DELTA); }
+    "der_"[a-z] { returntoken(DERIVATIVE); }
     [0-9]+"."?[0-9]* { returntoken(NUMBER); }
-    [a-ce-zA-Z]  { returntoken(IDENTIFIER); }
+    [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
     """ + operators + r"""
