@@ -1,0 +1,48 @@
+html {
+    background-color: #ccc;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    font: 16px/24px Verdana, Arial, sans;
+}
+
+.panel {
+    border: 3px solid #bbb;
+    background-color: #fff;
+    width: 47%;
+    position: absolute;
+}
+
+#input {
+    float:left;
+    left: 2%;
+}
+
+#input textarea {
+    width: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-y: visible;
+    font: 16px/24px Verdana, Arial, sans;
+}
+
+#math {
+    float:right;
+    right: 2%;
+}
+
+.box {
+    height: 380px;
+    padding: 10px;
+}
+
+#math .box {
+    height: 380px;
+    padding: 10px;
+}

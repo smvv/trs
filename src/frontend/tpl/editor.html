@@ -4,62 +4,14 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
         <title>Mathematical term rewriting frontend</title>
         <script type="text/javascript" src="../../../build/external/jquery/jquery.min.js"></script>
-        <script type="text/javascript" src="../../../external/mathjax/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full"></script>
+        <script type="text/javascript"
+            src="../../../external/mathjax/MathJax.js?config=AM_HTMLorMML-full"></script>
+        <link rel="stylesheet" href="../../../external/codemirror2/lib/codemirror.css">
+        <link rel="stylesheet" href="../../../src/frontend/css/editor.css">
+        <script src="../../../external/codemirror2/lib/codemirror.js"></script>
+        <script src="../../../external/codemirror2/mode/r/r.js"></script>
     </head>
     <body>
-
-        <style>
-            html {
-                background-color: #ccc;
-                margin: 0;
-                padding: 0;
-            }
-
-            body {
-                margin: 0;
-                padding: 20px;
-                font: 16px/24px Verdana, Arial, sans;
-            }
-
-            .panel {
-                border: 3px solid #bbb;
-                background-color: #fff;
-                width: 47%;
-                position: absolute;
-            }
-
-            #input {
-                float:left;
-                left: 2%;
-            }
-
-            #input textarea {
-                width: 100%;
-                border: 0;
-                margin: 0;
-                padding: 0;
-                height: 100%;
-                overflow-y: visible;
-                font: 16px/24px Verdana, Arial, sans;
-            }
-
-            #math {
-                float:right;
-                right: 2%;
-            }
-
-            .box {
-                height: 380px;
-                padding: 10px;
-            }
-
-            #math .box {
-                height: 384px;
-                padding: 0 10px;
-            }
-
-        </style>
-
         <div id="input" class="panel">
             <div class="box">
             <textarea id="MathInput"></textarea>
@@ -68,51 +20,10 @@
 
         <div id="math" class="panel">
             <div class="box" id="box" style="visibility:hidden">
-                <div id="MathOutput">$${}$$</div>
+                <div id="MathOutput">``</div>
             </div>
         </div>
 
-        <script type="text/javascript">
-        (function () {
-            var QUEUE = MathJax.Hub.queue;  // shorthand for the queue
-            var math = null, box = null;    // the element jax for the math output, and the box it's in
-
-            // Hide and show the box (so it doesn't flicker as much)
-            var hide_box = function () {box.style.visibility = "hidden"}
-            var show_box = function () {box.style.visibility = "visible"}
-
-            // Get the element jax when MathJax has produced it.
-            QUEUE.Push(function () {
-                math = MathJax.Hub.getAllJax("MathOutput")[0];
-                box = document.getElementById("box");
-                show_box();
-
-                var trigger_update = true,
-                    input_box = document.getElementById("MathInput");
-
-                input_box.onkeydown = input_box.onchange = function(e){
-                    trigger_update = true;
-                };
-
-                // The onchange event handler that typesets the math entered
-                // by the user.  Hide the box, then typeset, then show it again
-                // so we don't see a flash as the math is cleared and replaced.
-                var update_math = function (tex) {
-                    //var start = '\\begin{equation}\\begin{split}';
-                    //var end = '\\end{split}\\end{equation}';
-                    //tex = start + tex.replace(/\n/g, end + start) + end;
-                    tex = '\\displaystyle{' + tex.replace(/\n/g, '\\\\') + '}';
-                    QUEUE.Push(hide_box, ["Text", math, tex], show_box);
-                }
-
-                setInterval(function() {
-                    if (trigger_update) {
-                        trigger_update = false;
-                        update_math(input_box.value);
-                    }
-                }, 50);
-            });
-        })();
-        </script>
+        <script type="text/javascript" src="../../../src/frontend/js/editor.js"></script>
     </body>
 </html>
