@@ -1,8 +1,9 @@
 from src.rules.derivatives import der, get_derivation_variable, \
         match_zero_derivative, match_one_derivative, one_derivative, \
         zero_derivative, match_variable_power, variable_root, \
-        match_const_deriv_multiplication, const_deriv_multiplication, \
-        chain_rule
+        variable_exponent, match_const_deriv_multiplication, \
+        const_deriv_multiplication, chain_rule
+from src.rules.logarithmic import ln
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -70,10 +71,18 @@ class TestRulesDerivatives(RulesTestCase):
         self.assertEqualPos(match_variable_power(root),
                 [P(root, variable_root)])
 
+        root = tree('der(2 ^ x)')
+        self.assertEqualPos(match_variable_power(root),
+                [P(root, variable_exponent)])
+
     def test_match_variable_power_chain_rule(self):
         root, x, l2, x3 = tree('der((x ^ 3) ^ 2), x, 2, x ^ 3')
         self.assertEqualPos(match_variable_power(root),
                 [P(root, chain_rule, (x3, variable_root, ()))])
+
+        root = tree('der(2 ^ x ^ 3)')
+        self.assertEqualPos(match_variable_power(root),
+                [P(root, chain_rule, (x3, variable_exponent, ()))])
 
         # Below is not mathematically underivable, it's just not within the
         # scope of our program

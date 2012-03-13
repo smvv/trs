@@ -108,7 +108,7 @@ MESSAGES[zero_derivative] = _('Constant {0[0]} has derivative 0.')
 
 def match_const_deriv_multiplication(node):
     """
-    [f(c * x)]'  ->  c * [f(x)]'
+    der(c * f(x), x)  ->  c * der(f(x), x)
     """
     assert node.is_op(OP_DERIV)
 
@@ -126,14 +126,13 @@ def match_const_deriv_multiplication(node):
 
 def const_deriv_multiplication(root, args):
     """
-    [f(c * x)]'  ->  c * [f(x)]'
+    der(c * f(x), x)  ->  c * der(f(x), x)
     """
     scope, c = args
 
     scope.remove(c)
     x = L(get_derivation_variable(root))
 
-    # FIXME: is the explicit 'x' parameter necessary?
     return c * der(scope.as_nary_node(), x)
 
 
@@ -167,7 +166,7 @@ def match_variable_power(node):
         if exponent.is_variable():
             return [P(node, variable_exponent)]
 
-        return [P(node, chain_rule, (root, variable_exponent, ()))]
+        return [P(node, chain_rule, (exponent, variable_exponent, ()))]
 
     return []
 
@@ -181,6 +180,10 @@ def variable_root(root, args):
     return n * x ** (n - 1)
 
 
+MESSAGES[variable_root] = \
+        _('Apply standard derivative d/dx x ^ n = n * x ^ (n - 1) on {0}.')
+
+
 def variable_exponent(root, args):
     """
     der(g ^ x, x)  ->  g ^ x * ln(g)
@@ -192,3 +195,7 @@ def variable_exponent(root, args):
     g, x = root[0]
 
     return g ** x * ln(g)
+
+
+MESSAGES[variable_exponent] = \
+        _('Apply standard derivative d/dx g ^ x = g ^ x * ln g.')
