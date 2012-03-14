@@ -115,11 +115,12 @@ def match_const_deriv_multiplication(node):
     p = []
 
     if node[0].is_op(OP_MUL):
+        x = L(get_derivation_variable(node))
         scope = Scope(node[0])
 
         for n in scope:
-            if n.is_numeric():
-                p.append(P(node, const_deriv_multiplication, (scope, n)))
+            if not n.contains(x):
+                p.append(P(node, const_deriv_multiplication, (scope, n, x)))
 
     return p
 
@@ -128,10 +129,9 @@ def const_deriv_multiplication(root, args):
     """
     der(c * f(x), x)  ->  c * der(f(x), x)
     """
-    scope, c = args
+    scope, c, x = args
 
     scope.remove(c)
-    x = L(get_derivation_variable(root))
 
     return c * der(scope.as_nary_node(), x)
 
