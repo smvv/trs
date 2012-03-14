@@ -218,3 +218,7 @@ class TestNode(RulesTestCase):
         self.assertFalse(bc.contains(a))
         self.assertTrue(ln0.contains(a))
         self.assertFalse(ln1.contains(a))
+
+    def test_construct_function(self):
+        self.assertEqual(str(tree('der(x ^ 2)')), '[x ^ 2]\'')
+        self.assertEqual(str(tree('der(x ^ 2, x)')), 'd/dx (x ^ 2)')

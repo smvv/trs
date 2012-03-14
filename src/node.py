@@ -239,6 +239,15 @@ class ExpressionNode(Node, ExpressionBase):
         self.type = TYPE_OPERATOR
         self.op = OP_MAP[args[0]]
 
+    def construct_function(self, children):
+        if self.op == OP_DERIV:
+            f = children[0]
+
+            if len(children) < 2:
+                return '[' + f + ']\''
+
+            return 'd/d' + children[1] + ' (' + f + ')'
+
     def __str__(self):  # pragma: nocover
         return generate_line(self)
 
