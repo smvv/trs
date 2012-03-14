@@ -58,8 +58,8 @@ class Parser(BisonParser):
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
-              'LPAREN', 'RPAREN', 'FUNCTION', 'LBRACKET', 'RBRACKET', \
-              'APOSTROPH', 'DERIVATIVE'] \
+              'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
+              'RBRACKET', 'APOSTROPH', 'DERIVATIVE'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -69,10 +69,11 @@ class Parser(BisonParser):
         ('left', ('COMMA', )),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
+        ('right', ('FUNCTION', 'DERIVATIVE')),
         ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
-        ('right', ('FUNCTION', )),
+        ('right', ('FUNCTION_LPAREN', )),
         )
 
     interactive = 0
@@ -142,6 +143,13 @@ class Parser(BisonParser):
 
         import re
 
+        # Replace known keywords with escape sequences.
+        words = list(Parser.words)
+        words.insert(10, '\n')
+
+        for i, keyword in enumerate(words):
+            data = re.sub(keyword, chr(i), data, flags=re.I)
+
         # TODO: remove this quick preprocessing hack. This hack enables
         # concatenated expressions, since the grammar currently does not
         # support those. This workaround will replace:
@@ -152,20 +160,24 @@ class Parser(BisonParser):
         #   - "4a" with "4*a".
         #   - "a4" with "a^4".
 
-        pattern = ('(?:(\))\s*(\()'       # match: )(    result: ) * (
-                + '|([a-z0-9])\s*(\()'    # match: a(    result: a * (
-                + '|(\))\s*([a-z0-9])'    # match: )a    result: ) * a
-                + '|([a-z])\s*([a-z]+)'   # match: ab    result: a * b
-                + '|([0-9])\s*([a-z])'    # match: 4a    result: 4 * a
-                + '|([a-z])\s*([0-9])'    # match: a4    result: a ^ 4
-                + '|([0-9])\s+([0-9]))')  # match: 4 4   result: 4 * 4
+        pattern = ('(?:(\))\s*(\()'                       # )(  -> ) * (
+                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*(\()'  # a(  -> a * (
+                + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'  # )a  -> ) * a
+                + '|([\x00-\x09\x0b-\x19a-z])\s*'
+                    +'([\x00-\x09\x0b-\x19a-z]+)'         # ab  -> a * b
+                + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'  # 4a  -> 4 * a
+                + '|([\x00-\x09\x0b-\x19a-z])\s*([0-9])'  # a4  -> a ^ 4
+                + '|([0-9])\s+([0-9]))'                   # 4 4 -> 4 * 4
+                )
 
         def preprocess_data(match):
             left, right = filter(None, match.groups())
 
-            # Filter words (otherwise they will be preprocessed as well)
-            if left + right in Parser.words:
-                return left + right
+            # Make sure there are no multiplication and exponentiation signs
+            # inserted between a function and its argument(s): "sin x" should
+            # not be written as "sin*x", because that is bogus.
+            if ord(left) <= 0x9 or 0x0b <= ord(left) <= 0x19:
+                return left + ' ' + right
 
             # If all characters on the right are numbers. e.g. "a4", the
             # expression implies exponentiation. Make sure ")4" is not
@@ -181,21 +193,20 @@ class Parser(BisonParser):
             data_before = data
 
         # Iteratively replace all matches.
-        while True:
-            # match: d/dx  result: der_x
-            data_after = re.sub(r'd\s*/\s*d([a-z])', r'der_\1', data)
+        i = 0
 
-            data_after = re.sub(pattern, preprocess_data, data_after)
+        while i < len(data):
+            data = data[:i] + re.sub(pattern, preprocess_data, data[i:])
+            i += 1
 
-            if data == data_after:
-                break
+        # Replace escape sequences with original keywords.
+        for i, keyword in enumerate(words):
+            data = data.replace(chr(i), keyword)
 
-            data = data_after
-
-        if self.verbose and data_before != data_after:  # pragma: nocover
+        if self.verbose and data_before != data:  # pragma: nocover
             print 'hook_read_after() modified the input data:'
             print 'before:', repr(data_before)
-            print 'after :', repr(data_after)
+            print 'after :', repr(data)
 
         return data
 
@@ -358,8 +369,9 @@ class Parser(BisonParser):
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
+              | FUNCTION_LPAREN exp RPAREN
               | FUNCTION exp
-              | DERIVATIVE TIMES exp
+              | DERIVATIVE exp
               | bracket_derivative
         """
 
@@ -374,18 +386,21 @@ class Parser(BisonParser):
 
             return node
 
-        if option == 1:  # rule: FUNCTION exp
+        if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
+            op = values[0].split(' ', 1)[0]
+
             if values[1].is_op(OP_COMMA):
-                return Node(values[0], *values[1])
+                return Node(op, *values[1])
 
-            return Node(*values)
+            return Node(op, values[1])
 
-        if option == 2:  # rule: DERIVATIVE exp
+        if option == 3:  # rule: DERIVATIVE exp
             op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
 
-            return Node(op, values[2], Leaf(values[0][-1]))
+            # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
+            return Node(op, values[1], Leaf(values[0][-2]))
 
-        if option == 3:  # rule: bracket_derivative
+        if option == 4:  # rule: bracket_derivative
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -466,6 +481,8 @@ class Parser(BisonParser):
 
     # Put all functions in a single regex
     if functions:
+        operators += '("%s")[ ]*"(" { returntoken(FUNCTION_LPAREN); }\n' \
+                     % '"|"'.join(functions)
         operators += '("%s") { returntoken(FUNCTION); }\n' \
                      % '"|"'.join(functions)
 
@@ -502,11 +519,14 @@ class Parser(BisonParser):
 
     %%
 
-    "der_"[a-z] { returntoken(DERIVATIVE); }
+    d[ ]*"/"[ ]*"d*"[a-z]"*" { returntoken(DERIVATIVE); }
     [0-9]+"."?[0-9]* { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
+    "["       { returntoken(LBRACKET); }
+    "]"       { returntoken(RBRACKET); }
+    "'"       { returntoken(APOSTROPH); }
     """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
@@ -514,9 +534,6 @@ class Parser(BisonParser):
 
     [ \t\v\f] { }
     [\n]      { yycolumn = 0; returntoken(NEWLINE); }
-    "["       { returntoken(LBRACKET); }
-    "]"       { returntoken(RBRACKET); }
-    "'"       { returntoken(APOSTROPH); }
     .         { printf("unknown char %c ignored.\n", yytext[0]); }
 
     %%
