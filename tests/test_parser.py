@@ -70,5 +70,7 @@ class TestParser(unittest.TestCase):
 
         self.assertEqual(tree('d/dx x ^ 2'), der(exp, x))
         self.assertEqual(tree('d / dx x ^ 2'), der(exp, x))
+        self.assertEqual(tree('d/dx x ^ 2 + x'), der(exp, x) + x)
+        self.assertEqual(tree('d/dx (x ^ 2 + x)'), der(exp + x, x))
         self.assertEqual(tree('d/d'), d / d)
         # FIXME: self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))

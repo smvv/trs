@@ -73,7 +73,6 @@ class Parser(BisonParser):
         ('left', ('NEG', )),
         ('right', ('POW', )),
         ('right', ('FUNCTION', )),
-        #('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
         )
 
     interactive = 0
