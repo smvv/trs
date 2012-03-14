@@ -141,6 +141,10 @@ class Parser(BisonParser):
 
         import re
 
+        # Replace known keywords with escape sequences.
+        for i, keyword in enumerate(Parser.words):
+            data = re.sub(keyword, chr(i), data, flags=re.I)
+
         # TODO: remove this quick preprocessing hack. This hack enables
         # concatenated expressions, since the grammar currently does not
         # support those. This workaround will replace:
@@ -151,20 +155,24 @@ class Parser(BisonParser):
         #   - "4a" with "4*a".
         #   - "a4" with "a^4".
 
-        pattern = ('(?:(\))\s*(\()'       # match: )(  result: ) * (
-                + '|([a-z0-9])\s*(\()'    # match: a(  result: a * (
-                + '|(\))\s*([a-z0-9])'    # match: )a  result: ) * a
-                + '|([a-z])\s*([a-z]+)'   # match: ab  result: a * b
-                + '|([0-9])\s*([a-z])'    # match: 4a  result: 4 * a
-                + '|([a-z])\s*([0-9])'    # match: a4  result: a ^ 4
-                + '|([0-9])\s+([0-9]))')  # match: 4 4 result: 4 * 4
+        pattern = ('(?:(\))\s*(\()'                       # )(  -> ) * (
+                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*(\()'  # a(  -> a * (
+                + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'  # )a  -> ) * a
+                + '|([\x00-\x09\x0b-\x19a-z])\s*'
+                    +'([\x00-\x09\x0b-\x19a-z]+)'         # ab  -> a * b
+                + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'  # 4a  -> 4 * a
+                + '|([\x00-\x09\x0b-\x19a-z])\s*([0-9])'  # a4  -> a ^ 4
+                + '|([0-9])\s+([0-9]))'                   # 4 4 -> 4 * 4
+                )
 
         def preprocess_data(match):
             left, right = filter(None, match.groups())
 
-            # Filter words (otherwise they will be preprocessed as well)
-            if left + right in Parser.words:
-                return left + right
+            # Make sure there are no multiplication and exponentiation signs
+            # inserted between a function and its argument(s): "sin x" should
+            # not be written as "sin*x", because that is bogus.
+            if ord(left) <= 0x9 or 0x0b <= ord(left) <= 0x19:
+                return left + ' ' + right
 
             # If all characters on the right are numbers. e.g. "a4", the
             # expression implies exponentiation. Make sure ")4" is not
@@ -180,18 +188,20 @@ class Parser(BisonParser):
             data_before = data
 
         # Iteratively replace all matches.
-        while True:
-            data_after = re.sub(pattern, preprocess_data, data)
+        i = 0
 
-            if data == data_after:
-                break
+        while i < len(data):
+            data = data[:i] + re.sub(pattern, preprocess_data, data[i:])
+            i += 1
 
-            data = data_after
+        # Replace escape sequences with original keywords.
+        for i, keyword in enumerate(Parser.words):
+            data = data.replace(chr(i), keyword)
 
-        if self.verbose and data_before != data_after:  # pragma: nocover
+        if self.verbose and data_before != data:  # pragma: nocover
             print 'hook_read_after() modified the input data:'
             print 'before:', repr(data_before)
-            print 'after :', repr(data_after)
+            print 'after :', repr(data)
 
         return data
 
