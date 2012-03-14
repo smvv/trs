@@ -355,23 +355,6 @@ class Parser(BisonParser):
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
-    #def on_delta_derivative(self, target, option, names, values):
-    #    """
-    #    delta_derivative : DELTA DIVIDE DELTA IDENTIFIER TIMES exp
-    #                     | DELTA LPAREN exp RPAREN DIVIDE DELTA IDENTIFIER
-    #    """
-
-    #    op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
-
-    #    if option == 0:  # rule: DELTA DIVIDE DELTA IDENTIFIER TIMES exp
-    #        return Node(op, values[5], Leaf(values[3]))
-
-    #    if option == 1:  # rule: DELTA LPAREN exp RPAREN DIVIDE DELTA IDENTIFIER
-    #        return Node(op, values[2], Leaf(values[6]))
-
-    #    raise BisonSyntaxError('Unsupported option %d in target "%s".'
-    #                           % (option, target))  # pragma: nocover
-
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
@@ -470,7 +453,6 @@ class Parser(BisonParser):
     # -----------------------------------------
     # Special characters and operator tokens
     # -----------------------------------------
-    #delta = '"%s"%s' % (DELTA, ' ' * (8 - len(DELTA)))
     operators = '"%s"%s{ returntoken(IDENTIFIER); }\n' \
                 % (PI, ' ' * (8 - len(PI)))
     functions = []
