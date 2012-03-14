@@ -50,10 +50,10 @@ class TestParser(unittest.TestCase):
         root, x = tree('sin x, x')
 
         self.assertEqual(root, sin(x))
-        #FIXME: self.assertEqual(tree('sin x ^ 2'), sin(x ** 2))
         self.assertEqual(tree('sin 2 x'), sin(2) * x)
+        self.assertEqual(tree('sin x ^ 2'), sin(x ** 2))
         self.assertEqual(tree('sin(x) ^ 2'), sin(x) ** 2)
-        self.assertEqual(tree('sin (x) ^ 2'), sin(x) ** 2)
         self.assertEqual(tree('sin(x ^ 2)'), sin(x ** 2))
         self.assertEqual(tree('sin cos x'), sin(cos(x)))
-        self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x)) ** 2)
+        self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x ** 2)))
+        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x) ** 2))

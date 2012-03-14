@@ -16,7 +16,7 @@ class TestRulesGoniometry(RulesTestCase):
         self.assertEqual(doctest.testmod(m=goniometry)[0], 0)
 
     def test_match_add_quadrants(self):
-        root = tree('sin t ^ 2 + cos t ^ 2')
+        root = tree('sin(t) ^ 2 + cos(t) ^ 2')
         possibilities = match_add_quadrants(root)
         self.assertEqualPos(possibilities, [P(root, add_quadrants, ())])
 

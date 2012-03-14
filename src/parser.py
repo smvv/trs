@@ -57,7 +57,7 @@ class Parser(BisonParser):
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
-              'LPAREN', 'RPAREN', 'FUNCTION'] \
+              'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -67,11 +67,11 @@ class Parser(BisonParser):
         ('left', ('COMMA', )),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
+        ('right', ('FUNCTION', )),
         ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
-        ('right', ('FUNCTION', )),
-        #('right', ('SIN', 'COS', 'TAN', 'SOLVE', 'INT', 'SQRT')),
+        ('right', ('FUNCTION_LPAREN', )),
         )
 
     interactive = 0
@@ -364,6 +364,7 @@ class Parser(BisonParser):
     def on_unary(self, target, option, names, values):
         """
         unary : MINUS exp %prec NEG
+              | FUNCTION_LPAREN exp RPAREN
               | FUNCTION exp
         """
 
@@ -378,11 +379,13 @@ class Parser(BisonParser):
 
             return node
 
-        if option == 1:  # rule: FUNCTION exp
-            if values[1].is_op(OP_COMMA):
-                return Node(values[0], *values[1])
+        if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
+            op = values[0].split(' ', 1)[0]
 
-            return Node(*values)
+            if values[1].is_op(OP_COMMA):
+                return Node(op, *values[1])
+
+            return Node(op, values[1])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -445,6 +448,8 @@ class Parser(BisonParser):
 
     # Put all functions in a single regex
     if functions:
+        operators += '("%s")[ ]*"(" { returntoken(FUNCTION_LPAREN); }\n' \
+                     % '"|"'.join(functions)
         operators += '("%s") { returntoken(FUNCTION); }\n' \
                      % '"|"'.join(functions)
 
