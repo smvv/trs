@@ -99,7 +99,6 @@ def match_divide_numerics(node):
     assert node.is_op(OP_DIV)
 
     n, d = node
-    divide = False
     nv, dv = n.value, d.value
 
     if n.is_int() and d.is_int():

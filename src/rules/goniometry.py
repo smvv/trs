@@ -1,7 +1,5 @@
-from .utils import is_fraction
-from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_ADD, \
-        OP_POW, OP_MUL, OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, \
-        TYPE_OPERATOR
+from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_ADD, OP_MUL, \
+        OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, TYPE_OPERATOR
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 

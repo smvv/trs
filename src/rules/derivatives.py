@@ -1,5 +1,3 @@
-from itertools import combinations
-
 from .utils import find_variables
 from .logarithmic import ln
 from .goniometry import sin, cos

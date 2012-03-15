@@ -1,6 +1,4 @@
-from itertools import product, combinations
-
-from ..node import Scope, OP_ADD, OP_MUL
+from ..node import Scope, OP_MUL
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 

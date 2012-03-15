@@ -1,8 +1,8 @@
 from itertools import combinations, product
 
 from .utils import least_common_multiple, partition
-from ..node import ExpressionLeaf as L, Scope, negate, OP_DIV, OP_ADD, \
-        OP_MUL, OP_POW, nary_node, negate
+from ..node import ExpressionLeaf as L, Scope, OP_DIV, OP_ADD, OP_MUL, \
+        OP_POW, nary_node, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
