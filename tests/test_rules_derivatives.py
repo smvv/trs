@@ -2,8 +2,10 @@ from src.rules.derivatives import der, get_derivation_variable, \
         match_zero_derivative, match_one_derivative, one_derivative, \
         zero_derivative, match_variable_power, variable_root, \
         variable_exponent, match_const_deriv_multiplication, \
-        const_deriv_multiplication, chain_rule, match_logarithm, logarithm
+        const_deriv_multiplication, chain_rule, match_logarithmic, \
+        logarithmic, match_goniometric, sinus, cosinus, tangens
 from src.rules.logarithmic import ln
+from src.rules.goniometry import sin, cos
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -110,15 +112,49 @@ class TestRulesDerivatives(RulesTestCase):
         self.assertEqual(chain_rule(root, (x3, variable_exponent, ())),
                           l2 ** x3 * ln(l2) * der(x3))
 
-    def test_match_logarithm(self):
+    def test_match_logarithmic(self):
         root = tree('der(log(x))')
-        self.assertEqualPos(match_logarithm(root), [P(root, logarithm)])
+        self.assertEqualPos(match_logarithmic(root), [P(root, logarithmic)])
 
-    def test_match_logarithm_chain_rule(self):
+    def test_match_logarithmic_chain_rule(self):
         root, f = tree('der(log(x ^ 2)), x ^ 2')
-        self.assertEqualPos(match_logarithm(root),
-                [P(root, chain_rule, (f, logarithm, ()))])
+        self.assertEqualPos(match_logarithmic(root),
+                [P(root, chain_rule, (f, logarithmic, ()))])
 
-    def test_logarithm(self):
+    def test_logarithmic(self):
         root, x, l1, l10 = tree('der(log(x)), x, 1, 10')
-        self.assertEqual(logarithm(root, ()), l1 / (x * ln(l10)))
+        self.assertEqual(logarithmic(root, ()), l1 / (x * ln(l10)))
+
+    def test_match_goniometric(self):
+        root = tree('der(sin(x))')
+        self.assertEqualPos(match_goniometric(root), [P(root, sinus)])
+
+        root = tree('der(cos(x))')
+        self.assertEqualPos(match_goniometric(root), [P(root, cosinus)])
+
+        root = tree('der(tan(x))')
+        self.assertEqualPos(match_goniometric(root), [P(root, tangens)])
+
+    def test_match_goniometric_chain_rule(self):
+        root, x2 = tree('der(sin(x ^ 2)), x ^ 2')
+        self.assertEqualPos(match_goniometric(root),
+                [P(root, chain_rule, (x2, sinus, ()))])
+
+        root = tree('der(cos(x ^ 2))')
+        self.assertEqualPos(match_goniometric(root),
+                [P(root, chain_rule, (x2, cosinus, ()))])
+
+    def test_sinus(self):
+        root, x = tree('der(sin(x)), x')
+        self.assertEqual(sinus(root, ()), cos(x))
+
+    def test_cosinus(self):
+        root, x = tree('der(cos(x)), x')
+        self.assertEqual(cosinus(root, ()), -sin(x))
+
+    def test_tangens(self):
+        root, x = tree('der(tan(x), x), x')
+        self.assertEqual(tangens(root, ()), der(sin(x) / cos(x), x))
+
+        root = tree('der(tan(x))')
+        self.assertEqual(tangens(root, ()), der(sin(x) / cos(x)))

@@ -2,8 +2,9 @@ from itertools import combinations
 
 from .utils import find_variables
 from .logarithmic import ln
+from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DER, \
-        OP_MUL, OP_LOG
+        OP_MUL, OP_LOG, OP_SIN, OP_COS, OP_TAN
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -201,7 +202,7 @@ MESSAGES[variable_exponent] = \
         _('Apply standard derivative d/dx g ^ x = g ^ x * ln g.')
 
 
-def match_logarithm(node):
+def match_logarithmic(node):
     """
     der(log(x, g), x)     ->  1 / (x * ln(g))
     der(log(f(x), g), x)  ->  1 / (f(x) * ln(g)) * der(f(x), x)
@@ -215,15 +216,15 @@ def match_logarithm(node):
         x = L(x)
 
         if f == x:
-            return [P(node, logarithm, ())]
+            return [P(node, logarithmic, ())]
 
         if f.contains(x):
-            return [P(node, chain_rule, (f, logarithm, ()))]
+            return [P(node, chain_rule, (f, logarithmic, ()))]
 
     return []
 
 
-def logarithm(root, args):
+def logarithmic(root, args):
     """
     der(log(x, g), x)  ->  1 / (x * ln(g))
     """
@@ -232,5 +233,71 @@ def logarithm(root, args):
     return L(1) / (x * ln(g))
 
 
-MESSAGES[logarithm] = \
+MESSAGES[logarithmic] = \
         _('Apply standard derivative d/dx log(x, g) = 1 / (x * ln(g)).')
+
+
+def match_goniometric(node):
+    """
+    der(sin(x), x)     ->  cos(x)
+    der(sin(f(x)), x)  ->  cos(f(x)) * der(f(x), x)
+    der(cos(x), x)     ->  -sin(x)
+    der(cos(f(x)), x)  ->  -sin(f(x)) * der(f(x), x)
+    der(tan(x), x)     ->  der(sin(x) / cos(x), x)
+    """
+    assert node.is_op(OP_DER)
+
+    x = get_derivation_variable(node)
+
+    if x and not node[0].is_leaf:
+        op = node[0].op
+
+        if op in (OP_SIN, OP_COS):
+            f = node[0][0]
+            x = L(x)
+            handler = sinus if op == OP_SIN else cosinus
+
+            if f == x:
+                return [P(node, handler)]
+
+            if f.contains(x):
+                return [P(node, chain_rule, (f, handler, ()))]
+
+        if op == OP_TAN:
+            return [P(node, tangens)]
+
+    return []
+
+
+def sinus(root, args):
+    """
+    der(sin(x), x)  ->  cos(x)
+    """
+    return cos(root[0][0])
+
+
+MESSAGES[sinus] = _('Apply standard derivative d/dx sin(x) = cos(x).')
+
+
+def cosinus(root, args):
+    """
+    der(cos(x), x)  ->  -sin(x)
+    """
+    return -sin(root[0][0])
+
+
+MESSAGES[cosinus] = _('Apply standard derivative d/dx cos(x) = -sin(x).')
+
+
+def tangens(root, args):
+    """
+    der(tan(x), x)  ->  der(sin(x) / cos(x), x)
+    """
+    f = root[0][0]
+    x = root[1] if len(root) > 1 else None
+
+    return der(sin(f) / cos(f), x)
+
+
+MESSAGES[tangens] = \
+        _('Convert the tanges to a division and apply the product rule.')

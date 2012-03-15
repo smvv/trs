@@ -19,7 +19,8 @@ from .goniometry import match_add_quadrants, match_negated_parameter, \
         match_half_pi_subtraction, match_standard_radian
 from src.rules.derivatives import match_zero_derivative, \
         match_one_derivative, match_variable_power, \
-        match_const_deriv_multiplication, match_logarithm
+        match_const_deriv_multiplication, match_logarithmic, \
+        match_goniometric
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -43,5 +44,5 @@ RULES = {
         OP_TAN: [match_standard_radian],
         OP_DER: [match_zero_derivative, match_one_derivative,
                  match_variable_power, match_const_deriv_multiplication,
-                 match_logarithm],
+                 match_logarithmic, match_goniometric],
         }
