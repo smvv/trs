@@ -2,8 +2,8 @@ from itertools import combinations
 
 from .utils import find_variables
 from .logarithmic import ln
-from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DERIV, \
-        OP_MUL
+from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DER, \
+        OP_MUL, OP_LOG
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -58,7 +58,7 @@ def match_zero_derivative(node):
     der(x, y)  ->  0
     der(n)     ->  0
     """
-    assert node.is_op(OP_DERIV)
+    assert node.is_op(OP_DER)
 
     variables = find_variables(node[0])
     var = get_derivation_variable(node, variables)
@@ -74,7 +74,7 @@ def match_one_derivative(node):
     der(x)     ->  1  # Implicit x
     der(x, x)  ->  1  # Explicit x
     """
-    assert node.is_op(OP_DERIV)
+    assert node.is_op(OP_DER)
 
     var = get_derivation_variable(node)
 
@@ -110,7 +110,7 @@ def match_const_deriv_multiplication(node):
     """
     der(c * f(x), x)  ->  c * der(f(x), x)
     """
-    assert node.is_op(OP_DERIV)
+    assert node.is_op(OP_DER)
 
     p = []
 
@@ -146,7 +146,7 @@ def match_variable_power(node):
     der(x ^ n, x)  ->  n * x ^ (n - 1)
     der(f(x) ^ n)  ->  n * f(x) ^ (n - 1) * der(f(x))  # Chain rule
     """
-    assert node.is_op(OP_DERIV)
+    assert node.is_op(OP_DER)
 
     if not node[0].is_power():
         return []
@@ -199,3 +199,38 @@ def variable_exponent(root, args):
 
 MESSAGES[variable_exponent] = \
         _('Apply standard derivative d/dx g ^ x = g ^ x * ln g.')
+
+
+def match_logarithm(node):
+    """
+    der(log(x, g), x)     ->  1 / (x * ln(g))
+    der(log(f(x), g), x)  ->  1 / (f(x) * ln(g)) * der(f(x), x)
+    """
+    assert node.is_op(OP_DER)
+
+    x = get_derivation_variable(node)
+
+    if x and node[0].is_op(OP_LOG):
+        f = node[0][0]
+        x = L(x)
+
+        if f == x:
+            return [P(node, logarithm, ())]
+
+        if f.contains(x):
+            return [P(node, chain_rule, (f, logarithm, ()))]
+
+    return []
+
+
+def logarithm(root, args):
+    """
+    der(log(x, g), x)  ->  1 / (x * ln(g))
+    """
+    x, g = root[0]
+
+    return L(1) / (x * ln(g))
+
+
+MESSAGES[logarithm] = \
+        _('Apply standard derivative d/dx log(x, g) = 1 / (x * ln(g)).')

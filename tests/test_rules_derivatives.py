@@ -2,7 +2,7 @@ from src.rules.derivatives import der, get_derivation_variable, \
         match_zero_derivative, match_one_derivative, one_derivative, \
         zero_derivative, match_variable_power, variable_root, \
         variable_exponent, match_const_deriv_multiplication, \
-        const_deriv_multiplication, chain_rule
+        const_deriv_multiplication, chain_rule, match_logarithm, logarithm
 from src.rules.logarithmic import ln
 from src.node import Scope
 from src.possibilities import Possibility as P
@@ -109,3 +109,16 @@ class TestRulesDerivatives(RulesTestCase):
         x, l3 = x3
         self.assertEqual(chain_rule(root, (x3, variable_exponent, ())),
                           l2 ** x3 * ln(l2) * der(x3))
+
+    def test_match_logarithm(self):
+        root = tree('der(log(x))')
+        self.assertEqualPos(match_logarithm(root), [P(root, logarithm)])
+
+    def test_match_logarithm_chain_rule(self):
+        root, f = tree('der(log(x ^ 2)), x ^ 2')
+        self.assertEqualPos(match_logarithm(root),
+                [P(root, chain_rule, (f, logarithm, ()))])
+
+    def test_logarithm(self):
+        root, x, l1, l10 = tree('der(log(x)), x, 1, 10')
+        self.assertEqual(logarithm(root, ()), l1 / (x * ln(l10)))
