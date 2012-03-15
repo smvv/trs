@@ -7,6 +7,7 @@ from tests.parser import ParserWrapper, run_expressions, line, graph
 from tests.rulestestcase import tree
 from src.rules.goniometry import sin, cos
 from src.rules.derivatives import der
+from src.rules.logarithmic import log, ln
 
 
 class TestParser(unittest.TestCase):
@@ -75,3 +76,11 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('d/dx (x ^ 2 + x)'), der(exp + x, x))
         self.assertEqual(tree('d/d'), d / d)
         # FIXME: self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))
+
+    def test_logarithm(self):
+        x, g = tree('x, g')
+
+        self.assertEqual(tree('log(x, e)'), ln(x))
+        self.assertEqual(tree('log(x, 10)'), log(x))
+        self.assertEqual(tree('log(x, 2)'), log(x, 2))
+        self.assertEqual(tree('log(x, g)'), log(x, g))

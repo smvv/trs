@@ -221,4 +221,10 @@ class TestNode(RulesTestCase):
 
     def test_construct_function(self):
         self.assertEqual(str(tree('der(x ^ 2)')), '[x ^ 2]\'')
+        self.assertEqual(str(tree('der(der(x ^ 2))')), '[x ^ 2]\'\'')
         self.assertEqual(str(tree('der(x ^ 2, x)')), 'd/dx (x ^ 2)')
+
+        self.assertEqual(str(tree('log(x, e)')), 'ln(x)')
+        self.assertEqual(str(tree('log(x, 10)')), 'log(x)')
+        self.assertEqual(str(tree('log(x, 2)')), 'log_2(x)')
+        self.assertEqual(str(tree('log(x, g)')), 'log(x, g)')

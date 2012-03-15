@@ -15,13 +15,14 @@ from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
-        OP_DERIV, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
-        Scope, PI
+        OP_DER, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
+        OP_LOG, Scope, PI, E, DEFAULT_LOGARITHM_BASE
 from rules import RULES
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
 
 import Queue
+import re
 
 
 # Check for n-ary operator in child nodes
@@ -140,8 +141,6 @@ class Parser(BisonParser):
             return data
 
         self.possibilities = []
-
-        import re
 
         # Replace known keywords with escape sequences.
         words = list(Parser.words)
@@ -389,13 +388,24 @@ class Parser(BisonParser):
         if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
             op = values[0].split(' ', 1)[0]
 
+            if op == 'ln':
+                return Node('log', values[1], Leaf(E))
+
             if values[1].is_op(OP_COMMA):
                 return Node(op, *values[1])
+
+            if op == 'log':
+                return Node('log', values[1], Leaf(DEFAULT_LOGARITHM_BASE))
+
+            m = re.match(r'^log_([0-9]+)', op)
+
+            if m:
+                return Node('log', values[1], Leaf(int(m.group(1))))
 
             return Node(op, values[1])
 
         if option == 3:  # rule: DERIVATIVE exp
-            op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
+            op = [k for k, v in OP_MAP.iteritems() if v == OP_DER][0]
 
             # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
             return Node(op, values[1], Leaf(values[0][-2]))
@@ -412,7 +422,7 @@ class Parser(BisonParser):
                            | bracket_derivative APOSTROPH
         """
 
-        op = [k for k, v in OP_MAP.iteritems() if v == OP_DERIV][0]
+        op = [k for k, v in OP_MAP.iteritems() if v == OP_DER][0]
 
         if option == 0:  # rule: LBRACKET exp RBRACKET APOSTROPH
             return Node(op, values[1])
@@ -527,6 +537,8 @@ class Parser(BisonParser):
     "["       { returntoken(LBRACKET); }
     "]"       { returntoken(RBRACKET); }
     "'"       { returntoken(APOSTROPH); }
+    log_[0-9]+"*(" { returntoken(FUNCTION_LPAREN); }
+    log_[0-9]+"*" { returntoken(FUNCTION); }
     """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }

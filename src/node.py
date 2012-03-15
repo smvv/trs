@@ -33,26 +33,28 @@ OP_MOD = 7
 OP_INT = 8
 OP_COMMA = 9
 OP_SQRT = 10
-OP_DERIV = 11
+OP_DER = 11
 OP_LOG = 12
-OP_LN = 13
 
 # Goniometry
-OP_SIN = 14
-OP_COS = 15
-OP_TAN = 16
+OP_SIN = 13
+OP_COS = 14
+OP_TAN = 15
 
-OP_SOLVE = 17
-OP_EQ = 18
+OP_SOLVE = 16
+OP_EQ = 17
 
-OP_POSSIBILITIES = 19
-OP_HINT = 20
-OP_REWRITE_ALL = 21
-OP_REWRITE = 22
+OP_POSSIBILITIES = 18
+OP_HINT = 19
+OP_REWRITE_ALL = 20
+OP_REWRITE = 21
 
 # Special identifiers
 PI = 'pi'
 E = 'e'
+
+# Default base to use in parsing 'log(...)'
+DEFAULT_LOGARITHM_BASE = 10
 
 
 TYPE_MAP = {
@@ -73,10 +75,10 @@ OP_MAP = {
         'tan': OP_TAN,
         'sqrt': OP_SQRT,
         'int': OP_INT,
-        'der': OP_DERIV,
+        'der': OP_DER,
         'solve': OP_SOLVE,
         'log': OP_LOG,
-        'ln': OP_LN,
+        'ln': OP_LOG,
         '=': OP_EQ,
         '??': OP_POSSIBILITIES,
         '?': OP_HINT,
@@ -96,10 +98,9 @@ TOKEN_MAP = {
         OP_COS: 'FUNCTION',
         OP_TAN: 'FUNCTION',
         OP_INT: 'FUNCTION',
-        OP_DERIV: 'FUNCTION',
+        OP_DER: 'FUNCTION',
         OP_SOLVE: 'FUNCTION',
         OP_LOG: 'FUNCTION',
-        OP_LN: 'FUNCTION',
         OP_EQ: 'EQ',
         OP_POSSIBILITIES: 'POSSIBILITIES',
         OP_HINT: 'HINT',
@@ -162,8 +163,8 @@ class ExpressionBase(object):
 
         return s_root < o_root or s_exp < o_exp or s_coeff < o_coeff
 
-    def is_op(self, op):
-        return not self.is_leaf and self.op == op
+    def is_op(self, *ops):
+        return not self.is_leaf and self.op in ops
 
     def is_power(self, exponent=None):
         if self.is_leaf or self.op != OP_POW:
@@ -240,13 +241,32 @@ class ExpressionNode(Node, ExpressionBase):
         self.op = OP_MAP[args[0]]
 
     def construct_function(self, children):
-        if self.op == OP_DERIV:
+        if self.op == OP_DER:
             f = children[0]
 
             if len(children) < 2:
+                # der(der(x ^ 2))  ->  [x ^ 2]''
+                if self[0].is_op(OP_DER) and len(self[0]) < 2:
+                    return f + '\''
+
+                # der(x ^ 2)  ->  [x ^ 2]'
                 return '[' + f + ']\''
 
-            return 'd/d' + children[1] + ' (' + f + ')'
+            # der(x ^ 2, x)  ->  d/dx (x ^ 2)
+            return 'd/d%s (%s)' % (children[1], f)
+
+        if self.op == OP_LOG:
+            # log(a, e)  ->  ln(a)
+            if self[1].is_identifier(E):
+                return 'ln(%s)' % children[0]
+
+            # log(a, 10)  ->  log(a)
+            if self[1] == 10:
+                return 'log(%s)' % children[0]
+
+            # log(a, 2)  ->  log_2(a)
+            if children[1].isdigit():
+                return 'log_%s(%s)' % (children[1], children[0])
 
     def __str__(self):  # pragma: nocover
         return generate_line(self)
