@@ -4,13 +4,20 @@ from .utils import find_variables
 from .logarithmic import ln
 from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DER, \
-        OP_MUL, OP_LOG, OP_SIN, OP_COS, OP_TAN
+        OP_MUL, OP_LOG, OP_SIN, OP_COS, OP_TAN, OP_ADD, OP_DIV
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
 def der(f, x=None):
     return N('der', f, x) if x else N('der', f)
+
+
+def second_arg(node):
+    """
+    Get the second child of a node if it exists, None otherwise.
+    """
+    return node[1] if len(node) > 1 else None
 
 
 def get_derivation_variable(node, variables=None):
@@ -70,6 +77,17 @@ def match_zero_derivative(node):
     return []
 
 
+def zero_derivative(root, args):
+    """
+    der(x, y)  ->  0
+    der(n)     ->  0
+    """
+    return L(0)
+
+
+MESSAGES[zero_derivative] = _('Constant {0[0]} has derivative 0.')
+
+
 def match_one_derivative(node):
     """
     der(x)     ->  1  # Implicit x
@@ -94,17 +112,6 @@ def one_derivative(root, args):
 
 
 MESSAGES[one_derivative] = _('Variable {0[0]} has derivative 1.')
-
-
-def zero_derivative(root, args):
-    """
-    der(x, y)  ->  0
-    der(n)     ->  0
-    """
-    return L(0)
-
-
-MESSAGES[zero_derivative] = _('Constant {0[0]} has derivative 0.')
 
 
 def match_const_deriv_multiplication(node):
@@ -293,11 +300,105 @@ def tangens(root, args):
     """
     der(tan(x), x)  ->  der(sin(x) / cos(x), x)
     """
-    f = root[0][0]
-    x = root[1] if len(root) > 1 else None
+    x = root[0][0]
 
-    return der(sin(f) / cos(f), x)
+    return der(sin(x) / cos(x), second_arg(root))
 
 
 MESSAGES[tangens] = \
         _('Convert the tanges to a division and apply the product rule.')
+
+
+def match_sum_product_rule(node):
+    """
+    [f(x) + g(x)]'  ->  f'(x) + g'(x)
+    [f(x) * g(x)]'  ->  f'(x) * g(x) + f(x) * g'(x)
+    """
+    assert node.is_op(OP_DER)
+
+    x = get_derivation_variable(node)
+
+    if not x or node[0].is_leaf or node[0].op not in (OP_ADD, OP_MUL):
+        return []
+
+    scope = Scope(node[0])
+    x = L(x)
+    functions = [n for n in scope if n.contains(x)]
+
+    if len(functions) < 2:
+        return []
+
+    p = []
+    handler = sum_rule if node[0].op == OP_ADD else product_rule
+
+    for f in functions:
+        p.append(P(node, handler, (scope, f)))
+
+    return p
+
+
+def sum_rule(root, args):
+    """
+    [f(x) + g(x)]'  ->  f'(x) + g'(x)
+    """
+    scope, f = args
+    x = second_arg(root)
+
+    scope.remove(f)
+
+    return der(f, x) + der(scope.as_nary_node(), x)
+
+
+MESSAGES[sum_rule] = _('Apply the sum rule to {0}.')
+
+
+def product_rule(root, args):
+    """
+    [f(x) * g(x)]'  ->  f'(x) * g(x) + f(x) * g'(x)
+
+    Note that implicitely:
+    [f(x) * g(x) * h(x)]'  ->  f'(x) * (g(x) * h(x)) + f(x) * [g(x) * h(x)]'
+    """
+    scope, f = args
+    x = second_arg(root)
+
+    scope.remove(f)
+    gh = scope.as_nary_node()
+
+    return der(f, x) * gh + f * der(gh, x)
+
+
+MESSAGES[product_rule] = _('Apply the product rule to {0}.')
+
+
+def match_quotient_rule(node):
+    """
+    [f(x) / g(x)]'  ->  (f'(x) * g(x) - f(x) * g'(x)) / g(x) ^ 2
+    """
+    assert node.is_op(OP_DER)
+
+    x = get_derivation_variable(node)
+
+    if not x or not node[0].is_op(OP_DIV):
+        return []
+
+    f, g = node[0]
+    x = L(x)
+
+    if f.contains(x) and g.contains(x):
+        return [P(node, quotient_rule)]
+
+    return []
+
+
+def quotient_rule(root, args):
+    """
+    [f(x) / g(x)]'  ->  (f'(x) * g(x) - f(x) * g'(x)) / g(x) ^ 2
+    """
+    f, g = root[0]
+    x = second_arg(root)
+
+    return (der(f, x) * g - f * der(g, x)) / g ** 2
+
+
+MESSAGES[quotient_rule] = _('Apply the quotient rule to {0}.')

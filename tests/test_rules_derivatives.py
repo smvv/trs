@@ -3,7 +3,9 @@ from src.rules.derivatives import der, get_derivation_variable, \
         zero_derivative, match_variable_power, variable_root, \
         variable_exponent, match_const_deriv_multiplication, \
         const_deriv_multiplication, chain_rule, match_logarithmic, \
-        logarithmic, match_goniometric, sinus, cosinus, tangens
+        logarithmic, match_goniometric, sinus, cosinus, tangens, \
+        match_sum_product_rule, sum_rule, product_rule, match_quotient_rule, \
+        quotient_rule
 from src.rules.logarithmic import ln
 from src.rules.goniometry import sin, cos
 from src.node import Scope
@@ -158,3 +160,71 @@ class TestRulesDerivatives(RulesTestCase):
 
         root = tree('der(tan(x))')
         self.assertEqual(tangens(root, ()), der(sin(x) / cos(x)))
+
+    def test_match_sum_product_rule_sum(self):
+        root = tree('der(x ^ 2 + x)')
+        x2, x = f = root[0]
+        self.assertEqualPos(match_sum_product_rule(root),
+                [P(root, sum_rule, (Scope(f), x2)),
+                 P(root, sum_rule, (Scope(f), x))])
+
+        root = tree('der(x ^ 2 + 3 + x)')
+        self.assertEqualPos(match_sum_product_rule(root),
+                [P(root, sum_rule, (Scope(root[0]), x2)),
+                 P(root, sum_rule, (Scope(root[0]), x))])
+
+    def test_match_sum_product_rule_product(self):
+        root = tree('der(x ^ 2 * x)')
+        x2, x = f = root[0]
+        self.assertEqualPos(match_sum_product_rule(root),
+                [P(root, product_rule, (Scope(f), x2)),
+                 P(root, product_rule, (Scope(f), x))])
+
+    def test_match_sum_product_rule_none(self):
+        root = tree('der(x ^ 2 + 2)')
+        self.assertEqualPos(match_sum_product_rule(root), [])
+
+        root = tree('der(x ^ 2 * 2)')
+        self.assertEqualPos(match_sum_product_rule(root), [])
+
+    def test_sum_rule(self):
+        root = tree('der(x ^ 2 + x)')
+        x2, x = f = root[0]
+        self.assertEqual(sum_rule(root, (Scope(f), x2)), der(x2) + der(x))
+        self.assertEqual(sum_rule(root, (Scope(f), x)), der(x) + der(x2))
+
+        root = tree('der(x ^ 2 + 3 + x)')
+        (x2, l3), x = f = root[0]
+        self.assertEqual(sum_rule(root, (Scope(f), x2)), der(x2) + der(l3 + x))
+        self.assertEqual(sum_rule(root, (Scope(f), x)), der(x) + der(x2 + l3))
+
+    def test_product_rule(self):
+        root = tree('der(x ^ 2 * x)')
+        x2, x = f = root[0]
+        self.assertEqual(product_rule(root, (Scope(f), x2)),
+                         der(x2) * x + x2 * der(x))
+        self.assertEqual(product_rule(root, (Scope(f), x)),
+                         der(x) * x2 + x * der(x2))
+
+        root = tree('der(x ^ 2 * x * x ^ 3)')
+        (x2, x), x3 = f = root[0]
+        self.assertEqual(product_rule(root, (Scope(f), x2)),
+                         der(x2) * (x * x3) + x2 * der(x * x3))
+        self.assertEqual(product_rule(root, (Scope(f), x)),
+                         der(x) * (x2 * x3) + x * der(x2 * x3))
+        self.assertEqual(product_rule(root, (Scope(f), x3)),
+                         der(x3) * (x2 * x) + x3 * der(x2 * x))
+
+    def test_match_quotient_rule(self):
+        root = tree('der(x ^ 2 / x)')
+        self.assertEqualPos(match_quotient_rule(root),
+                [P(root, quotient_rule)])
+
+        root = tree('der(x ^ 2 / 2)')
+        self.assertEqualPos(match_quotient_rule(root), [])
+
+    def test_quotient_rule(self):
+        root = tree('der(x ^ 2 / x)')
+        f, g = root[0]
+        self.assertEqual(quotient_rule(root, ()),
+                         (der(f) * g - f * der(g)) / g ** 2)
