@@ -67,7 +67,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('[x]\''), der(x))
         self.assertEqual(tree('[x]\'\''), der(der(x)))
 
-    def test_bracket_derivative(self):
+    def test_delta_derivative(self):
         exp, x, d = tree('x ^ 2, x, d')
 
         self.assertEqual(tree('d/dx x ^ 2'), der(exp, x))
