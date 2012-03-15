@@ -7,7 +7,7 @@ def log(exponent, base=10):
     if not isinstance(base, L):
         base = L(base)
 
-    return N('log', exponent, base)
+    return N(OP_LOG, exponent, base)
 
 
 def ln(exponent):

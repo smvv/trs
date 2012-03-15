@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-                   OP_MUL, OP_DIV, OP_POW, OP_ADD, negate
+                   OP_MUL, OP_DIV, OP_POW, OP_ADD, OP_SQRT, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -238,7 +238,7 @@ def exponent_to_root(root, args):
     """
     a, n, m = args
 
-    return N('sqrt', a if n == 1 else a ** n, m)
+    return N(OP_SQRT, a if n == 1 else a ** n, m)
 
 
 def match_extend_exponent(node):

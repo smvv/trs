@@ -10,7 +10,7 @@ from ..translate import _
 
 
 def der(f, x=None):
-    return N('der', f, x) if x else N('der', f)
+    return N(OP_DER, f, x) if x else N(OP_DER, f)
 
 
 def second_arg(node):

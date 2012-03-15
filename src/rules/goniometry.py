@@ -1,20 +1,21 @@
 from .utils import is_fraction
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_ADD, \
-        OP_POW, OP_MUL, OP_DIV, OP_SIN, OP_COS, OP_TAN, PI, TYPE_OPERATOR
+        OP_POW, OP_MUL, OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, \
+        TYPE_OPERATOR
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
 def sin(*args):
-    return N('sin', *args)
+    return N(OP_SIN, *args)
 
 
 def cos(*args):
-    return N('cos', *args)
+    return N(OP_COS, *args)
 
 
 def tan(*args):
-    return N('tan', *args)
+    return N(OP_TAN, *args)
 
 
 def match_add_quadrants(node):
@@ -102,6 +103,10 @@ def match_half_pi_subtraction(node):
     return []
 
 
+def half_pi_subtraction_sinus(root, args):
+    pass
+
+
 def is_pi_frac(node, denominator):
     """
     Check if a node is a fraction of 1 multiplied with PI.
@@ -124,7 +129,7 @@ def is_pi_frac(node, denominator):
 
 
 def sqrt(value):
-    return N('sqrt', L(value))
+    return N(OP_SQRT, L(value))
 
 
 l0, l1, sq2, sq3 = L(0), L(1), sqrt(2), sqrt(3)

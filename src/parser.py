@@ -16,7 +16,7 @@ from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
         OP_DER, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
-        OP_LOG, Scope, PI, E, DEFAULT_LOGARITHM_BASE
+        OP_LOG, OP_ADD, Scope, PI, E, DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP
 from rules import RULES
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
@@ -389,26 +389,24 @@ class Parser(BisonParser):
             op = values[0].split(' ', 1)[0]
 
             if op == 'ln':
-                return Node('log', values[1], Leaf(E))
+                return Node(OP_LOG, values[1], Leaf(E))
 
             if values[1].is_op(OP_COMMA):
                 return Node(op, *values[1])
 
-            if op == 'log':
-                return Node('log', values[1], Leaf(DEFAULT_LOGARITHM_BASE))
+            if op == OP_VALUE_MAP[OP_LOG]:
+                return Node(OP_LOG, values[1], Leaf(DEFAULT_LOGARITHM_BASE))
 
             m = re.match(r'^log_([0-9]+)', op)
 
             if m:
-                return Node('log', values[1], Leaf(int(m.group(1))))
+                return Node(OP_LOG, values[1], Leaf(int(m.group(1))))
 
             return Node(op, values[1])
 
         if option == 3:  # rule: DERIVATIVE exp
-            op = [k for k, v in OP_MAP.iteritems() if v == OP_DER][0]
-
             # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
-            return Node(op, values[1], Leaf(values[0][-2]))
+            return Node(OP_DER, values[1], Leaf(values[0][-2]))
 
         if option == 4:  # rule: bracket_derivative
             return values[0]
@@ -422,13 +420,11 @@ class Parser(BisonParser):
                            | bracket_derivative APOSTROPH
         """
 
-        op = [k for k, v in OP_MAP.iteritems() if v == OP_DER][0]
-
         if option == 0:  # rule: LBRACKET exp RBRACKET APOSTROPH
-            return Node(op, values[1])
+            return Node(OP_DER, values[1])
 
         if option == 1:  # rule: bracket_derivative APOSTROPH
-            return Node(op, values[0])
+            return Node(OP_DER, values[0])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -459,7 +455,7 @@ class Parser(BisonParser):
             # Explicit call the hook handler on the created unary negation.
             node = self.hook_handler('binary', 4, names, values, node)
 
-            return Node('+', values[0], values[2])
+            return Node(OP_ADD, values[0], values[2])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover

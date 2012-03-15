@@ -78,13 +78,15 @@ OP_MAP = {
         'der': OP_DER,
         'solve': OP_SOLVE,
         'log': OP_LOG,
-        'ln': OP_LOG,
         '=': OP_EQ,
         '??': OP_POSSIBILITIES,
         '?': OP_HINT,
         '@@': OP_REWRITE_ALL,
         '@': OP_REWRITE,
         }
+
+OP_VALUE_MAP = dict([(v, k) for k, v in OP_MAP.iteritems()])
+OP_MAP['ln'] = OP_LOG
 
 TOKEN_MAP = {
         OP_COMMA: 'COMMA',
@@ -192,19 +194,20 @@ class ExpressionBase(object):
         return self.type & (TYPE_FLOAT | TYPE_INTEGER)
 
     def __add__(self, other):
-        return ExpressionNode('+', self, to_expression(other))
+        return ExpressionNode(OP_ADD, self, to_expression(other))
 
     def __sub__(self, other):
-        return ExpressionNode('-', self, to_expression(other))
+        #FIXME: return ExpressionNode(OP_ADD, self, -to_expression(other))
+        return ExpressionNode(OP_SUB, self, to_expression(other))
 
     def __mul__(self, other):
-        return ExpressionNode('*', self, to_expression(other))
+        return ExpressionNode(OP_MUL, self, to_expression(other))
 
     def __div__(self, other):
-        return ExpressionNode('/', self, to_expression(other))
+        return ExpressionNode(OP_DIV, self, to_expression(other))
 
     def __pow__(self, other):
-        return ExpressionNode('^', self, to_expression(other))
+        return ExpressionNode(OP_POW, self, to_expression(other))
 
     def __pos__(self):
         return self.reduce_negation()
@@ -238,7 +241,14 @@ class ExpressionNode(Node, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionNode, self).__init__(*args, **kwargs)
         self.type = TYPE_OPERATOR
-        self.op = OP_MAP[args[0]]
+        op = args[0]
+
+        if isinstance(op, str):
+            self.value = op
+            self.op = OP_MAP[op]
+        else:
+            self.value = OP_VALUE_MAP[op]
+            self.op = op
 
     def construct_function(self, children):
         if self.op == OP_DER:
@@ -296,13 +306,13 @@ class ExpressionNode(Node, ExpressionBase):
 
         >>> from src.node import ExpressionNode as N, ExpressionLeaf as L
         >>> c, r, e = L('c'), L('r'), L('e')
-        >>> n1 = N('*', c, N('^', r, e))
+        >>> n1 = N(OP_MUL), c, N('^', r, e))
         >>> n1.extract_polynome()
         (c, r, e)
-        >>> n2 = N('*', N('^', r, e), c)
+        >>> n2 = N(OP_MUL, N('^', r, e), c)
         >>> n2.extract_polynome()
         (c, r, e)
-        >>> n3 = N('-', r)
+        >>> n3 = -r
         >>> n3.extract_polynome()
         (1, -r, 1)
         """
@@ -512,7 +522,7 @@ class Scope(object):
         self.remove(node, replacement=replacement)
 
     def as_nary_node(self):
-        return nary_node(self.node.value, self.nodes).negate(self.node.negated)
+        return nary_node(self.node.op, self.nodes).negate(self.node.negated)
 
 
 def nary_node(operator, scope):
