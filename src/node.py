@@ -165,6 +165,12 @@ class ExpressionBase(object):
 
         return s_root < o_root or s_exp < o_exp or s_coeff < o_coeff
 
+    def __ne__(self, other):
+        """
+        Check strict inequivalence, using the strict equivalence operator.
+        """
+        return not (self == other)
+
     def is_op(self, *ops):
         return not self.is_leaf and self.op in ops
 

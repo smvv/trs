@@ -105,3 +105,5 @@ Division of 0 by 1 reduces to 0.
  - Line generator: 'der(f(x), x)'  ->  'd/dx f(x)'
 
  - Create unit tests for parser preprocessor.
+
+ - Create unit tests for node inequivalece operator.
