@@ -107,3 +107,5 @@ Division of 0 by 1 reduces to 0.
  - Create unit tests for parser preprocessor.
 
  - Create unit tests for node inequivalece operator.
+
+ - Line printer: 1 / (n + n)x  ->  1 / (n + n) * x
