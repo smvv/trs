@@ -1,4 +1,4 @@
-from .utils import find_variables
+from .utils import find_variables, first_sorted_variable
 from .logarithmic import ln
 from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DER, \
@@ -32,16 +32,10 @@ def get_derivation_variable(node, variables=None):
     if not variables:
         variables = find_variables(node)
 
-    if len(variables) > 1:
-        # FIXME: Use first variable, sorted alphabetically?
-        #return sorted(variables)[0]
-        raise ValueError('More than 1 variable in implicit derivative: '
-                         + ', '.join(variables))
-
     if not len(variables):
         return None
 
-    return list(variables)[0]
+    return first_sorted_variable(variables)
 
 
 def chain_rule(root, args):
@@ -168,7 +162,8 @@ def match_variable_power(node):
             return [P(node, variable_root)]
 
         return [P(node, chain_rule, (root, variable_root, ()))]
-    elif not x in rvars and x in evars:
+
+    if not x in rvars and x in evars:
         if exponent.is_variable():
             return [P(node, variable_exponent)]
 

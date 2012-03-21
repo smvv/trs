@@ -1,7 +1,7 @@
 import unittest
 
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
-        find_variables
+        find_variables, first_sorted_variable
 from tests.rulestestcase import tree
 
 
@@ -31,3 +31,10 @@ class TestRulesUtils(unittest.TestCase):
         self.assertSetEqual(find_variables(add), set(['x']))
         self.assertSetEqual(find_variables(mul0), set(['x']))
         self.assertSetEqual(find_variables(mul1), set(['x', 'y']))
+
+    def test_first_sorted_variable(self):
+        self.assertEqual(first_sorted_variable(set('ax')), 'x')
+        self.assertEqual(first_sorted_variable(set('ay')), 'y')
+        self.assertEqual(first_sorted_variable(set('az')), 'z')
+        self.assertEqual(first_sorted_variable(set('xz')), 'x')
+        self.assertEqual(first_sorted_variable(set('bac')), 'a')

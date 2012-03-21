@@ -1,4 +1,4 @@
-from ..node import ExpressionLeaf as L, OP_MUL, OP_DIV
+from ..node import ExpressionLeaf as L, OP_MUL, OP_DIV, INFINITY
 
 
 def greatest_common_divisor(a, b):
@@ -84,3 +84,35 @@ def find_variables(node):
         return reduce(lambda a, b: a | b, map(find_variables, node))
 
     return set()
+
+
+def first_sorted_variable(variables):
+    """
+    In a set of variables, find the main variable to be used in a derivation or
+    integral. The prioritized order is x, y, z, a, b, c, d, ...
+    """
+    for x in 'xyz':
+        if x in variables:
+            return x
+
+    return sorted(variables)[0]
+
+
+def infinity():
+    return L(INFINITY)
+
+
+def replace_variable(f, x, replacement):
+    """
+    Replace all occurences of variable x in function f with the specified
+    replacement.
+    """
+    if f == x:
+        return replacement.clone()
+
+    if f.is_leaf:
+        return f
+
+    children = map(lambda c: replace_variable(c, x, replacement), f)
+
+    return N(f, *children)

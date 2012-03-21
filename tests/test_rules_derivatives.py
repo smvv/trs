@@ -16,12 +16,11 @@ from tests.rulestestcase import RulesTestCase, tree
 class TestRulesDerivatives(RulesTestCase):
 
     def test_get_derivation_variable(self):
-        xy, x, l1 = tree('der(xy, x), der(x), der(1)')
-        self.assertEqual(get_derivation_variable(xy), 'x')
+        xy0, xy1, x, l1 = tree('der(xy, x), der(xy), der(x), der(1)')
+        self.assertEqual(get_derivation_variable(xy0), 'x')
+        self.assertEqual(get_derivation_variable(xy1), 'x')
         self.assertEqual(get_derivation_variable(x), 'x')
         self.assertIsNone(get_derivation_variable(l1))
-
-        self.assertRaises(ValueError, tree, 'der(xy)')
 
     def test_match_zero_derivative(self):
         root = tree('der(x, y)')
