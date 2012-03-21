@@ -2,7 +2,7 @@ from .utils import find_variables, first_sorted_variable
 from .logarithmic import ln
 from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DER, \
-        OP_MUL, OP_LOG, OP_SIN, OP_COS, OP_TAN, OP_ADD, OP_DIV
+        OP_MUL, OP_LOG, OP_SIN, OP_COS, OP_TAN, OP_ADD, OP_DIV, E
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -142,9 +142,10 @@ MESSAGES[const_deriv_multiplication] = \
 
 def match_variable_power(node):
     """
-    der(x ^ n)     ->  n * x ^ (n - 1)
-    der(x ^ n, x)  ->  n * x ^ (n - 1)
-    der(f(x) ^ n)  ->  n * f(x) ^ (n - 1) * der(f(x))  # Chain rule
+    der(x ^ n)           ->  n * x ^ (n - 1)
+    der(x ^ n, x)        ->  n * x ^ (n - 1)
+    der(f(x) ^ n)        ->  n * f(x) ^ (n - 1) * der(f(x))  # Chain rule
+    der(f(x) ^ g(x), x)  ->  der(e ^ ln(f(x) ^ g(x)), x)
     """
     assert node.is_op(OP_DER)
 
@@ -157,19 +158,35 @@ def match_variable_power(node):
     evars = find_variables(exponent)
     x = get_derivation_variable(node, rvars | evars)
 
-    if x in rvars and x not in evars:
+    if x in rvars and x in evars:
+        return [P(node, power_rule)]
+
+    if x in rvars:
         if root.is_variable():
             return [P(node, variable_root)]
 
         return [P(node, chain_rule, (root, variable_root, ()))]
 
-    if not x in rvars and x in evars:
+    if x in evars:
         if exponent.is_variable():
             return [P(node, variable_exponent)]
 
         return [P(node, chain_rule, (exponent, variable_exponent, ()))]
 
     return []
+
+
+def power_rule(root, args):
+    """
+    [f(x) ^ g(x)]'  ->  [e ^ ln(f(x) ^ g(x))]'
+    """
+    x = second_arg(root)
+
+    return der(L(E) ** ln(root[0]), x)
+
+
+MESSAGES[power_rule] = \
+        _('Write {0} as a logarithm to be able to separate root and exponent.')
 
 
 def variable_root(root, args):

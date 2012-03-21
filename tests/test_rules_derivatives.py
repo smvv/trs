@@ -5,7 +5,7 @@ from src.rules.derivatives import der, get_derivation_variable, \
         const_deriv_multiplication, chain_rule, match_logarithmic, \
         logarithmic, match_goniometric, sinus, cosinus, tangens, \
         match_sum_product_rule, sum_rule, product_rule, match_quotient_rule, \
-        quotient_rule
+        quotient_rule, power_rule
 from src.rules.logarithmic import ln
 from src.rules.goniometry import sin, cos
 from src.node import Scope
@@ -94,7 +94,33 @@ class TestRulesDerivatives(RulesTestCase):
         # Below is not mathematically underivable, it's just not within the
         # scope of our program
         root, x = tree('der(x ^ x), x')
-        self.assertEqualPos(match_variable_power(root), [])
+        self.assertEqualPos(match_variable_power(root),
+                [P(root, power_rule)])
+
+    def test_power_rule(self):
+        root, expect = tree("[x ^ x]', [e ^ ln(x ^ x)]'")
+        self.assertEqual(power_rule(root, ()), expect)
+
+    def test_power_rule_chain(self):
+        self.assertRewrite([
+            "[x ^ x]'",
+            "[e ^ ln(x ^ x)]'",
+            "[e ^ (xln(x))]'",
+            "e ^ (xln(x))ln(e)[xln(x)]'",
+            "e ^ (xln(x))1[xln(x)]'",
+            "e ^ (xln(x))[xln(x)]'",
+            "e ^ (xln(x))([x]' * ln(x) + x[ln(x)]')",
+            "e ^ (xln(x))(1ln(x) + x[ln(x)]')",
+            "e ^ (xln(x))(ln(x) + x[ln(x)]')",
+            "e ^ (xln(x))(ln(x) + x(1 / (xln(e))))",
+            "e ^ (xln(x))(ln(x) + x(1 / (x * 1)))",
+            "e ^ (xln(x))(ln(x) + x(1 / x))",
+            "e ^ (xln(x))(ln(x) + x * 1 / x)",
+            "e ^ (xln(x))(ln(x) + x / x)",
+            "e ^ (xln(x))(ln(x) + 1)",
+            "e ^ ln(x ^ x)(ln(x) + 1)",
+            # FIXME: "x ^ x(ln(x) + 1)",  ->  needs strategy
+        ])
 
     def test_variable_root(self):
         root = tree('der(x ^ 2)')

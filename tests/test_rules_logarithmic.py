@@ -115,9 +115,14 @@ class TestRulesLogarithmic(RulesTestCase):
         self.assertEqual(factor_out_exponent(root, ()), l2 * log(a))
 
     def test_match_factor_in_multiplicant(self):
-        root, log_3 = tree('2log(3), log(3)')
+        (l2, log_3) = root = tree('2log(3)')
         self.assertEqualPos(match_factor_in_multiplicant(root),
-                [P(root, factor_in_multiplicant, (Scope(root), 2, log_3))])
+                [P(root, factor_in_multiplicant, (Scope(root), l2, log_3))])
+
+        (l2, log_3), l4 = root = tree('2log(3)4')
+        self.assertEqualPos(match_factor_in_multiplicant(root),
+                [P(root, factor_in_multiplicant, (Scope(root), l2, log_3)),
+                 P(root, factor_in_multiplicant, (Scope(root), l4, log_3))])
 
         root = tree('2log(a)')
         self.assertEqualPos(match_factor_in_multiplicant(root), [])

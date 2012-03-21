@@ -1,6 +1,6 @@
 from itertools import combinations, product
 
-from .utils import find_variables
+from .utils import find_variables, partition
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_LOG, E, \
         OP_ADD, OP_MUL, OP_POW, Scope
 from ..possibilities import Possibility as P, MESSAGES
@@ -172,7 +172,8 @@ MESSAGES[subtract_logarithms] = _('Apply log(a) - log(b) = log(a / b).')
 
 def match_raised_base(node):
     """
-    g ^ log_g(a)  ->  a
+    g ^ log_g(a)     ->  a
+    g ^ (blog_g(a))  ->  g ^ log_g(a ^ b)
     """
     assert node.is_op(OP_POW)
 
@@ -181,7 +182,25 @@ def match_raised_base(node):
     if exponent.is_op(OP_LOG) and exponent[1] == root:
         return [P(node, raised_base, (exponent[0],))]
 
-    return []
+    p = []
+
+    if exponent.is_op(OP_MUL):
+        scope = Scope(exponent)
+        is_matching_logarithm = lambda n: n.is_op(OP_LOG) and n[1] == root
+        logs, others = partition(is_matching_logarithm, scope)
+
+        for other, log in product(others, logs):
+            # TODO: Give this function a high precedence
+            p.append(P(node, factor_in_exponent_multiplicant,
+                       (scope, other, log)))
+
+    return p
+
+
+def factor_in_exponent_multiplicant(root, args):
+    r, e = root
+
+    return r ** factor_in_multiplicant(e, args)
 
 
 def raised_base(root, args):
@@ -251,9 +270,9 @@ def match_factor_in_multiplicant(node):
     assert node.is_op(OP_MUL)
 
     scope = Scope(node)
-    constants = filter(lambda n: n.is_int(), node)
+    constants = filter(lambda n: n.is_int(), scope)
     logarithms = filter(lambda n: n.is_op(OP_LOG) \
-                                  and not len(find_variables(n)), node)
+                                  and not len(find_variables(n)), scope)
     p = []
 
     for constant, logarithm in product(constants, logarithms):
