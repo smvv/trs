@@ -228,3 +228,12 @@ class TestRulesDerivatives(RulesTestCase):
         f, g = root[0]
         self.assertEqual(quotient_rule(root, ()),
                          (der(f) * g - f * der(g)) / g ** 2)
+
+    def test_natural_pase_chain(self):
+        self.assertRewrite([
+            'der(e ^ x)',
+            'e ^ x * ln(e)',
+            'e ^ x * (log(e) / log(e))',
+            'e ^ x * 1',
+            'e ^ x',
+        ])

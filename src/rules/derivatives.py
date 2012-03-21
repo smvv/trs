@@ -197,7 +197,6 @@ def variable_exponent(root, args):
     Note that (in combination with logarithmic/constant rules):
     der(e ^ x)  ->  e ^ x * ln(e)  ->  e ^ x * 1  ->  e ^ x
     """
-    # TODO: Put above example 'der(e ^ x)' in unit test
     g, x = root[0]
 
     return g ** x * ln(g)
