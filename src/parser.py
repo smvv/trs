@@ -398,10 +398,15 @@ class Parser(BisonParser):
             if op == OP_VALUE_MAP[OP_LOG]:
                 return Node(OP_LOG, values[1], Leaf(DEFAULT_LOGARITHM_BASE))
 
-            m = re.match(r'^log_([0-9]+)', op)
+            m = re.match(r'^log_([0-9]+|[a-zA-Z])', op)
 
             if m:
-                return Node(OP_LOG, values[1], Leaf(int(m.group(1))))
+                value = m.group(1)
+
+                if value.isdigit():
+                    value = int(value)
+
+                return Node(OP_LOG, values[1], Leaf(value))
 
             return Node(op, values[1])
 
@@ -534,8 +539,8 @@ class Parser(BisonParser):
     "["       { returntoken(LBRACKET); }
     "]"       { returntoken(RBRACKET); }
     "'"       { returntoken(APOSTROPH); }
-    log_[0-9]+"*(" { returntoken(FUNCTION_LPAREN); }
-    log_[0-9]+"*" { returntoken(FUNCTION); }
+    log_([0-9]+|[a-zA-Z])"*(" { returntoken(FUNCTION_LPAREN); }
+    log_([0-9]+|[a-zA-Z])"*" { returntoken(FUNCTION); }
     """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }

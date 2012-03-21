@@ -84,3 +84,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('log(x, 10)'), log(x))
         self.assertEqual(tree('log(x, 2)'), log(x, 2))
         self.assertEqual(tree('log(x, g)'), log(x, g))
+
+        self.assertEqual(tree('log_2(x)'), log(x, 2))
+        self.assertEqual(tree('log_10(x)'), log(x))
+        self.assertEqual(tree('log_g(x)'), log(x, g))
+        self.assertEqual(tree('log_g x'), log(x, g))
