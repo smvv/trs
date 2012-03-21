@@ -175,3 +175,6 @@ def raised_base(root, args):
     g ^ log_g(a)  ->  a
     """
     return args[0]
+
+
+MESSAGES[raised_base] = _('Apply g ^ log_g(a) = a on {0}.')

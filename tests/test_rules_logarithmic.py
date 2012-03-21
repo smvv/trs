@@ -80,6 +80,10 @@ class TestRulesLogarithmic(RulesTestCase):
         self.assertEqualPos(match_raised_base(root),
                 [P(root, raised_base, (a,))])
 
+        root, a = tree('e ^ ln(a), a')
+        self.assertEqualPos(match_raised_base(root),
+                [P(root, raised_base, (a,))])
+
         root = tree('2 ^ log_3(a)')
         self.assertEqualPos(match_raised_base(root), [])
 

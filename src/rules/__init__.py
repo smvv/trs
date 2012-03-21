@@ -22,7 +22,7 @@ from src.rules.derivatives import match_zero_derivative, \
         match_const_deriv_multiplication, match_logarithmic, \
         match_goniometric, match_sum_product_rule, match_quotient_rule
 from src.rules.logarithmic import match_constant_logarithm, \
-        match_add_logarithms
+        match_add_logarithms, match_raised_base
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -38,7 +38,8 @@ RULES = {
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
                  match_raised_fraction, match_remove_negative_exponent,
                  match_exponent_to_root, match_extend_exponent,
-                 match_constant_exponent, match_raise_numerics],
+                 match_constant_exponent, match_raise_numerics,
+                 match_raised_base],
         OP_NEG: [match_negate_polynome],
         OP_SIN: [match_negated_parameter, match_half_pi_subtraction,
                  match_standard_radian],
