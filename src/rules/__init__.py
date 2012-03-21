@@ -22,7 +22,8 @@ from src.rules.derivatives import match_zero_derivative, \
         match_const_deriv_multiplication, match_logarithmic, \
         match_goniometric, match_sum_product_rule, match_quotient_rule
 from src.rules.logarithmic import match_constant_logarithm, \
-        match_add_logarithms, match_raised_base
+        match_add_logarithms, match_raised_base, match_factor_out_exponent, \
+        match_factor_in_multiplicant
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -31,7 +32,8 @@ RULES = {
         OP_MUL: [match_multiply_numerics, match_expand, match_add_exponents,
                  match_expand_and_add_fractions, match_multiply_zero,
                  match_negated_factor, match_multiply_one,
-                 match_sort_multiplicants, match_multiply_fractions],
+                 match_sort_multiplicants, match_multiply_fractions,
+                 match_factor_in_multiplicant],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
                  match_constant_division, match_divide_fractions,
                  match_negated_division, match_equal_fraction_parts],
@@ -50,5 +52,5 @@ RULES = {
                  match_variable_power, match_const_deriv_multiplication,
                  match_logarithmic, match_goniometric, match_sum_product_rule,
                  match_quotient_rule],
-        OP_LOG: [match_constant_logarithm],
+        OP_LOG: [match_constant_logarithm, match_factor_out_exponent],
         }

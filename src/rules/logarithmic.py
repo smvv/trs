@@ -1,5 +1,6 @@
-from itertools import combinations
+from itertools import combinations, product
 
+from .utils import find_variables
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_LOG, E, \
         OP_ADD, OP_MUL, OP_POW, Scope
 from ..possibilities import Possibility as P, MESSAGES
@@ -21,9 +22,9 @@ def match_constant_logarithm(node):
     """
     log_1(a)   ->  # raise ValueError for base 1
     log(1)     ->  0
+    log(a, a)  ->  1  # Explicit possibility to prevent cycles
     log(a, a)  ->  log(a) / log(a)  # ->  1
     """
-    # TODO: base and raised
     assert node.is_op(OP_LOG)
 
     raised, base = node
@@ -38,7 +39,10 @@ def match_constant_logarithm(node):
         p.append(P(node, logarithm_of_one))
 
     if raised == base:
+        # log(a, a)  ->  1
+        p.append(P(node, base_equals_raised))
         # log(a, a)  ->  log(a) / log(a)  # ->  1
+        # TODO: When to do this except for this case?
         p.append(P(node, divide_same_base))
 
     return p
@@ -50,10 +54,20 @@ def logarithm_of_one(root, args):
     """
     raised, base = root
 
-    return L(0)
+    return L(0).negate(root.negated)
 
 
 MESSAGES[logarithm_of_one] = _('Logarithm of one reduces to zero.')
+
+
+def base_equals_raised(root, args):
+    """
+    log(a, a)  ->  1
+    """
+    return L(1).negate(root.negated)
+
+
+MESSAGES[base_equals_raised] = _('Logarithm {0} recuces to 1.')
 
 
 def divide_same_base(root, args):
@@ -120,7 +134,7 @@ def add_logarithms(root, args):
 
 
 MESSAGES[add_logarithms] = _('Apply log(a) + log(b) = log(ab).')
-        #_('Combine two logarithms with the same base: {2} and {3}.')
+        #_('Combine logarithms with the same base: {2} and {3}.')
 
 
 def expand_negations(root, args):
@@ -178,3 +192,87 @@ def raised_base(root, args):
 
 
 MESSAGES[raised_base] = _('Apply g ^ log_g(a) = a on {0}.')
+
+
+def match_factor_out_exponent(node):
+    """
+    This match simplifies a power with a variable in it to a multiplication:
+    log(a ^ b)   ->  blog(a)
+    log(a ^ -b)  ->  log((a ^ b) ^ -1)  # =>*  -log(a ^ b)
+    """
+    assert node.is_op(OP_LOG)
+
+    p = []
+
+    if node[0].is_power():
+        a, b = node[0]
+
+        if b.negated:
+            p.append(P(node, split_negative_exponent))
+
+        p.append(P(node, factor_out_exponent))
+
+    return p
+
+
+def split_negative_exponent(root, args):
+    """
+    log(a ^ -b)  ->  log((a ^ b) ^ -1)  # =>*  -log(a ^ b)
+    """
+    (a, b), base = root
+
+    return log((a ** +b) ** -L(1), base=base)
+
+
+MESSAGES[split_negative_exponent] = \
+        _('Split and factor out the negative exponent within logarithm {0}.')
+
+
+def factor_out_exponent(root, args):
+    """
+    log(a ^ b)  ->  blog(a)
+    """
+    (a, b), base = root
+
+    return b * log(a, base=base)
+
+
+MESSAGES[factor_out_exponent] = _('Factor out exponent {0[0][0]} from {0}.')
+
+
+def match_factor_in_multiplicant(node):
+    """
+    Only bring a multiplicant inside a logarithms if both the multiplicant and
+    the logaritm's content are constants. This will yield a new simplification
+    of constants inside the logarithm.
+    2log(2)      ->  log(2 ^ 2)        # -> log(4)
+    2log(2 / 4)  ->  log((2 / 4) ^ 2)  # =>* log(1 / 4)
+    """
+    assert node.is_op(OP_MUL)
+
+    scope = Scope(node)
+    constants = filter(lambda n: n.is_int(), node)
+    logarithms = filter(lambda n: n.is_op(OP_LOG) \
+                                  and not len(find_variables(n)), node)
+    p = []
+
+    for constant, logarithm in product(constants, logarithms):
+        p.append(P(node, factor_in_multiplicant, (scope, constant, logarithm)))
+
+    return p
+
+
+def factor_in_multiplicant(root, args):
+    """
+    alog(b)  ->  log(b ^ a)
+    """
+    scope, a, log_b = args
+    b, base = log_b
+    scope.replace(a, log(b ** a, base=base))
+    scope.remove(log_b)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[factor_in_multiplicant] = \
+        _('Bring multiplicant {2} into {3} as the exponent of {3[0]}.')

@@ -232,7 +232,6 @@ class TestRulesDerivatives(RulesTestCase):
         self.assertRewrite([
             'der(e ^ x)',
             'e ^ x * ln(e)',
-            'e ^ x * (log(e) / log(e))',
             'e ^ x * 1',
             'e ^ x',
         ])
