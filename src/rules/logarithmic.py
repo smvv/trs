@@ -34,9 +34,11 @@ def match_constant_logarithm(node):
     p = []
 
     if raised == 1:
+        # log(1)  ->  0
         p.append(P(node, logarithm_of_one))
 
     if raised == base:
+        # log(a, a)  ->  log(a) / log(a)  # ->  1
         p.append(P(node, divide_same_base))
 
     return p
@@ -48,7 +50,7 @@ def logarithm_of_one(root, args):
     """
     raised, base = root
 
-    return log(raised) / log(base)
+    return L(0)
 
 
 MESSAGES[logarithm_of_one] = _('Logarithm of one reduces to zero.')
@@ -63,7 +65,7 @@ def divide_same_base(root, args):
     return log(raised) / log(base)
 
 
-MESSAGES[divide_same_base] = _('Apply log_b(a)  ->  log(a) / log(b).')
+MESSAGES[divide_same_base] = _('Apply log_b(a)  ->  log(a) / log(b) on {0}.')
 
 
 def match_add_logarithms(node):

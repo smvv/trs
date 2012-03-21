@@ -23,7 +23,18 @@ class TestRulesLogarithmic(RulesTestCase):
         self.assertEqualPos(match_constant_logarithm(root),
                 [P(root, divide_same_base)])
 
+    def test_logarithm_of_one(self):
+        root = tree('log 1')
+        self.assertEqual(logarithm_of_one(root, ()), 0)
+
+    def test_divide_same_base(self):
+        root, l5, l6 = tree('log(5, 6), 5, 6')
+        self.assertEqual(divide_same_base(root, ()), log(l5) / log(l6))
+
     def test_match_add_logarithms(self):
+        root = tree('log a + ln b')
+        self.assertEqualPos(match_add_logarithms(root), [])
+
         log_a, log_b = root = tree('log a + log b')
         self.assertEqualPos(match_add_logarithms(root),
                 [P(root, add_logarithms, (Scope(root), log_a, log_b))])
@@ -41,7 +52,24 @@ class TestRulesLogarithmic(RulesTestCase):
                 [P(root, subtract_logarithms, (Scope(root), log_b, log_a))])
 
     def test_add_logarithms(self):
-        root, a, b = tree('log a + log b, a, b')
+        root, expect = tree('log a + log b, log(ab)')
         log_a, log_b = root
         self.assertEqual(add_logarithms(root, (Scope(root), log_a, log_b)),
-                         log(a * b))
+                         expect)
+
+    def test_expand_negations(self):
+        root, expect = tree('-log(a) - log(b), -(log(a) + log(b))')
+        log_a, log_b = root
+        self.assertEqual(expand_negations(root, (Scope(root), log_a, log_b)),
+                         expect)
+
+    def test_subtract_logarithms(self):
+        root, expect = tree('log(a) - log(b), log(a / b)')
+        loga, logb = root
+        self.assertEqual(subtract_logarithms(root, (Scope(root), loga, logb)),
+                         expect)
+
+        root, expect = tree('-log(a) + log(b), log(b / a)')
+        loga, logb = root
+        self.assertEqual(subtract_logarithms(root, (Scope(root), logb, loga)),
+                         expect)
