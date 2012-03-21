@@ -1,6 +1,7 @@
 from src.rules.logarithmic import log, ln, match_constant_logarithm, \
         logarithm_of_one, divide_same_base, match_add_logarithms, \
-        add_logarithms, expand_negations, subtract_logarithms
+        add_logarithms, expand_negations, subtract_logarithms, \
+        match_raised_base, raised_base
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -73,3 +74,15 @@ class TestRulesLogarithmic(RulesTestCase):
         loga, logb = root
         self.assertEqual(subtract_logarithms(root, (Scope(root), logb, loga)),
                          expect)
+
+    def test_match_raised_base(self):
+        root, a = tree('2 ^ log_2(a), a')
+        self.assertEqualPos(match_raised_base(root),
+                [P(root, raised_base, (a,))])
+
+        root = tree('2 ^ log_3(a)')
+        self.assertEqualPos(match_raised_base(root), [])
+
+    def test_raised_base(self):
+        root, a = tree('2 ^ log_2(a), a')
+        self.assertEqual(raised_base(root, (root[1][0],)), a)

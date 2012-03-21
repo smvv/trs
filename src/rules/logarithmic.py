@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_LOG, E, \
-        OP_ADD, OP_MUL, Scope
+        OP_ADD, OP_MUL, OP_POW, Scope
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -65,7 +65,7 @@ def divide_same_base(root, args):
     return log(raised) / log(base)
 
 
-MESSAGES[divide_same_base] = _('Apply log_b(a)  ->  log(a) / log(b) on {0}.')
+MESSAGES[divide_same_base] = _('Apply log_b(a) = log(a) / log(b) on {0}.')
 
 
 def match_add_logarithms(node):
@@ -154,3 +154,24 @@ def subtract_logarithms(root, args):
 
 
 MESSAGES[subtract_logarithms] = _('Apply log(a) - log(b) = log(a / b).')
+
+
+def match_raised_base(node):
+    """
+    g ^ log_g(a)  ->  a
+    """
+    assert node.is_op(OP_POW)
+
+    root, exponent = node
+
+    if exponent.is_op(OP_LOG) and exponent[1] == root:
+        return [P(node, raised_base, (exponent[0],))]
+
+    return []
+
+
+def raised_base(root, args):
+    """
+    g ^ log_g(a)  ->  a
+    """
+    return args[0]
