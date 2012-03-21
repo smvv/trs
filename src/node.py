@@ -52,6 +52,9 @@ OP_REWRITE = 21
 # Special identifiers
 PI = 'pi'
 E = 'e'
+INFINITY = 'oo'
+
+SPECIAL_TOKENS = [PI, INFINITY]
 
 # Default base to use in parsing 'log(...)'
 DEFAULT_LOGARITHM_BASE = 10
@@ -429,15 +432,6 @@ class ExpressionLeaf(Leaf, ExpressionBase):
 
         return self.negated == other.negated and self.type == other.type \
                and self.value == other.value
-
-    def __str__(self):
-        val = str(self.value)
-
-        # Replace PI leaf by the Greek character
-        if val == PI:
-            val = u_PI
-
-        return '-' * self.negated + val
 
     def __repr__(self):
         return str(self)

@@ -2,7 +2,8 @@
 import unittest
 
 from src.parser import Parser
-from src.node import ExpressionNode as Node, ExpressionLeaf as Leaf
+from src.node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
+        SPECIAL_TOKENS
 from tests.parser import ParserWrapper, run_expressions, line, graph
 from tests.rulestestcase import tree
 from src.rules.goniometry import sin, cos
@@ -89,3 +90,10 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('log_10(x)'), log(x))
         self.assertEqual(tree('log_g(x)'), log(x, g))
         self.assertEqual(tree('log_g x'), log(x, g))
+
+    def test_special_tokens(self):
+        for token in SPECIAL_TOKENS:
+            self.assertEqual(tree(token), Leaf(token))
+            a, t = Leaf('a'), Leaf(token)
+            self.assertEqual(tree('a' + token), a * t)
+            # FIXME: self.assertEqual(tree('a' + token + 'a'), a * t * a)

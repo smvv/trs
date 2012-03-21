@@ -16,7 +16,8 @@ from graph_drawing.graph import generate_graph
 
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
         OP_DER, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
-        OP_LOG, OP_ADD, Scope, PI, E, DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP
+        OP_LOG, OP_ADD, Scope, E, DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, \
+        SPECIAL_TOKENS
 from rules import RULES
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
@@ -48,7 +49,8 @@ class Parser(BisonParser):
 
     # Words to be ignored by preprocessor
     words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
-                        OP_MAP.iteritems()))[0] + ('raise', 'graph', PI)
+                             OP_MAP.iteritems()))[0] \
+            + ('raise', 'graph') + tuple(SPECIAL_TOKENS)
 
     # Output directory of generated pybison files, including a trailing slash.
     buildDirectory = PYBISON_BUILD + '/'
@@ -143,10 +145,11 @@ class Parser(BisonParser):
         self.possibilities = []
 
         # Replace known keywords with escape sequences.
-        words = list(Parser.words)
+        words = list(self.__class__.words)
         words.insert(10, '\n')
 
         for i, keyword in enumerate(words):
+            # FIXME: Why case-insensitivity?
             data = re.sub(keyword, chr(i), data, flags=re.I)
 
         # TODO: remove this quick preprocessing hack. This hack enables
@@ -164,7 +167,7 @@ class Parser(BisonParser):
                 + '|([\x00-\x09\x0b-\x19a-z0-9])\s*(\()'  # a(  -> a * (
                 + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'  # )a  -> ) * a
                 + '|([\x00-\x09\x0b-\x19a-z])\s*'
-                  + '([\x00-\x09\x0b-\x19a-z]+)'          # ab  -> a * b
+                  + '([\x00-\x09\x0b-\x19a-z])'           # ab  -> a * b
                 + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'  # 4a  -> 4 * a
                 + '|([\x00-\x09\x0b-\x19a-z])\s*([0-9])'  # a4  -> a ^ 4
                 + '|([0-9])\s+([0-9]))'                   # 4 4 -> 4 * 4
@@ -478,11 +481,14 @@ class Parser(BisonParser):
                                % (option, target))  # pragma: nocover
 
     # -----------------------------------------
-    # Special characters and operator tokens
+    # Special tokens and operator tokens
     # -----------------------------------------
-    operators = '"%s"%s{ returntoken(IDENTIFIER); }\n' \
-                % (PI, ' ' * (8 - len(PI)))
+    operators = ''
     functions = []
+
+    for token in SPECIAL_TOKENS:
+        operators += '"%s"%s{ returntoken(IDENTIFIER); }\n' \
+                     % (token, ' ' * (8 - len(token)))
 
     for op_str, op in OP_MAP.iteritems():
         if TOKEN_MAP[op] == 'FUNCTION':
