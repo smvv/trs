@@ -31,23 +31,24 @@ OP_MOD = 7
 
 # N-ary (functions)
 OP_INT = 8
-OP_COMMA = 9
-OP_SQRT = 10
-OP_DER = 11
-OP_LOG = 12
+OP_INT_INDEF = 9
+OP_COMMA = 10
+OP_SQRT = 11
+OP_DER = 12
+OP_LOG = 13
 
 # Goniometry
-OP_SIN = 13
-OP_COS = 14
-OP_TAN = 15
+OP_SIN = 14
+OP_COS = 15
+OP_TAN = 16
 
-OP_SOLVE = 16
-OP_EQ = 17
+OP_SOLVE = 17
+OP_EQ = 18
 
-OP_POSSIBILITIES = 18
-OP_HINT = 19
-OP_REWRITE_ALL = 20
-OP_REWRITE = 21
+OP_POSSIBILITIES = 19
+OP_HINT = 20
+OP_REWRITE_ALL = 21
+OP_REWRITE = 22
 
 # Special identifiers
 PI = 'pi'
@@ -102,7 +103,7 @@ TOKEN_MAP = {
         OP_SIN: 'FUNCTION',
         OP_COS: 'FUNCTION',
         OP_TAN: 'FUNCTION',
-        OP_INT: 'FUNCTION',
+        OP_INT: 'INTEGRAL',
         OP_DER: 'FUNCTION',
         OP_SOLVE: 'FUNCTION',
         OP_LOG: 'FUNCTION',

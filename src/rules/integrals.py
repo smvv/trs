@@ -37,6 +37,7 @@ def choose_constant(integral):
     """
     Choose a constant to be added to the antiderivative.
     """
+    # TODO: comments
     occupied = find_variables(integral)
     c = 'c'
     i = 96

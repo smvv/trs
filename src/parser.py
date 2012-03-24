@@ -17,7 +17,7 @@ from graph_drawing.graph import generate_graph
 from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
         OP_DER, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
         OP_LOG, OP_ADD, Scope, E, DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, \
-        SPECIAL_TOKENS
+        SPECIAL_TOKENS, OP_INT, OP_INT_INDEF
 from rules import RULES
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
@@ -41,6 +41,20 @@ def combine(op, op_type, *nodes):
     return res
 
 
+def find_integration_variable(exp):
+    if not exp.is_op(OP_MUL):
+        return exp
+
+    scope = Scope(exp)
+
+    if len(scope) < 3 or scope[-2] != 'd' or not scope[-1].is_identifier():
+        return exp
+
+    scope.nodes = scope[:-2]
+
+    return scope.as_nary_node()
+
+
 class Parser(BisonParser):
     """
     Implements the calculator parser. Grammar rules are defined in the method
@@ -48,9 +62,8 @@ class Parser(BisonParser):
     """
 
     # Words to be ignored by preprocessor
-    words = zip(*filter(lambda (s, op): TOKEN_MAP[op] == 'FUNCTION', \
-                             OP_MAP.iteritems()))[0] \
-            + ('raise', 'graph') + tuple(SPECIAL_TOKENS)
+    words = tuple(filter(lambda w: len(w) > 1, OP_MAP.iterkeys())) \
+             + ('raise', 'graph')+ tuple(SPECIAL_TOKENS)
 
     # Output directory of generated pybison files, including a trailing slash.
     buildDirectory = PYBISON_BUILD + '/'
@@ -62,7 +75,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
               'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
-              'RBRACKET', 'APOSTROPH', 'DERIVATIVE'] \
+              'RBRACKET', 'APOSTROPH', 'DERIVATIVE', 'SUB'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -75,7 +88,7 @@ class Parser(BisonParser):
         ('right', ('FUNCTION', 'DERIVATIVE')),
         ('left', ('EQ', )),
         ('left', ('NEG', )),
-        ('right', ('POW', )),
+        ('right', ('POW', 'SUB')),
         ('right', ('FUNCTION_LPAREN', )),
         )
 
@@ -377,6 +390,7 @@ class Parser(BisonParser):
               | FUNCTION exp
               | DERIVATIVE exp
               | bracket_derivative
+              | integral
         """
 
         if option == 0:  # rule: NEG exp
@@ -418,7 +432,7 @@ class Parser(BisonParser):
             # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
             return Node(OP_DER, values[1], Leaf(values[0][-2]))
 
-        if option == 4:  # rule: bracket_derivative
+        if option in (4, 5):  # rule: bracket_derivative | integral
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -435,6 +449,37 @@ class Parser(BisonParser):
 
         if option == 1:  # rule: bracket_derivative APOSTROPH
             return Node(OP_DER, values[0])
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_integral(self, target, option, names, values):
+        """
+        integral : INTEGRAL exp
+        """
+                 #| INTEGRAL SUB exp exp
+                 #| LBRACKET exp RBRACKET SUB exp exp
+
+        if option == 0:  # rule: INTEGRAL exp
+            fx, x = find_integration_variable(values[1])
+
+            return N(OP_INT, fx, x)
+
+        if option == 1:  # rule: INTEGRAL SUB exp exp
+            if not values[2].is_power():  # pragma: nocover
+                raise BisonSyntaxError('No upper bound specified in "%s".'
+                                       % values[2])
+
+            lbnd, ubnd = values[2]
+            fx, x = find_integration_variable(values[3])
+
+            return N(OP_INT, fx, x, lbnd, ubnd)
+
+        if option == 2:  # rule: LBRACKET exp RBRACKET SUB exp POWER exp
+            exp = values[1]
+            fx, x = find_integration_variable(values[1])
+
+            return N(OP_INT_INDEF, fx, x, values[4], values[6])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -541,6 +586,7 @@ class Parser(BisonParser):
     d[ ]*"/"[ ]*"d*"[a-z]"*" { returntoken(DERIVATIVE); }
     [0-9]+"."?[0-9]* { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
+    "_"       { returntoken(SUB); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
     "["       { returntoken(LBRACKET); }
