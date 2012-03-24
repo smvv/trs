@@ -14,11 +14,13 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import ExpressionNode as Node, ExpressionLeaf as Leaf, OP_MAP, \
-        OP_DER, TOKEN_MAP, TYPE_OPERATOR, OP_COMMA, OP_NEG, OP_MUL, OP_DIV, \
-        OP_LOG, OP_ADD, Scope, E, DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, \
-        SPECIAL_TOKENS, OP_INT, OP_INT_INDEF
+from node import ExpressionBase, ExpressionNode as Node, \
+        ExpressionLeaf as Leaf, OP_MAP, OP_DER, TOKEN_MAP, TYPE_OPERATOR, \
+        OP_COMMA, OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_LOG, OP_ADD, Scope, E, \
+        DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
+        OP_INT_INDEF
 from rules import RULES
+from rules.utils import find_variable
 from strategy import pick_suggestion
 from possibilities import filter_duplicates, apply_suggestion
 
@@ -43,16 +45,17 @@ def combine(op, op_type, *nodes):
 
 def find_integration_variable(exp):
     if not exp.is_op(OP_MUL):
-        return exp
+        return exp, find_variable(exp)
 
     scope = Scope(exp)
 
-    if len(scope) < 3 or scope[-2] != 'd' or not scope[-1].is_identifier():
-        return exp
+    if len(scope) > 2 and scope[-2] == 'd' and scope[-1].is_identifier():
+        x = scope[-1]
+        scope.nodes = scope[:-2]
 
-    scope.nodes = scope[:-2]
+        return scope.as_nary_node(), x
 
-    return scope.as_nary_node()
+    return exp, find_variable(exp)
 
 
 class Parser(BisonParser):
@@ -62,8 +65,8 @@ class Parser(BisonParser):
     """
 
     # Words to be ignored by preprocessor
-    words = tuple(filter(lambda w: len(w) > 1, OP_MAP.iterkeys())) \
-             + ('raise', 'graph')+ tuple(SPECIAL_TOKENS)
+    words = tuple(filter(lambda w: w.isalpha(), OP_MAP.iterkeys())) \
+             + ('raise', 'graph') + tuple(SPECIAL_TOKENS)
 
     # Output directory of generated pybison files, including a trailing slash.
     buildDirectory = PYBISON_BUILD + '/'
@@ -75,7 +78,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
               'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
-              'RBRACKET', 'APOSTROPH', 'DERIVATIVE', 'SUB'] \
+              'RBRACKET', 'PRIME', 'DERIVATIVE', 'SUB'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -83,12 +86,14 @@ class Parser(BisonParser):
     # ------------------------------
     precedences = (
         ('left', ('COMMA', )),
+        ('right', ('INTEGRAL', 'DERIVATIVE')),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
-        ('right', ('FUNCTION', 'DERIVATIVE')),
+        ('right', ('FUNCTION', )),
         ('left', ('EQ', )),
         ('left', ('NEG', )),
-        ('right', ('POW', 'SUB')),
+        ('right', ('POW', )),
+        ('right', ('SUB', )),
         ('right', ('FUNCTION_LPAREN', )),
         )
 
@@ -228,7 +233,8 @@ class Parser(BisonParser):
         return data
 
     def hook_handler(self, target, option, names, values, retval):
-        if target in ['exp', 'line', 'input'] or not retval:
+        if target in ['exp', 'line', 'input'] \
+                or not isinstance(retval, ExpressionBase):
             return retval
 
         if not retval.negated and retval.type != TYPE_OPERATOR:
@@ -390,7 +396,8 @@ class Parser(BisonParser):
               | FUNCTION exp
               | DERIVATIVE exp
               | bracket_derivative
-              | integral
+              | INTEGRAL exp
+              | INTEGRAL bounds exp %prec INTEGRAL
         """
 
         if option == 0:  # rule: NEG exp
@@ -406,6 +413,11 @@ class Parser(BisonParser):
 
         if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
             op = values[0].split(' ', 1)[0]
+
+            if op == 'int':
+                fx, x = find_integration_variable(values[1])
+
+                return Node(OP_INT, fx, x)
 
             if op == 'ln':
                 return Node(OP_LOG, values[1], Leaf(E))
@@ -432,54 +444,57 @@ class Parser(BisonParser):
             # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
             return Node(OP_DER, values[1], Leaf(values[0][-2]))
 
-        if option in (4, 5):  # rule: bracket_derivative | integral
+        if option == 4:  # rule: bracket_derivative
             return values[0]
+
+
+        if option == 5:  # rule: INTEGRAL exp
+            fx, x = find_integration_variable(values[1])
+
+            return Node(OP_INT, fx, x)
+
+        if option == 6:  # rule: INTEGRAL bounds exp
+            lbnd, ubnd = values[1]
+            fx, x = find_integration_variable(values[2])
+
+            return Node(OP_INT, fx, x, lbnd, ubnd)
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_bounds(self, target, option, names, values):
+        """
+        bounds : SUB power TIMES
+        """
+
+        if option == 0:  # rule: SUB power
+            return values[1]
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_power(self, target, option, names, values):
+        """
+        power : exp POW exp
+        """
+
+        if option == 0:  # rule: exp POW exp
+            return values[0], values[2]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
     def on_bracket_derivative(self, target, option, names, values):
         """
-        bracket_derivative : LBRACKET exp RBRACKET APOSTROPH
-                           | bracket_derivative APOSTROPH
+        bracket_derivative : LBRACKET exp RBRACKET PRIME
+                           | bracket_derivative PRIME
         """
 
-        if option == 0:  # rule: LBRACKET exp RBRACKET APOSTROPH
+        if option == 0:  # rule: LBRACKET exp RBRACKET PRIME
             return Node(OP_DER, values[1])
 
-        if option == 1:  # rule: bracket_derivative APOSTROPH
+        if option == 1:  # rule: bracket_derivative PRIME
             return Node(OP_DER, values[0])
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_integral(self, target, option, names, values):
-        """
-        integral : INTEGRAL exp
-        """
-                 #| INTEGRAL SUB exp exp
-                 #| LBRACKET exp RBRACKET SUB exp exp
-
-        if option == 0:  # rule: INTEGRAL exp
-            fx, x = find_integration_variable(values[1])
-
-            return N(OP_INT, fx, x)
-
-        if option == 1:  # rule: INTEGRAL SUB exp exp
-            if not values[2].is_power():  # pragma: nocover
-                raise BisonSyntaxError('No upper bound specified in "%s".'
-                                       % values[2])
-
-            lbnd, ubnd = values[2]
-            fx, x = find_integration_variable(values[3])
-
-            return N(OP_INT, fx, x, lbnd, ubnd)
-
-        if option == 2:  # rule: LBRACKET exp RBRACKET SUB exp POWER exp
-            exp = values[1]
-            fx, x = find_integration_variable(values[1])
-
-            return N(OP_INT_INDEF, fx, x, values[4], values[6])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -489,15 +504,15 @@ class Parser(BisonParser):
         binary : exp PLUS exp
                | exp TIMES exp
                | exp DIVIDE exp
-               | exp POW exp
                | exp EQ exp
                | exp MINUS exp
+               | power
         """
 
-        if 0 <= option < 5:  # rule: exp {PLUS,TIMES,DIVIDES,POW,EQ} exp
+        if 0 <= option < 4:  # rule: exp {PLUS,TIMES,DIVIDE,EQ} exp
             return Node(values[1], values[0], values[2])
 
-        if option == 5:  # rule: exp MINUS exp
+        if option == 4:  # rule: exp MINUS exp
             node = values[2]
 
             # Add negation to the left-most child
@@ -508,9 +523,12 @@ class Parser(BisonParser):
                 node.negated += 1
 
             # Explicit call the hook handler on the created unary negation.
-            node = self.hook_handler('binary', 4, names, values, node)
+            self.hook_handler('binary', 3, names, values, node)
 
             return Node(OP_ADD, values[0], values[2])
+
+        if option == 5:  # rule: power
+            return Node(OP_POW, *values[0])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -591,7 +609,7 @@ class Parser(BisonParser):
     ")"       { returntoken(RPAREN); }
     "["       { returntoken(LBRACKET); }
     "]"       { returntoken(RBRACKET); }
-    "'"       { returntoken(APOSTROPH); }
+    "'"       { returntoken(PRIME); }
     log_([0-9]+|[a-zA-Z])"*(" { returntoken(FUNCTION_LPAREN); }
     log_([0-9]+|[a-zA-Z])"*" { returntoken(FUNCTION); }
     """ + operators + r"""
@@ -607,3 +625,4 @@ class Parser(BisonParser):
 
     yywrap() { return(1); }
     """
+    #int[ ]*"(" { returntoken(FUNCTION_LPAREN); }

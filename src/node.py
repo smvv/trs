@@ -207,8 +207,8 @@ class ExpressionBase(object):
         return ExpressionNode(OP_ADD, self, to_expression(other))
 
     def __sub__(self, other):
-        #FIXME: return ExpressionNode(OP_ADD, self, -to_expression(other))
-        return ExpressionNode(OP_SUB, self, to_expression(other))
+        return ExpressionNode(OP_ADD, self, -to_expression(other))
+        #FIXME: return ExpressionNode(OP_SUB, self, to_expression(other))
 
     def __mul__(self, other):
         return ExpressionNode(OP_MUL, self, to_expression(other))
@@ -428,7 +428,7 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         other_type = type(other)
 
         if other_type in TYPE_MAP:
-            return TYPE_MAP[other_type] == self.type \
+            return self.type == TYPE_MAP[other_type] \
                    and self.actual_value() == other
 
         return self.negated == other.negated and self.type == other.type \
@@ -466,7 +466,8 @@ class ExpressionLeaf(Leaf, ExpressionBase):
         return (ExpressionLeaf(1), self, ExpressionLeaf(1))
 
     def actual_value(self):
-        assert self.is_numeric()
+        if self.type == TYPE_IDENTIFIER:
+            return self.value
 
         return (1 - 2 * (self.negated & 1)) * self.value
 

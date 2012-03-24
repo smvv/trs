@@ -98,6 +98,15 @@ def first_sorted_variable(variables):
     return sorted(variables)[0]
 
 
+def find_variable(exp):
+    variables = find_variables(exp)
+
+    if not len(variables):
+        variables.add('x')
+
+    return L(first_sorted_variable(variables))
+
+
 def infinity():
     return L(INFINITY)
 

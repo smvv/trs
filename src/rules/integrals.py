@@ -2,16 +2,27 @@ from .utils import find_variables, first_sorted_variable, infinity, \
         replace_variable
 from .logarithmic import ln
 #from .goniometry import sin, cos
-from ..node import ExpressionLeaf as L, OP_INT
+from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-#def ader(f, x=None):
-#    """
-#    Anti-derivative.
-#    """
-#    return N(OP_INT, f, x)
+def integral(f, x=None, lbnd=None, ubnd=None):
+    """
+    Anti-derivative.
+    """
+    params = [f]
+
+    if x:
+        params.append(x)
+
+    if lbnd:
+        params.append(lbnd)
+
+    if ubnd:
+        params.append(ubnd)
+
+    return N(OP_INT, *params)
 
 
 def integral_params(integral):

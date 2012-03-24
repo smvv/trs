@@ -9,6 +9,7 @@ from tests.rulestestcase import tree
 from src.rules.goniometry import sin, cos
 from src.rules.derivatives import der
 from src.rules.logarithmic import log, ln
+from src.rules.integrals import integral
 
 
 class TestParser(unittest.TestCase):
@@ -73,8 +74,8 @@ class TestParser(unittest.TestCase):
 
         self.assertEqual(tree('d/dx x ^ 2'), der(exp, x))
         self.assertEqual(tree('d / dx x ^ 2'), der(exp, x))
-        self.assertEqual(tree('d/dx x ^ 2 + x'), der(exp, x) + x)
-        self.assertEqual(tree('d/dx (x ^ 2 + x)'), der(exp + x, x))
+        self.assertEqual(tree('d/dx x ^ 2 + x'), der(exp + x, x))
+        self.assertEqual(tree('(d/dx x ^ 2) + x'), der(exp, x) + x)
         self.assertEqual(tree('d/d'), d / d)
         # FIXME: self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))
 
@@ -97,3 +98,15 @@ class TestParser(unittest.TestCase):
             a, t = Leaf('a'), Leaf(token)
             self.assertEqual(tree('a' + token), a * t)
             # FIXME: self.assertEqual(tree('a' + token + 'a'), a * t * a)
+
+    def test_integral(self):
+        x, y, dx, a, b = tree('x, y, dx, a, b')
+
+        self.assertEqual(tree('int x'), integral(x, x))
+        self.assertEqual(tree('int x2'), integral(x ** 2, x))
+        self.assertEqual(tree('int x2 dx'), integral(x ** 2, x))
+        self.assertEqual(tree('int x2 dy'), integral(x ** 2, y))
+
+        self.assertEqual(tree('int_a^b x2 dy'), integral(x ** 2, y, a, b))
+        self.assertEqual(tree('int_(a-b)^(a+b) x2'),
+                         integral(x ** 2, x, a - b, a + b))
