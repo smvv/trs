@@ -93,7 +93,7 @@ class Parser(BisonParser):
         ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
-        ('right', ('SUB', )),
+        ('left', ('SUB', )),
         ('right', ('FUNCTION_LPAREN', )),
         )
 
@@ -397,11 +397,12 @@ class Parser(BisonParser):
               | DERIVATIVE exp
               | bracket_derivative
               | INTEGRAL exp
-              | INTEGRAL bounds exp %prec INTEGRAL
+              | integral_bounds TIMES exp %prec INTEGRAL
         """
 
         if option == 0:  # rule: NEG exp
             node = values[1]
+
             # Add negation to the left-most child
             if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
                 node.negated += 1
@@ -453,8 +454,8 @@ class Parser(BisonParser):
 
             return Node(OP_INT, fx, x)
 
-        if option == 6:  # rule: INTEGRAL bounds exp
-            lbnd, ubnd = values[1]
+        if option == 6:  # rule: integral_bounds TIMES exp
+            lbnd, ubnd = values[0]
             fx, x = find_integration_variable(values[2])
 
             return Node(OP_INT, fx, x, lbnd, ubnd)
@@ -462,12 +463,31 @@ class Parser(BisonParser):
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
-    def on_bounds(self, target, option, names, values):
+    def on_integral_bounds(self, target, option, names, values):
         """
-        bounds : SUB power TIMES
+        integral_bounds : INTEGRAL lbnd rbnd
         """
+        if option == 0:  # rule: INTEGRAL lbnd rbnd
+            return values[1], values[2]
 
-        if option == 0:  # rule: SUB power
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_lbnd(self, target, option, names, values):
+        """
+        lbnd : SUB exp
+        """
+        if option == 0:  # rule: SUB exp
+            return values[1]
+
+        raise BisonSyntaxError('Unsupported option %d in target "%s".'
+                               % (option, target))  # pragma: nocover
+
+    def on_rbnd(self, target, option, names, values):
+        """
+        rbnd : POW exp
+        """
+        if option == 0:  # rule: POW exp
             return values[1]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
