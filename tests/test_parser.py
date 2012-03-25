@@ -107,6 +107,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('int x2 dx'), integral(x ** 2, x))
         self.assertEqual(tree('int x2 dy'), integral(x ** 2, y))
 
+        self.assertEqual(tree('int_a^b x2'), integral(x ** 2, x, a, b))
         self.assertEqual(tree('int_a^b x2 dy'), integral(x ** 2, y, a, b))
         self.assertEqual(tree('int_(a-b)^(a+b) x2'),
                          integral(x ** 2, x, a - b, a + b))
