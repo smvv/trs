@@ -417,11 +417,6 @@ class Parser(BisonParser):
         if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
             op = values[0].split(' ', 1)[0]
 
-            if op == 'int':
-                fx, x = find_integration_variable(values[1])
-
-                return Node(OP_INT, fx, x)
-
             if op == 'ln':
                 return Node(OP_LOG, values[1], Leaf(E))
 
