@@ -56,7 +56,7 @@ def solve_integral(integral, F):
     x, lbnd, ubnd = integral[1:4]
 
     if x != find_variable(F):
-        return replace_variable(F, x, b) - replace_variable(F, x, a)
+        return replace_variable(F, x, ubnd) - replace_variable(F, x, lbnd)
 
     return indef(F, lbnd, ubnd)
 

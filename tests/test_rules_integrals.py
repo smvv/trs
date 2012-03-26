@@ -1,6 +1,6 @@
-from src.rules.integrals import choose_constant, match_solve_indef, \
-        solve_indef, match_integrate_variable_power, integrate_variable_root, \
-        integrate_variable_exponent
+from src.rules.integrals import indef, choose_constant, solve_integral, \
+        match_solve_indef, solve_indef, match_integrate_variable_power, \
+        integrate_variable_root, integrate_variable_exponent
 from src.rules.logarithmic import ln
 #from .goniometry import sin, cos
 from src.possibilities import Possibility as P
@@ -18,6 +18,19 @@ class TestRulesIntegrals(RulesTestCase):
     def test_match_solve_indef(self):
         root = tree('[x ^ 2]_a^b')
         self.assertEqualPos(match_solve_indef(root), [P(root, solve_indef)])
+
+    def test_solve_integral(self):
+        root, F, Fc = tree('int x ^ 2 dx, 1 / 3 x ^ 3, 1 / 3 x ^ 3 + c')
+        self.assertEqual(solve_integral(root, F), Fc)
+        x2, x, a, b = root = tree('int_a^b x ^ 2 dx')
+        self.assertEqual(solve_integral(root, F), indef(Fc, a, b))
+
+    def test_solve_integral_skip_indef(self):
+        root, x, c, l1 = tree('int_a^b y ^ x dy, x, c, 1')
+        F = tree('1 / (x + 1)y ^ (x + 1)')
+        y, a, b = root[1:4]
+        Fx = lambda y: l1 / (x + 1) * y ** (x + 1) + c
+        self.assertEqual(solve_integral(root, F), Fx(b) - Fx(a))
 
     def test_solve_indef(self):
         root, expect = tree('[x ^ 2]_a^b, b2 - a2')
