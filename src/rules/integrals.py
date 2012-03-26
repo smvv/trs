@@ -72,8 +72,8 @@ def solve_integral(integral, F):
 
 def match_integrate_variable_power(node):
     """
-    int(x ^ n, x)  ->  x ^ (n + 1) / (n + 1) + c
-    int(g ^ x, x)  ->  g ^ x / ln(g)
+    int x ^ n dx  ->  x ^ (n + 1) / (n + 1) + c
+    int g ^ x dx  ->  g ^ x / ln(g)
     """
     assert node.is_op(OP_INT)
 
@@ -93,7 +93,7 @@ def match_integrate_variable_power(node):
 
 def integrate_variable_root(root, args):
     """
-    int(x ^ n, x)  ->  x ^ (n + 1) / (n + 1) + c
+    int x ^ n dx  ->  x ^ (n + 1) / (n + 1) + c
     """
     x, n = root[0]
 
@@ -106,7 +106,7 @@ MESSAGES[integrate_variable_root] = \
 
 def integrate_variable_exponent(root, args):
     """
-    int(g ^ x, x)  ->  g ^ x / ln(g)
+    int g ^ x dx  ->  g ^ x / ln(g)
     """
     g, x = root[0]
 
