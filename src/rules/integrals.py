@@ -1,5 +1,4 @@
-from .utils import find_variables, infinity, replace_variable, find_variable, \
-        absolute
+from .utils import find_variables, replace_variable, find_variable, absolute
 from .logarithmic import ln
 from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
