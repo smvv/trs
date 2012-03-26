@@ -1,5 +1,5 @@
 from ..node import OP_ADD, OP_MUL, OP_DIV, OP_POW, OP_NEG, OP_SIN, OP_COS, \
-        OP_TAN, OP_DER, OP_LOG
+        OP_TAN, OP_DER, OP_LOG, OP_INT, OP_INT_INDEF
 from .groups import match_combine_groups
 from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
@@ -24,6 +24,8 @@ from src.rules.derivatives import match_zero_derivative, \
 from src.rules.logarithmic import match_constant_logarithm, \
         match_add_logarithms, match_raised_base, match_factor_out_exponent, \
         match_factor_in_multiplicant
+from src.rules.integrals import match_solve_indef, \
+        match_integrate_variable_power
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -53,4 +55,6 @@ RULES = {
                  match_logarithmic, match_goniometric, match_sum_product_rule,
                  match_quotient_rule],
         OP_LOG: [match_constant_logarithm, match_factor_out_exponent],
+        OP_INT: [match_integrate_variable_power],
+        OP_INT_INDEF: [match_solve_indef],
         }

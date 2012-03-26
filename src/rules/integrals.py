@@ -87,7 +87,7 @@ def match_integrate_variable_power(node):
     """
     assert node.is_op(OP_INT)
 
-    f, x = node
+    f, x = node[:2]
 
     if f.is_power():
         root, exponent = f
