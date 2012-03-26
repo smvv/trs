@@ -245,3 +245,7 @@ class TestNode(RulesTestCase):
         self.assertEqual(str(tree('[x ^ 2]_a^b')), '[x ^ 2]_a^b')
         self.assertEqual(str(tree('[x ^ 2]_(a-b)^(a+b)')),
                          '[x ^ 2]_(a - b)^(a + b)')
+
+    def test_construct_function_absolute_child(self):
+        self.assertEqual(str(tree('ln(|x|)')), 'ln|x|')
+        self.assertEqual(str(tree('sin(|x|)')), 'sin|x|')

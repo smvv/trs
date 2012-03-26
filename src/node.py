@@ -282,17 +282,22 @@ class ExpressionNode(Node, ExpressionBase):
             return 'd/d%s (%s)' % (children[1], f)
 
         if self.op == OP_LOG:
+            if self[0].is_op(OP_ABS):
+                content = children[0]
+            else:
+                content = '(' + children[0] + ')'
+
             # log(a, e)  ->  ln(a)
             if self[1].is_identifier(E):
-                return 'ln(%s)' % children[0]
+                return 'ln%s' % content
 
             # log(a, 10)  ->  log(a)
             if self[1] == 10:
-                return 'log(%s)' % children[0]
+                return 'log%s' % content
 
             # log(a, 2)  ->  log_2(a)
             if children[1].isdigit():
-                return 'log_%s(%s)' % (children[1], children[0])
+                return 'log_%s%s' % (children[1], content)
 
         if self.op == OP_INT:
             # Make sure that any needed parentheses around f(x) are generated,
@@ -323,6 +328,12 @@ class ExpressionNode(Node, ExpressionBase):
 
         if self.op == OP_ABS:
             return '|%s|' % children[0]
+
+        # Function with absolute value as only parameter does not need
+        # parentheses
+        if self.op in TOKEN_MAP and TOKEN_MAP[self.op] == 'FUNCTION' \
+                and len(self) == 1 and self[0].is_op(OP_ABS):
+            return self.title() + children[0]
 
     def __str__(self):  # pragma: nocover
         return generate_line(self)
