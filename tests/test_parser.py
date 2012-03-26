@@ -42,6 +42,15 @@ class TestParser(unittest.TestCase):
 
         self.assertNotEqual(possibilities1, possibilities2)
 
+    def test_preprocessor(self):
+        self.assertEqual(tree('ab'), tree('a * b'))
+        self.assertEqual(tree('abc'), tree('a * b * c'))
+        self.assertEqual(tree('a2'), tree('a ^ 2'))
+        self.assertEqual(tree('a 2'), tree('a * 2'))
+        self.assertEqual(tree('2a'), tree('2 * a'))
+        self.assertEqual(tree('2(a + b)'), tree('2 * (a + b)'))
+        self.assertEqual(tree('(a + b)2'), tree('(a + b) * 2'))
+
     def test_moved_negation(self):
         a, b = tree('a,b')
 
@@ -100,7 +109,7 @@ class TestParser(unittest.TestCase):
             # FIXME: self.assertEqual(tree('a' + token + 'a'), a * t * a)
 
     def test_integral(self):
-        x, y, dx, a, b = tree('x, y, dx, a, b')
+        x, y, dx, a, b, l2 = tree('x, y, dx, a, b, 2')
 
         self.assertEqual(tree('int x'), integral(x, x))
         self.assertEqual(tree('int x2'), integral(x ** 2, x))
@@ -111,6 +120,9 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('int_a^b x2 dy'), integral(x ** 2, y, a, b))
         self.assertEqual(tree('int_(a-b)^(a+b) x2'),
                          integral(x ** 2, x, a - b, a + b))
+
+        self.assertEqual(tree('int_a^b 2x'), integral(l2 * x, x, a, b))
+        self.assertEqual(tree('int_a^b2 x'), integral(x, x, a, b ** 2))
 
     def test_indefinite_integral(self):
         x2, a, b = tree('x ^ 2, a, b')

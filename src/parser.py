@@ -180,16 +180,17 @@ class Parser(BisonParser):
         #   - "4a" with "4*a".
         #   - "a4" with "a^4".
 
-        pattern = ('(?:(\))\s*(\(|\[)'                       # )(  -> ) * (
-                                                             # )[  -> ) * [
-                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*(\(|\[)'  # a(  -> a * (
-                                                             # a[  -> a * [
-                + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'     # )a  -> ) * a
+        pattern = ('(?:(\))\s*(\(|\[)'                        # )(  -> ) * (
+                                                              # )[  -> ) * [
+                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*(\(|\[)'   # a(  -> a * (
+                                                              # a[  -> a * [
+                + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'      # )a  -> ) * a
                 + '|([\x00-\x09\x0b-\x19a-z])\s*'
-                  + '([\x00-\x09\x0b-\x19a-z])'              # ab  -> a * b
-                + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'     # 4a  -> 4 * a
-                + '|([\x00-\x09\x0b-\x19a-z])\s*([0-9])'     # a4  -> a ^ 4
-                + '|([0-9])\s+([0-9]))'                      # 4 4 -> 4 * 4
+                  + '([\x00-\x09\x0b-\x19a-z])'               # ab  -> a * b
+                + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'      # 4a  -> 4 * a
+                + '|([\x00-\x09\x0b-\x19a-z])([0-9])'         # a4  -> a ^ 4
+                + '|([\x00-\x09\x0b-\x19a-z0-9])(\s+[0-9]))'  # a 4 -> a * 4,
+                                                              # 4 4 -> 4 * 4
                 )
 
         def preprocess_data(match):
@@ -204,12 +205,11 @@ class Parser(BisonParser):
             # If all characters on the right are numbers. e.g. "a4", the
             # expression implies exponentiation. Make sure ")4" is not
             # converted into an exponentiation, because that's multiplication.
-            if left != ')' and not 48 <= ord(left) < 58 \
-                    and all(map(lambda x: 48 <= ord(x) < 58, list(right))):
+            if left != ')' and not left.isdigit() and right.isdigit():
                 return '%s^%s' % (left, right)
 
             # match: ab | abc | abcd (where left = "a")
-            return '*'.join([left] + list(right))
+            return '*'.join([left] + list(re.sub(r'^ +', '', right)))
 
         if self.verbose:  # pragma: nocover
             data_before = data
