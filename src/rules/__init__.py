@@ -26,7 +26,7 @@ from src.rules.logarithmic import match_constant_logarithm, \
         match_factor_in_multiplicant
 from src.rules.integrals import match_solve_indef, match_constant_integral, \
         match_integrate_variable_power, match_factor_out_constant, \
-        match_division_integral
+        match_division_integral, match_function_integral
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_constant_fractions,
@@ -57,6 +57,7 @@ RULES = {
                  match_quotient_rule],
         OP_LOG: [match_constant_logarithm, match_factor_out_exponent],
         OP_INT: [match_integrate_variable_power, match_constant_integral,
-                 match_factor_out_constant, match_division_integral],
+                 match_factor_out_constant, match_division_integral,
+                 match_function_integral],
         OP_INT_INDEF: [match_solve_indef],
         }

@@ -3,9 +3,11 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         integrate_variable_root, integrate_variable_exponent, \
         match_constant_integral, constant_integral, \
         match_factor_out_constant, factor_out_constant, \
-        match_division_integral, division_integral, extend_division_integral
+        match_division_integral, division_integral, extend_division_integral, \
+        match_function_integral, logarithm_integral, sinus_integral, \
+        cosinus_integral
 from src.rules.logarithmic import ln
-#from .goniometry import sin, cos
+from src.rules.goniometry import sin, cos
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -103,3 +105,24 @@ class TestRulesIntegrals(RulesTestCase):
             # FIXME: 'a int 1 / x dx',  # fix with strategy
             # FIXME: 'aln|x| + c',
         ])
+
+    def test_match_function_integral(self):
+        root0, root1, root2 = tree('int ln x, int sin x, int cos x')
+        self.assertEqualPos(match_function_integral(root0),
+                [P(root0, logarithm_integral)])
+        self.assertEqualPos(match_function_integral(root1),
+                [P(root1, sinus_integral)])
+        self.assertEqualPos(match_function_integral(root2),
+                [P(root2, cosinus_integral)])
+
+    def test_logarithm_integral(self):
+        root, expect = tree('int ln x, (xlnx - x) / ln e + c')
+        self.assertEqual(logarithm_integral(root, ()), expect)
+
+    def test_sinus_integral(self):
+        root, expect = tree('int sin x, -cos x + c')
+        self.assertEqual(sinus_integral(root, ()), expect)
+
+    def test_cosinus_integral(self):
+        root, expect = tree('int cos x, sin x + c')
+        self.assertEqual(cosinus_integral(root, ()), expect)

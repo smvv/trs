@@ -1,9 +1,9 @@
 from .utils import find_variables, infinity, replace_variable, find_variable, \
         absolute
 from .logarithmic import ln
-#from .goniometry import sin, cos
+from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
-        OP_INT_INDEF, OP_MUL, OP_DIV, Scope
+        OP_INT_INDEF, OP_MUL, OP_DIV, OP_LOG, OP_SIN, OP_COS, Scope
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -215,7 +215,7 @@ def division_integral(root, args):
 
 
 MESSAGES[division_integral] = \
-        _('1 / {0[1]} has the standard ant-derivative ln|{0[1]}|.')
+        _('1 / {0[1]} has the standard anti-derivative ln|{0[1]}| + c.')
 
 
 def extend_division_integral(root, args):
@@ -229,3 +229,63 @@ def extend_division_integral(root, args):
 
 MESSAGES[extend_division_integral] = _('Bring nominator {0[0][0]} out of the' \
         ' fraction to obtain a standard 1 / {0[0][1]} integral.')
+
+
+def match_function_integral(node):
+    """
+    int log_g(x) dx  ->  (xln(x) - x) / log_g(x)
+    int sin(x) dx    ->  -cos(x)
+    int cos(x) dx    ->  sin(x)
+    """
+    assert node.is_op(OP_INT)
+
+    fx, x = node[:2]
+
+    if fx.is_leaf or fx[0] != x:
+        return []
+
+    if fx.op == OP_LOG:
+        return [P(node, logarithm_integral)]
+
+    if fx.op == OP_SIN:
+        return [P(node, sinus_integral)]
+
+    if fx.op == OP_COS:
+        return [P(node, cosinus_integral)]
+
+    return []
+
+
+def logarithm_integral(root, args):
+    """
+    int log_g(x) dx  ->  (xln(x) - x) / log_g(x)
+    """
+    x, g = root[0]
+
+    return solve_integral(root, (x * ln(x) - x) / ln(g))
+
+
+MESSAGES[logarithm_integral] = _('log_g(x) has the standard anti-derivative ' \
+        '(xln(x) - x) / log_g(x) + c.')
+
+
+def sinus_integral(root, args):
+    """
+    int sin(x) dx  ->  -cos(x)
+    """
+    return solve_integral(root, -cos(root[0][0]))
+
+
+MESSAGES[sinus_integral] = \
+        _('{0[0]} has the standard anti-derivative -cos({0[0][0]}) + c.')
+
+
+def cosinus_integral(root, args):
+    """
+    int cos(x) dx  ->  sin(x)
+    """
+    return solve_integral(root, sin(root[0][0]))
+
+
+MESSAGES[cosinus_integral] = \
+        _('{0[0]} has the standard anti-derivative sin({0[0][0]}) + c.')
