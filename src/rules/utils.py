@@ -31,8 +31,7 @@ def is_fraction(node, nominator, denominator):
     Check if a node represents the fraction of a given nominator and
     denominator.
 
-    >>> from ..node import ExpressionLeaf as L
-    >>> l1, l2, a = L('a'), L(1), L(2)
+    >>> a, l1, l2 = L('a'), L(1), L(2)
     >>> is_fraction(a / l2, a, 2)
     True
     >>> is_fraction(l1 / l2 * a, a, 2)
@@ -100,16 +99,17 @@ def first_sorted_variable(variables):
 
 
 def find_variable(exp):
+    """
+    Find the main (e.g. first prioritized) variable in an expression and return
+    it as an ExpressionNode object. If no variable is present, return 'x' by
+    default.
+    """
     variables = find_variables(exp)
 
     if not len(variables):
         variables.add('x')
 
     return L(first_sorted_variable(variables))
-
-
-def infinity():
-    return L(INFINITY)
 
 
 def replace_variable(f, x, replacement):
@@ -126,3 +126,10 @@ def replace_variable(f, x, replacement):
     children = map(lambda c: replace_variable(c, x, replacement), f)
 
     return N(f.op, *children)
+
+
+def infinity():
+    """
+    Return an infinity leaf node.
+    """
+    return L(INFINITY)

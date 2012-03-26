@@ -1,4 +1,6 @@
 import unittest
+import doctest
+
 from src.node import ExpressionNode
 from src.parser import Parser
 from tests.parser import ParserWrapper
@@ -13,6 +15,10 @@ def rewrite(exp, **kwargs):
 
 
 class RulesTestCase(unittest.TestCase):
+
+    def assertDoctests(self, module):
+        self.assertEqual(doctest.testmod(m=module)[0], 0,
+                         'There are failed doctests.')
 
     def assertEqualPos(self, possibilities, expected):
         self.assertEqual(len(possibilities), len(expected))
