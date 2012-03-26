@@ -1,4 +1,4 @@
-from src.rules.integrals import integral_params, choose_constant, \
+from src.rules.integrals import choose_constant, \
         match_integrate_variable_power, integrate_variable_root, \
         integrate_variable_exponent
 from src.rules.logarithmic import ln
@@ -9,15 +9,15 @@ from tests.rulestestcase import RulesTestCase, tree
 
 class TestRulesIntegrals(RulesTestCase):
 
-    def test_integral_params(self):
-        f, x = root = tree('int fx dx')
-        self.assertEqual(integral_params(root), (f, x))
+    #def test_integral_params(self):
+    #    f, x = root = tree('int fx dx')
+    #    self.assertEqual(integral_params(root), (f, x))
 
-        root = tree('int fx')
-        self.assertEqual(integral_params(root), (f, x))
+    #    root = tree('int fx')
+    #    self.assertEqual(integral_params(root), (f, x))
 
-        root = tree('int 3')
-        self.assertEqual(integral_params(root), (3, x))
+    #    root = tree('int 3')
+    #    self.assertEqual(integral_params(root), (3, x))
 
     def test_choose_constant(self):
         a, b, c = tree('a, b, c')

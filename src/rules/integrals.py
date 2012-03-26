@@ -7,41 +7,30 @@ from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-def integral(f, x=None, lbnd=None, ubnd=None):
+def integral(f, *args):
     """
-    Anti-derivative.
+    Create an integral node.
     """
-    params = [f]
-
-    if x:
-        params.append(x)
-
-    if lbnd:
-        params.append(lbnd)
-
-    if ubnd:
-        params.append(ubnd)
-
-    return N(OP_INT, *params)
+    return N(OP_INT, *((f,) + args))
 
 
-def integral_params(integral):
-    """
-    Get integral parameters:
-    - If f(x) and x are both specified, return them.
-    - If only f(x) is specified, find x.
-    """
-    if len(integral) > 1:
-        assert integral[1].is_identifier()
-        return tuple(integral[:2])
-
-    f = integral[0]
-    variables = find_variables(integral)
-
-    if not len(variables):
-        return f, None
-
-    return f, L(first_sorted_variable(variables))
+#def integral_params(integral):
+#    """
+#    Get integral parameters:
+#    - If f(x) and x are both specified, return them.
+#    - If only f(x) is specified, find x.
+#    """
+#    if len(integral) > 1:
+#        assert integral[1].is_identifier()
+#        return tuple(integral[:2])
+#
+#    f = integral[0]
+#    variables = find_variables(integral)
+#
+#    if not len(variables):
+#        return f, None
+#
+#    return f, L(first_sorted_variable(variables))
 
 
 def choose_constant(integral):
@@ -88,7 +77,7 @@ def match_integrate_variable_power(node):
     """
     assert node.is_op(OP_INT)
 
-    f, x = integral_params(node)
+    f, x = node
 
     if f.is_power():
         root, exponent = f
