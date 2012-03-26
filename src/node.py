@@ -2,6 +2,7 @@
 import os.path
 import sys
 import copy
+import re
 
 sys.path.insert(0, os.path.realpath('external'))
 
@@ -27,7 +28,7 @@ OP_SUB = 3
 OP_MUL = 4
 OP_DIV = 5
 OP_POW = 6
-OP_MOD = 7
+OP_SUBSCRIPT = 7
 
 # N-ary (functions)
 OP_INT = 8
@@ -74,6 +75,7 @@ OP_MAP = {
         '*': OP_MUL,
         '/': OP_DIV,
         '^': OP_POW,
+        '_': OP_SUBSCRIPT,
         'sin': OP_SIN,
         'cos': OP_COS,
         'tan': OP_TAN,
@@ -100,6 +102,7 @@ TOKEN_MAP = {
         OP_MUL: 'TIMES',
         OP_DIV: 'DIVIDE',
         OP_POW: 'POW',
+        OP_SUBSCRIPT: 'SUB',
         OP_SQRT: 'FUNCTION',
         OP_SIN: 'FUNCTION',
         OP_COS: 'FUNCTION',
@@ -288,6 +291,33 @@ class ExpressionNode(Node, ExpressionBase):
             # log(a, 2)  ->  log_2(a)
             if children[1].isdigit():
                 return 'log_%s(%s)' % (children[1], children[0])
+
+        if self.op == OP_INT:
+            # Make sure that any needed parentheses around f(x) are generated,
+            # and append ' dx' to it (result 'f(x) dx')
+            fx, x = self[:2]
+            operand = re.sub(r'(\s*\*)?\s*d$', ' d' + x.value, str(fx * 'd'))
+            op = 'int'
+
+            # Add bounds
+            if len(self) > 2:
+                lbnd, ubnd = self[2:]
+                lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
+                ubnd = str(ExpressionNode(OP_POW, ubnd))
+                op += lbnd + ubnd
+
+            # int x ^ 2      ->  int x ^ 2 dx
+            # int x + 1      ->  int (x + 1) dx
+            # int_a^b x ^ 2  ->  int_a^b x ^ 2 dx
+            return op + ' ' + operand
+
+        if self.op == OP_INT_INDEF:
+            # [x ^ 2]_a^b
+            F, lbnd, ubnd = self
+            lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
+            ubnd = str(ExpressionNode(OP_POW, ubnd))
+
+            return '[%s]%s%s' % (F, lbnd, ubnd)
 
     def __str__(self):  # pragma: nocover
         return generate_line(self)

@@ -219,12 +219,29 @@ class TestNode(RulesTestCase):
         self.assertTrue(ln0.contains(a))
         self.assertFalse(ln1.contains(a))
 
-    def test_construct_function(self):
+    def test_construct_function_derivative(self):
         self.assertEqual(str(tree('der(x ^ 2)')), '[x ^ 2]\'')
         self.assertEqual(str(tree('der(der(x ^ 2))')), '[x ^ 2]\'\'')
         self.assertEqual(str(tree('der(x ^ 2, x)')), 'd/dx (x ^ 2)')
 
+    def test_construct_function_logarithm(self):
         self.assertEqual(str(tree('log(x, e)')), 'ln(x)')
         self.assertEqual(str(tree('log(x, 10)')), 'log(x)')
         self.assertEqual(str(tree('log(x, 2)')), 'log_2(x)')
         self.assertEqual(str(tree('log(x, g)')), 'log(x, g)')
+
+    def test_construct_function_integral(self):
+        self.assertEqual(str(tree('int x ^ 2')), 'int x ^ 2 dx')
+        self.assertEqual(str(tree('int x ^ 2 dx')), 'int x ^ 2 dx')
+        self.assertEqual(str(tree('int x ^ 2 dy')), 'int x ^ 2 dy')
+        self.assertEqual(str(tree('int x ^ 2 dy')), 'int x ^ 2 dy')
+        self.assertEqual(str(tree('int x + 1')), 'int (x + 1) dx')
+
+        self.assertEqual(str(tree('int_a^b x ^ 2')), 'int_a^b x ^ 2 dx')
+        self.assertEqual(str(tree('int_(a-b)^(a+b) x ^ 2')),
+                         'int_(a - b)^(a + b) x ^ 2 dx')
+
+    def test_construct_function_indef(self):
+        self.assertEqual(str(tree('[x ^ 2]_a^b')), '[x ^ 2]_a^b')
+        self.assertEqual(str(tree('[x ^ 2]_(a-b)^(a+b)')),
+                         '[x ^ 2]_(a - b)^(a + b)')

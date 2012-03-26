@@ -78,7 +78,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
               'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
-              'RBRACKET', 'PRIME', 'DERIVATIVE', 'SUB'] \
+              'RBRACKET', 'PRIME', 'DERIVATIVE'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -628,7 +628,6 @@ class Parser(BisonParser):
     d[ ]*"/"[ ]*"d*"[a-z]"*" { returntoken(DERIVATIVE); }
     [0-9]+"."?[0-9]* { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
-    "_"       { returntoken(SUB); }
     "("       { returntoken(LPAREN); }
     ")"       { returntoken(RPAREN); }
     "["       { returntoken(LBRACKET); }
