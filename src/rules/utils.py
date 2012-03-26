@@ -1,5 +1,5 @@
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_MUL, OP_DIV, \
-        INFINITY
+        INFINITY, OP_ABS
 
 
 def greatest_common_divisor(a, b):
@@ -133,3 +133,10 @@ def infinity():
     Return an infinity leaf node.
     """
     return L(INFINITY)
+
+
+def absolute(exp):
+    """
+    Put an 'absolute value' operator on top of the given expression.
+    """
+    return N(OP_ABS, exp)

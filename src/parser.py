@@ -18,7 +18,7 @@ from node import ExpressionBase, ExpressionNode as Node, \
         ExpressionLeaf as Leaf, OP_MAP, OP_DER, TOKEN_MAP, TYPE_OPERATOR, \
         OP_COMMA, OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_LOG, OP_ADD, Scope, E, \
         DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
-        OP_INT_INDEF
+        OP_INT_INDEF, OP_ABS
 from rules import RULES
 from rules.utils import find_variable
 from strategy import pick_suggestion
@@ -78,7 +78,7 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
               'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
-              'RBRACKET', 'PRIME', 'DERIVATIVE'] \
+              'RBRACKET', 'PIPE', 'PRIME', 'DERIVATIVE'] \
              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -180,16 +180,16 @@ class Parser(BisonParser):
         #   - "4a" with "4*a".
         #   - "a4" with "a^4".
 
-        pattern = ('(?:(\))\s*(\(|\[)'                        # )(  -> ) * (
+        pattern = ('(?:(\))\s*([([])'                         # )(  -> ) * (
                                                               # )[  -> ) * [
-                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*(\(|\[)'   # a(  -> a * (
+                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*([([])'    # a(  -> a * (
                                                               # a[  -> a * [
                 + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'      # )a  -> ) * a
                 + '|([\x00-\x09\x0b-\x19a-z])\s*'
                   + '([\x00-\x09\x0b-\x19a-z])'               # ab  -> a * b
                 + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'      # 4a  -> 4 * a
                 + '|([\x00-\x09\x0b-\x19a-z])([0-9])'         # a4  -> a ^ 4
-                + '|([\x00-\x09\x0b-\x19a-z0-9])(\s+[0-9]))'  # a 4 -> a * 4,
+                + '|([\x00-\x09\x0b-\x19a-z0-9])(\s+[0-9]))'  # a 4 -> a * 4
                                                               # 4 4 -> 4 * 4
                 )
 
@@ -399,6 +399,7 @@ class Parser(BisonParser):
               | INTEGRAL exp
               | integral_bounds TIMES exp %prec INTEGRAL
               | LBRACKET exp RBRACKET lbnd ubnd
+              | PIPE exp PIPE
         """
 
         if option == 0:  # rule: NEG exp
@@ -463,6 +464,9 @@ class Parser(BisonParser):
 
         if option == 7:  # rule: LBRACKET exp RBRACKET lbnd ubnd
             return Node(OP_INT_INDEF, values[1], values[3], values[4])
+
+        if option == 8:  # rule: PIPE exp PIPE
+            return Node(OP_ABS, values[1])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -633,6 +637,7 @@ class Parser(BisonParser):
     "["       { returntoken(LBRACKET); }
     "]"       { returntoken(RBRACKET); }
     "'"       { returntoken(PRIME); }
+    "|"       { returntoken(PIPE); }
     log_([0-9]+|[a-zA-Z])"*(" { returntoken(FUNCTION_LPAREN); }
     log_([0-9]+|[a-zA-Z])"*" { returntoken(FUNCTION); }
     """ + operators + r"""

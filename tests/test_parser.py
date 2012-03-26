@@ -10,6 +10,7 @@ from src.rules.goniometry import sin, cos
 from src.rules.derivatives import der
 from src.rules.logarithmic import log, ln
 from src.rules.integrals import integral, indef
+from src.rules.utils import absolute
 
 
 class TestParser(unittest.TestCase):
@@ -50,6 +51,14 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('2a'), tree('2 * a'))
         self.assertEqual(tree('2(a + b)'), tree('2 * (a + b)'))
         self.assertEqual(tree('(a + b)2'), tree('(a + b) * 2'))
+
+        self.assertEqual(tree('(a)(b)'), tree('(a) * (b)'))
+        self.assertEqual(tree('(a)[b]\''), tree('(a) * [b]\''))
+
+        # FIXME: self.assertEqual(tree('(a)|b|'), tree('(a) * |b|'))
+        # FIXME: self.assertEqual(tree('|a|(b)'), tree('|a| * (b)'))
+        # FIXME: self.assertEqual(tree('a|b|'), tree('a * |b|'))
+        # FIXME: self.assertEqual(tree('|a|b'), tree('|a| * b'))
 
     def test_moved_negation(self):
         a, b = tree('a,b')
@@ -128,3 +137,9 @@ class TestParser(unittest.TestCase):
         x2, a, b = tree('x ^ 2, a, b')
 
         self.assertEqual(tree('[x ^ 2]_a^b'), indef(x2, a, b))
+
+    def test_absolute_value(self):
+        x = tree('x')
+
+        self.assertEqual(tree('|x|'), absolute(x))
+        self.assertEqual(tree('|x2|'), absolute(x ** 2))

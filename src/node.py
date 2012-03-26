@@ -21,35 +21,36 @@ TYPE_FLOAT = 8
 
 # Unary
 OP_NEG = 1
+OP_ABS = 2
 
 # Binary
-OP_ADD = 2
-OP_SUB = 3
-OP_MUL = 4
-OP_DIV = 5
-OP_POW = 6
-OP_SUBSCRIPT = 7
+OP_ADD = 3
+OP_SUB = 4
+OP_MUL = 5
+OP_DIV = 6
+OP_POW = 7
+OP_SUBSCRIPT = 8
 
 # N-ary (functions)
-OP_INT = 8
-OP_INT_INDEF = 9
-OP_COMMA = 10
-OP_SQRT = 11
-OP_DER = 12
-OP_LOG = 13
+OP_INT = 9
+OP_INT_INDEF = 10
+OP_COMMA = 11
+OP_SQRT = 12
+OP_DER = 13
+OP_LOG = 14
 
 # Goniometry
-OP_SIN = 14
-OP_COS = 15
-OP_TAN = 16
+OP_SIN = 15
+OP_COS = 16
+OP_TAN = 17
 
-OP_SOLVE = 17
-OP_EQ = 18
+OP_SOLVE = 18
+OP_EQ = 19
 
-OP_POSSIBILITIES = 19
-OP_HINT = 20
-OP_REWRITE_ALL = 21
-OP_REWRITE = 22
+OP_POSSIBILITIES = 20
+OP_HINT = 21
+OP_REWRITE_ALL = 22
+OP_REWRITE = 23
 
 # Special identifiers
 PI = 'pi'
@@ -94,6 +95,7 @@ OP_MAP = {
 OP_VALUE_MAP = dict([(v, k) for k, v in OP_MAP.iteritems()])
 OP_MAP['ln'] = OP_LOG
 OP_VALUE_MAP[OP_INT_INDEF] = 'indef'
+OP_VALUE_MAP[OP_ABS] = 'abs'
 
 TOKEN_MAP = {
         OP_COMMA: 'COMMA',
@@ -318,6 +320,9 @@ class ExpressionNode(Node, ExpressionBase):
             ubnd = str(ExpressionNode(OP_POW, ubnd))
 
             return '[%s]%s%s' % (F, lbnd, ubnd)
+
+        if self.op == OP_ABS:
+            return '|%s|' % children[0]
 
     def __str__(self):  # pragma: nocover
         return generate_line(self)
