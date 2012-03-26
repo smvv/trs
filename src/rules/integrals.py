@@ -2,7 +2,7 @@ from .utils import find_variables, infinity, replace_variable, find_variable
 from .logarithmic import ln
 #from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
-        OP_INT_INDEF
+        OP_INT_INDEF, OP_MUL, Scope
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -82,7 +82,7 @@ def solve_indef(root, args):
 
 def match_integrate_variable_power(node):
     """
-    int x ^ n dx  ->  x ^ (n + 1) / (n + 1) + c
+    int x ^ n dx  ->  x ^ (n + 1) / (n + 1)
     int g ^ x dx  ->  g ^ x / ln(g)
     """
     assert node.is_op(OP_INT)
@@ -103,7 +103,7 @@ def match_integrate_variable_power(node):
 
 def integrate_variable_root(root, args):
     """
-    int x ^ n dx  ->  x ^ (n + 1) / (n + 1) + c
+    int x ^ n dx  ->  x ^ (n + 1) / (n + 1)
     """
     x, n = root[0]
 
@@ -125,3 +125,64 @@ def integrate_variable_exponent(root, args):
 
 MESSAGES[integrate_variable_exponent] = \
         _('Apply standard integral int(g ^ x) = g ^ x / ln(g) + c.')
+
+
+def match_constant_integral(node):
+    """
+    int c dx  ->  cx
+    """
+    assert node.is_op(OP_INT)
+
+    fx, x = node[:2]
+
+    if not fx.contains(x):
+        return [P(node, constant_integral)]
+
+    return []
+
+
+def constant_integral(root, args):
+    """
+    int c dx  ->  cx
+    """
+    c, x = root[:2]
+
+    return solve_integral(root, c * x)
+
+
+MESSAGES[constant_integral] = _('{0[0]} does not contain {0[1]}, so its ' \
+        'integral over {0[1]} is its multiplication with {0[1]}.')
+
+
+def match_factor_out_constant(node):
+    """
+    int cf(x) dx  ->  c int f(x) dx
+    """
+    assert node.is_op(OP_INT)
+
+    fx, x = node[:2]
+
+    if not fx.is_op(OP_MUL):
+        return []
+
+    p = []
+    scope = Scope(fx)
+
+    for n in scope:
+        if not n.contains(x):
+            p.append(P(node, factor_out_constant, (scope, n)))
+
+    return p
+
+
+def factor_out_constant(root, args):
+    """
+    int cf(x) dx  ->  c int f(x) dx
+    """
+    scope, c = args
+    scope.remove(c)
+
+    return c * integral(scope.as_nary_node(), *root[1:])
+
+
+MESSAGES[factor_out_constant] = _('Factor out {2} from integral {0}.')

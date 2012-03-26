@@ -1,8 +1,11 @@
 from src.rules.integrals import indef, choose_constant, solve_integral, \
         match_solve_indef, solve_indef, match_integrate_variable_power, \
-        integrate_variable_root, integrate_variable_exponent
+        integrate_variable_root, integrate_variable_exponent, \
+        match_constant_integral, constant_integral, \
+        match_factor_out_constant, factor_out_constant
 from src.rules.logarithmic import ln
 #from .goniometry import sin, cos
+from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
@@ -52,3 +55,27 @@ class TestRulesIntegrals(RulesTestCase):
     def test_integrate_variable_exponent(self):
         root, expect = tree('int g ^ x, g ^ x / ln(g) + c')
         self.assertEqual(integrate_variable_exponent(root, ()), expect)
+
+    def test_match_constant_integral(self):
+        root0, root1 = tree('int 2, int c dx')
+        self.assertEqualPos(match_constant_integral(root0),
+                [P(root0, constant_integral)])
+        self.assertEqualPos(match_constant_integral(root1),
+                [P(root1, constant_integral)])
+
+    def test_constant_integral(self):
+        root, expect = tree('int 2, 2x + c')
+        self.assertEqual(constant_integral(root, ()), expect)
+
+        root, expect = tree('int_0^4 2, [2x + c]_0^4')
+        self.assertEqual(constant_integral(root, ()), expect)
+
+    def test_match_factor_out_constant(self):
+        root, c, cx = tree('int cx dx, c, cx')
+        self.assertEqualPos(match_factor_out_constant(root),
+                [P(root, factor_out_constant, (Scope(cx), c))])
+
+    def test_factor_out_constant(self):
+        root, expect = tree('int cx2 dx, c int x2 dx')
+        c, x2 = cx2 = root[0]
+        self.assertEqual(factor_out_constant(root, (Scope(cx2), c)), expect)
