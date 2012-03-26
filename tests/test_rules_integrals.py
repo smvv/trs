@@ -9,16 +9,6 @@ from tests.rulestestcase import RulesTestCase, tree
 
 class TestRulesIntegrals(RulesTestCase):
 
-    #def test_integral_params(self):
-    #    f, x = root = tree('int fx dx')
-    #    self.assertEqual(integral_params(root), (f, x))
-
-    #    root = tree('int fx')
-    #    self.assertEqual(integral_params(root), (f, x))
-
-    #    root = tree('int 3')
-    #    self.assertEqual(integral_params(root), (3, x))
-
     def test_choose_constant(self):
         a, b, c = tree('a, b, c')
         self.assertEqual(choose_constant(tree('int x ^ n')), c)

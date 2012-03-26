@@ -21,25 +21,6 @@ def indef(*args):
     return N(OP_INT_INDEF, *args)
 
 
-#def integral_params(integral):
-#    """
-#    Get integral parameters:
-#    - If f(x) and x are both specified, return them.
-#    - If only f(x) is specified, find x.
-#    """
-#    if len(integral) > 1:
-#        assert integral[1].is_identifier()
-#        return tuple(integral[:2])
-#
-#    f = integral[0]
-#    variables = find_variables(integral)
-#
-#    if not len(variables):
-#        return f, None
-#
-#    return f, L(first_sorted_variable(variables))
-
-
 def choose_constant(integral):
     """
     Choose a constant to be added to the antiderivative.
@@ -61,21 +42,23 @@ def solve_integral(integral, F):
     Solve an integral given its anti-derivative F:
     - First, finish the anti-derivative by adding a constant.
     - If no bounds are specified, return the anti-derivative.
-    - If only a lower bound is specified, set the upper bound to infinity.
-    - Given a lower bound a and upper bound b, the solution is F(b) - F(a).
+    - Given a lower bound a and upper bound b, the solution is the indefinite
+      integral [F(x)]_a^b. If F(x) contains multiple variables so that the 'x'
+      is not identified by 'find_variable(F)' (which is used by the indefinite
+      integral), skip the reduction of the indefinite integral and return the
+      solution F(b) - F(a).
     """
     F += choose_constant(integral)
 
     if len(integral) < 3:
         return F
 
-    x = integral[1]
-    lower = integral[2]
-    upper = infinity() if len(integral) < 4 else integral[3]
+    x, lbnd, ubnd = integral[1:4]
 
-    # TODO: skip indefinite notation if anti-derivative has no impliciely
-    #       identifiable parameter
-    return indef(F, lower, upper)
+    if x != find_variable(F):
+        return replace_variable(F, x, b) - replace_variable(F, x, a)
+
+    return indef(F, lbnd, ubnd)
 
 
 def match_solve_indef(node):
