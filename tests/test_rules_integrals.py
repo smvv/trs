@@ -2,7 +2,8 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         match_solve_indef, solve_indef, match_integrate_variable_power, \
         integrate_variable_root, integrate_variable_exponent, \
         match_constant_integral, constant_integral, \
-        match_factor_out_constant, factor_out_constant
+        match_factor_out_constant, factor_out_constant, \
+        match_division_integral, division_integral, extend_division_integral
 from src.rules.logarithmic import ln
 #from .goniometry import sin, cos
 from src.node import Scope
@@ -79,3 +80,26 @@ class TestRulesIntegrals(RulesTestCase):
         root, expect = tree('int cx2 dx, c int x2 dx')
         c, x2 = cx2 = root[0]
         self.assertEqual(factor_out_constant(root, (Scope(cx2), c)), expect)
+
+    def test_match_division_integral(self):
+        root0, root1 = tree('int 1 / x, int 2 / x')
+        self.assertEqualPos(match_division_integral(root0),
+                [P(root0, division_integral)])
+        self.assertEqualPos(match_division_integral(root1),
+                [P(root1, extend_division_integral)])
+
+    def test_division_integral(self):
+        root, expect = tree('int 1 / x dx, ln|x| + c')
+        self.assertEqual(division_integral(root, ()), expect)
+
+    def test_extend_division_integral(self):
+        root, expect = tree('int a / x dx, int a(1 / x) dx')
+        self.assertEqual(extend_division_integral(root, ()), expect)
+
+    def test_match_division_integral_chain(self):
+        self.assertRewrite([
+            'int a / x',
+            'int a(1 / x) dx',
+            # FIXME: 'a int 1 / x dx',  # fix with strategy
+            # FIXME: 'aln|x| + c',
+        ])

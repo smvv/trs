@@ -1,8 +1,9 @@
-from .utils import find_variables, infinity, replace_variable, find_variable
+from .utils import find_variables, infinity, replace_variable, find_variable, \
+        absolute
 from .logarithmic import ln
 #from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
-        OP_INT_INDEF, OP_MUL, Scope
+        OP_INT_INDEF, OP_MUL, OP_DIV, Scope
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -186,3 +187,45 @@ def factor_out_constant(root, args):
 
 
 MESSAGES[factor_out_constant] = _('Factor out {2} from integral {0}.')
+
+
+def match_division_integral(node):
+    """
+    int 1 / x dx  ->  ln|x|
+    int a / x dx  ->  int a(1 / x) dx  # -> a int 1 / x dx  ->  aln|x|
+    """
+    assert node.is_op(OP_INT)
+
+    fx, x = node[:2]
+
+    if fx.is_op(OP_DIV) and fx[1] == x:
+        if fx[0] == 1:
+            return [P(node, division_integral)]
+
+        return [P(node, extend_division_integral)]
+
+    return []
+
+
+def division_integral(root, args):
+    """
+    int 1 / x dx  ->  ln|x|
+    """
+    return solve_integral(root, ln(absolute(root[0][1])))
+
+
+MESSAGES[division_integral] = \
+        _('1 / {0[1]} has the standard ant-derivative ln|{0[1]}|.')
+
+
+def extend_division_integral(root, args):
+    """
+    int a / x dx  ->  int a(1 / x) dx  # -> a int 1 / x dx  ->  aln|x|
+    """
+    a, x = root[0]
+
+    return integral(a * (L(1) / x), *root[1:])
+
+
+MESSAGES[extend_division_integral] = _('Bring nominator {0[0][0]} out of the' \
+        ' fraction to obtain a standard 1 / {0[0][1]} integral.')
