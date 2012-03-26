@@ -1,5 +1,4 @@
-from .utils import find_variables, first_sorted_variable, infinity, \
-        replace_variable
+from .utils import find_variables, infinity, replace_variable, find_variable
 from .logarithmic import ln
 #from .goniometry import sin, cos
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
@@ -74,8 +73,28 @@ def solve_integral(integral, F):
     lower = integral[2]
     upper = infinity() if len(integral) < 4 else integral[3]
 
-    # TODO: add notation [F(x)]_a^b
-    return replace_variable(F, x, lower) - replace_variable(F, x, upper)
+    # TODO: skip indefinite notation if anti-derivative has no impliciely
+    #       identifiable parameter
+    return indef(F, lower, upper)
+
+
+def match_solve_indef(node):
+    """
+    [F(x)]_a^b  ->  F(b) - F(a)
+    """
+    assert node.is_op(OP_INT_INDEF)
+
+    return [P(node, solve_indef)]
+
+
+def solve_indef(root, args):
+    """
+    [F(x)]_a^b  ->  F(b) - F(a)
+    """
+    Fx, a, b = root
+    x = find_variable(Fx)
+
+    return replace_variable(Fx, x, b) - replace_variable(Fx, x, a)
 
 
 def match_integrate_variable_power(node):

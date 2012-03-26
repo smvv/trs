@@ -1,4 +1,5 @@
-from ..node import ExpressionLeaf as L, OP_MUL, OP_DIV, INFINITY
+from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_MUL, OP_DIV, \
+        INFINITY
 
 
 def greatest_common_divisor(a, b):
@@ -124,4 +125,4 @@ def replace_variable(f, x, replacement):
 
     children = map(lambda c: replace_variable(c, x, replacement), f)
 
-    return N(f, *children)
+    return N(f.op, *children)
