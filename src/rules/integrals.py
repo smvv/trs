@@ -2,16 +2,24 @@ from .utils import find_variables, first_sorted_variable, infinity, \
         replace_variable
 from .logarithmic import ln
 #from .goniometry import sin, cos
-from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT
+from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
+        OP_INT_INDEF
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-def integral(f, *args):
+def integral(*args):
     """
     Create an integral node.
     """
-    return N(OP_INT, *((f,) + args))
+    return N(OP_INT, *args)
+
+
+def indef(*args):
+    """
+    Create an indefinite integral node.
+    """
+    return N(OP_INT_INDEF, *args)
 
 
 #def integral_params(integral):

@@ -9,7 +9,7 @@ from tests.rulestestcase import tree
 from src.rules.goniometry import sin, cos
 from src.rules.derivatives import der
 from src.rules.logarithmic import log, ln
-from src.rules.integrals import integral
+from src.rules.integrals import integral, indef
 
 
 class TestParser(unittest.TestCase):
@@ -111,3 +111,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(tree('int_a^b x2 dy'), integral(x ** 2, y, a, b))
         self.assertEqual(tree('int_(a-b)^(a+b) x2'),
                          integral(x ** 2, x, a - b, a + b))
+
+    def test_indefinite_integral(self):
+        x2, a, b = tree('x ^ 2, a, b')
+
+        self.assertEqual(tree('[x ^ 2]_a^b'), indef(x2, a, b))

@@ -398,6 +398,7 @@ class Parser(BisonParser):
               | bracket_derivative
               | INTEGRAL exp
               | integral_bounds TIMES exp %prec INTEGRAL
+              | LBRACKET exp RBRACKET lbnd ubnd
         """
 
         if option == 0:  # rule: NEG exp
@@ -460,14 +461,17 @@ class Parser(BisonParser):
 
             return Node(OP_INT, fx, x, lbnd, ubnd)
 
+        if option == 7:  # rule: LBRACKET exp RBRACKET lbnd ubnd
+            return Node(OP_INT_INDEF, values[1], values[3], values[4])
+
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
     def on_integral_bounds(self, target, option, names, values):
         """
-        integral_bounds : INTEGRAL lbnd rbnd
+        integral_bounds : INTEGRAL lbnd ubnd
         """
-        if option == 0:  # rule: INTEGRAL lbnd rbnd
+        if option == 0:  # rule: INTEGRAL lbnd ubnd
             return values[1], values[2]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -483,9 +487,9 @@ class Parser(BisonParser):
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
 
-    def on_rbnd(self, target, option, names, values):
+    def on_ubnd(self, target, option, names, values):
         """
-        rbnd : POW exp
+        ubnd : POW exp
         """
         if option == 0:  # rule: POW exp
             return values[1]

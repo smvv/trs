@@ -91,6 +91,7 @@ OP_MAP = {
 
 OP_VALUE_MAP = dict([(v, k) for k, v in OP_MAP.iteritems()])
 OP_MAP['ln'] = OP_LOG
+OP_VALUE_MAP[OP_INT_INDEF] = 'indef'
 
 TOKEN_MAP = {
         OP_COMMA: 'COMMA',
