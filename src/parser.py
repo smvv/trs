@@ -445,7 +445,6 @@ class Parser(BisonParser):
         if option == 4:  # rule: bracket_derivative
             return values[0]
 
-
         if option == 5:  # rule: INTEGRAL exp
             fx, x = find_integration_variable(values[1])
 
