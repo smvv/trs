@@ -6,8 +6,6 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         match_division_integral, division_integral, extend_division_integral, \
         match_function_integral, logarithm_integral, sinus_integral, \
         cosinus_integral
-from src.rules.logarithmic import ln
-from src.rules.goniometry import sin, cos
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree

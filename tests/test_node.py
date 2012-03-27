@@ -1,5 +1,6 @@
 from src.node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
-        nary_node, get_scope, OP_ADD
+        nary_node, get_scope, OP_ADD, infinity, absolute, sin, cos, tan, log, \
+        ln, der, integral, indef
 from tests.rulestestcase import RulesTestCase, tree
 
 
@@ -249,3 +250,44 @@ class TestNode(RulesTestCase):
     def test_construct_function_absolute_child(self):
         self.assertEqual(str(tree('ln(|x|)')), 'ln|x|')
         self.assertEqual(str(tree('sin(|x|)')), 'sin|x|')
+
+    def test_infinity(self):
+        self.assertEqual(infinity(), tree('oo'))
+
+    def test_absolute(self):
+        self.assertEqual(absolute(tree('x2')), tree('|x2|'))
+
+    def test_sin(self):
+        self.assertEqual(sin(tree('x')), tree('sin(x)'))
+
+    def test_cos(self):
+        self.assertEqual(cos(tree('x')), tree('cos(x)'))
+
+    def test_tan(self):
+        self.assertEqual(tan(tree('x')), tree('tan(x)'))
+
+    def test_log(self):
+        x = tree('x')
+        self.assertEqual(log(x, 'e'), tree('ln x'))
+        self.assertEqual(log(x, 2), tree('log_2 x'))
+        self.assertEqual(log(x), tree('log x'))
+        self.assertEqual(log(x, 10), tree('log x'))
+
+    def test_ln(self):
+        self.assertEqual(ln(tree('x')), tree('ln x'))
+
+    def test_der(self):
+        x2, x, y = tree('x ^ 2, x, y')
+        self.assertEqual(der(x2), tree('[x ^ 2]\''))
+        self.assertEqual(der(x2, x), tree('d/dx x ^ 2'))
+        self.assertEqual(der(x2, y), tree('d/dy x ^ 2'))
+
+    def test_integral(self):
+        x2, x, y, a, b = tree('x ^ 2, x, y, a, b')
+        self.assertEqual(integral(x2, x), tree('int x2 dx'))
+        self.assertEqual(integral(x2, x, a, b), tree('int_a^b x2 dx'))
+        self.assertEqual(integral(x2, y, a, b), tree('int_a^b x2 dy'))
+
+    def test_indef(self):
+        x2, a, b, expect = tree('x ^ 2, a, b, [x ^ 2]_a^b')
+        self.assertEqual(indef(x2, a, b), expect)

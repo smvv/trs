@@ -1,24 +1,8 @@
-from .utils import find_variables, replace_variable, find_variable, absolute
-from .logarithmic import ln
-from .goniometry import sin, cos
-from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_INT, \
-        OP_INT_INDEF, OP_MUL, OP_DIV, OP_LOG, OP_SIN, OP_COS, Scope
+from .utils import find_variables, replace_variable, find_variable
+from ..node import ExpressionLeaf as L, OP_INT, OP_INT_INDEF, OP_MUL, OP_DIV, \
+        OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, indef, absolute
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
-
-
-def integral(*args):
-    """
-    Create an integral node.
-    """
-    return N(OP_INT, *args)
-
-
-def indef(*args):
-    """
-    Create an indefinite integral node.
-    """
-    return N(OP_INT_INDEF, *args)
 
 
 def choose_constant(integral):

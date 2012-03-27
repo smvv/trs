@@ -1,4 +1,4 @@
-from src.rules.logarithmic import log, ln, match_constant_logarithm, \
+from src.rules.logarithmic import log, match_constant_logarithm, \
         base_equals_raised, logarithm_of_one, divide_same_base, \
         match_add_logarithms, add_logarithms, expand_negations, \
         subtract_logarithms, match_raised_base, raised_base, \

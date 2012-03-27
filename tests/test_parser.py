@@ -3,14 +3,9 @@ import unittest
 
 from src.parser import Parser
 from src.node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
-        SPECIAL_TOKENS
+        SPECIAL_TOKENS, sin, cos, der, log, ln, integral, indef, absolute
 from tests.parser import ParserWrapper, run_expressions, line, graph
 from tests.rulestestcase import tree
-from src.rules.goniometry import sin, cos
-from src.rules.derivatives import der
-from src.rules.logarithmic import log, ln
-from src.rules.integrals import integral, indef
-from src.rules.utils import absolute
 
 
 class TestParser(unittest.TestCase):

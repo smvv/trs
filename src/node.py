@@ -606,3 +606,76 @@ def negate(node, n=1):
     new_node.negated = n
 
     return new_node
+
+
+def infinity():
+    """
+    Return an infinity leaf node.
+    """
+    return ExpressionLeaf(INFINITY)
+
+
+def absolute(exp):
+    """
+    Put an 'absolute value' operator on top of the given expression.
+    """
+    return ExpressionNode(OP_ABS, exp)
+
+
+def sin(*args):
+    """
+    Create a sinus function node.
+    """
+    return ExpressionNode(OP_SIN, *args)
+
+
+def cos(*args):
+    """
+    Create a cosinus function node.
+    """
+    return ExpressionNode(OP_COS, *args)
+
+
+def tan(*args):
+    """
+    Create a tangens function node.
+    """
+    return ExpressionNode(OP_TAN, *args)
+
+
+def log(exponent, base=10):
+    """
+    Create a logarithm function node (default base is 10).
+    """
+    if not isinstance(base, ExpressionLeaf):
+        base = ExpressionLeaf(base)
+
+    return ExpressionNode(OP_LOG, exponent, base)
+
+
+def ln(exponent):
+    """
+    Create a natural logarithm node.
+    """
+    return log(exponent, base=E)
+
+
+def der(f, x=None):
+    """
+    Create a derivative node.
+    """
+    return ExpressionNode(OP_DER, f, x) if x else ExpressionNode(OP_DER, f)
+
+
+def integral(*args):
+    """
+    Create an integral node.
+    """
+    return ExpressionNode(OP_INT, *args)
+
+
+def indef(*args):
+    """
+    Create an indefinite integral node.
+    """
+    return ExpressionNode(OP_INT_INDEF, *args)

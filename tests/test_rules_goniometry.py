@@ -1,9 +1,8 @@
 # vim: set fileencoding=utf-8 :
-from src.rules.goniometry import sin, cos, tan, match_add_quadrants, \
-        add_quadrants, match_negated_parameter, negated_sinus_parameter, \
-        negated_cosinus_parameter, match_standard_radian, standard_radian, \
-        is_pi_frac
-from src.node import PI, OP_SIN, OP_COS, OP_TAN
+from src.rules.goniometry import match_add_quadrants, add_quadrants, \
+        match_negated_parameter, negated_sinus_parameter, is_pi_frac, \
+        negated_cosinus_parameter, match_standard_radian, standard_radian
+from src.node import PI, OP_SIN, OP_COS, OP_TAN, sin, cos, tan
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 from src.rules import goniometry

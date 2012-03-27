@@ -1,19 +1,7 @@
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_ADD, OP_MUL, \
-        OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, TYPE_OPERATOR
+        OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, TYPE_OPERATOR, sin, cos
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
-
-
-def sin(*args):
-    return N(OP_SIN, *args)
-
-
-def cos(*args):
-    return N(OP_COS, *args)
-
-
-def tan(*args):
-    return N(OP_TAN, *args)
 
 
 def match_add_quadrants(node):
@@ -26,9 +14,9 @@ def match_add_quadrants(node):
     sin_q, cos_q = node
 
     if sin_q.is_power(2) and cos_q.is_power(2):
-        sin, cos = sin_q[0], cos_q[0]
+        sinus, cosinus = sin_q[0], cos_q[0]
 
-        if sin.is_op(OP_SIN) and cos.is_op(OP_COS):
+        if sinus.is_op(OP_SIN) and cosinus.is_op(OP_COS):
             p.append(P(node, add_quadrants, ()))
 
     return p

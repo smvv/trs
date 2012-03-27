@@ -6,9 +6,7 @@ from src.rules.derivatives import der, get_derivation_variable, \
         logarithmic, match_goniometric, sinus, cosinus, tangens, \
         match_sum_product_rule, sum_rule, product_rule, match_quotient_rule, \
         quotient_rule, power_rule
-from src.rules.logarithmic import ln
-from src.rules.goniometry import sin, cos
-from src.node import Scope
+from src.node import Scope, sin, cos, ln
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 

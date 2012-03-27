@@ -1,14 +1,8 @@
 from .utils import find_variables, first_sorted_variable
-from .logarithmic import ln
-from .goniometry import sin, cos
-from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DER, \
-        OP_MUL, OP_LOG, OP_SIN, OP_COS, OP_TAN, OP_ADD, OP_DIV, E
+from ..node import ExpressionLeaf as L, Scope, OP_DER, OP_MUL, OP_LOG, \
+        OP_SIN, OP_COS, OP_TAN, OP_ADD, OP_DIV, E, sin, cos, der, ln
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
-
-
-def der(f, x=None):
-    return N(OP_DER, f, x) if x else N(OP_DER, f)
 
 
 def second_arg(node):

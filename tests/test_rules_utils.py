@@ -1,7 +1,6 @@
 from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
-        find_variables, first_sorted_variable, find_variable, \
-        replace_variable, infinity
+        find_variables, first_sorted_variable, find_variable, replace_variable
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -27,9 +26,6 @@ class TestRulesUtils(RulesTestCase):
     def test_partition(self):
         self.assertEqual(partition(lambda x: x & 1, range(6)),
                          ([1, 3, 5], [0, 2, 4]))
-
-    def test_infinity(self):
-        self.assertEqual(infinity(), tree('oo'))
 
     def test_find_variables(self):
         x, l2, add, mul0, mul1 = tree('x, 2, x + 2, 2x, xy')
