@@ -73,7 +73,7 @@ def match_integrate_variable_power(node):
 
     f, x = node[:2]
 
-    if f.is_power():
+    if f.is_power() and not f.negated:
         root, exponent = f
 
         if root == x and not exponent.contains(x):
@@ -113,16 +113,31 @@ MESSAGES[integrate_variable_exponent] = \
 
 def match_constant_integral(node):
     """
+    int x dx  ->  int x ^ 1 dx  # ->  x ^ 2 / 2 + c
     int c dx  ->  cx
     """
     assert node.is_op(OP_INT)
 
     fx, x = node[:2]
 
+    if fx == x:
+        return [P(node, single_variable_integral)]
+
     if not fx.contains(x):
         return [P(node, constant_integral)]
 
     return []
+
+
+def single_variable_integral(root, args):
+    """
+    int x dx  ->  int x ^ 1 dx  # ->  x ^ 2 / 2 + c
+    """
+    return integral(root[0] ** 1, *root[1:])
+
+
+MESSAGES[single_variable_integral] = _('Rewrite {0[0]} to {0[0]} ^ 1 and ' \
+        'apply the standard integral for {0[0]} ^ n.')
 
 
 def constant_integral(root, args):
@@ -141,10 +156,14 @@ MESSAGES[constant_integral] = _('{0[0]} does not contain {0[1]}, so its ' \
 def match_factor_out_constant(node):
     """
     int cf(x) dx  ->  c int f(x) dx
+    int -f(x) dx  ->  -1 int f(x) dx
     """
     assert node.is_op(OP_INT)
 
     fx, x = node[:2]
+
+    if fx.negated:
+        return [P(node, split_negation_to_constant)]
 
     if not fx.is_op(OP_MUL):
         return []
@@ -157,6 +176,17 @@ def match_factor_out_constant(node):
             p.append(P(node, factor_out_constant, (scope, n)))
 
     return p
+
+
+def split_negation_to_constant(root, args):
+    """
+    int -f(x) dx  ->  int -1 * f(x) dx  # =>*  -int f(x) dx
+    """
+    return integral(-L(1) * root[0].reduce_negation(), *root[1:])
+
+
+MESSAGES[split_negation_to_constant] = _('Write the negation of {0[0]} as an' \
+        ' explicit -1 and bring it outside of the integral.')
 
 
 def factor_out_constant(root, args):
