@@ -28,34 +28,36 @@ OP_MUL = 5
 OP_DIV = 6
 OP_POW = 7
 OP_SUBSCRIPT = 8
+OP_AND = 9
+OP_OR = 10
 
 # N-ary (functions)
-OP_INT = 9
-OP_INT_INDEF = 10
-OP_COMMA = 11
-OP_SQRT = 12
-OP_DER = 13
-OP_LOG = 14
+OP_INT = 11
+OP_INT_INDEF = 12
+OP_COMMA = 13
+OP_SQRT = 14
+OP_DER = 15
+OP_LOG = 16
 
 # Goniometry
-OP_SIN = 15
-OP_COS = 16
-OP_TAN = 17
+OP_SIN = 17
+OP_COS = 18
+OP_TAN = 19
 
-OP_SOLVE = 18
-OP_EQ = 19
+OP_SOLVE = 20
+OP_EQ = 21
 
-OP_POSSIBILITIES = 20
-OP_HINT = 21
-OP_REWRITE_ALL = 22
-OP_REWRITE = 23
+OP_POSSIBILITIES = 22
+OP_HINT = 23
+OP_REWRITE_ALL = 24
+OP_REWRITE = 25
 
 # Special identifiers
 PI = 'pi'
 E = 'e'
 INFINITY = 'oo'
 
-SPECIAL_TOKENS = [PI, INFINITY]
+SPECIAL_TOKENS = [PI, E, INFINITY]
 
 # Default base to use in parsing 'log(...)'
 DEFAULT_LOGARITHM_BASE = 10
@@ -75,6 +77,8 @@ OP_MAP = {
         '/': OP_DIV,
         '^': OP_POW,
         '_': OP_SUBSCRIPT,
+        '^^': OP_AND,
+        'vv': OP_OR,
         'sin': OP_SIN,
         'cos': OP_COS,
         'tan': OP_TAN,
@@ -103,6 +107,8 @@ TOKEN_MAP = {
         OP_DIV: 'DIVIDE',
         OP_POW: 'POW',
         OP_SUBSCRIPT: 'SUB',
+        OP_AND: 'AND',
+        OP_OR: 'OR',
         OP_SQRT: 'FUNCTION',
         OP_SIN: 'FUNCTION',
         OP_COS: 'FUNCTION',
@@ -225,6 +231,12 @@ class ExpressionBase(object):
 
     def __pos__(self):
         return self.reduce_negation()
+
+    def __and__(self, other):
+        return ExpressionNode(OP_AND, self, to_expression(other))
+
+    def __or__(self, other):
+        return ExpressionNode(OP_OR, self, to_expression(other))
 
     def reduce_negation(self, n=1):
         """Remove n negation flags from the node."""

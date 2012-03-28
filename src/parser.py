@@ -87,10 +87,12 @@ class Parser(BisonParser):
     precedences = (
         ('left', ('COMMA', )),
         ('right', ('INTEGRAL', 'DERIVATIVE')),
+        ('left', ('OR', )),
+        ('left', ('AND', )),
+        ('left', ('EQ', )),
         ('left', ('MINUS', 'PLUS')),
         ('left', ('TIMES', 'DIVIDE')),
         ('right', ('FUNCTION', )),
-        ('left', ('EQ', )),
         ('left', ('NEG', )),
         ('right', ('POW', )),
         ('left', ('SUB', )),
@@ -224,6 +226,9 @@ class Parser(BisonParser):
         # Replace escape sequences with original keywords.
         for i, keyword in enumerate(words):
             data = data.replace(chr(i), keyword)
+
+        # Fix TIMES operator next to OR
+        data = re.sub(r'\*?vv\*?', 'vv', data)
 
         if self.verbose and data_before != data:  # pragma: nocover
             print 'hook_read_after() modified the input data:'
@@ -527,14 +532,16 @@ class Parser(BisonParser):
                | exp TIMES exp
                | exp DIVIDE exp
                | exp EQ exp
+               | exp AND exp
+               | exp OR exp
                | exp MINUS exp
                | power
         """
 
-        if 0 <= option < 4:  # rule: exp {PLUS,TIMES,DIVIDE,EQ} exp
+        if 0 <= option <= 5:  # rule: exp {PLUS,TIMES,DIVIDE,EQ,AND,OR} exp
             return Node(values[1], values[0], values[2])
 
-        if option == 4:  # rule: exp MINUS exp
+        if option == 6:  # rule: exp MINUS exp
             node = values[2]
 
             # Add negation to the left-most child
@@ -549,7 +556,7 @@ class Parser(BisonParser):
 
             return Node(OP_ADD, values[0], values[2])
 
-        if option == 5:  # rule: power
+        if option == 7:  # rule: power
             return Node(OP_POW, *values[0])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -573,8 +580,9 @@ class Parser(BisonParser):
     functions = []
 
     for token in SPECIAL_TOKENS:
-        operators += '"%s"%s{ returntoken(IDENTIFIER); }\n' \
-                     % (token, ' ' * (8 - len(token)))
+        if len(token) > 1:
+            operators += '"%s"%s{ returntoken(IDENTIFIER); }\n' \
+                         % (token, ' ' * (8 - len(token)))
 
     for op_str, op in OP_MAP.iteritems():
         if TOKEN_MAP[op] == 'FUNCTION':
