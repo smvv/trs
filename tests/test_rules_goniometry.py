@@ -1,7 +1,8 @@
 # vim: set fileencoding=utf-8 :
 from src.rules.goniometry import match_add_quadrants, add_quadrants, \
-        match_negated_parameter, negated_sinus_parameter, is_pi_frac, \
-        negated_cosinus_parameter, match_standard_radian, standard_radian
+        factor_out_quadrant_negation, match_negated_parameter, \
+        negated_sinus_parameter, is_pi_frac, negated_cosinus_parameter, \
+        match_standard_radian, standard_radian
 from src.node import PI, OP_SIN, OP_COS, OP_TAN, sin, cos, tan, Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -38,6 +39,10 @@ class TestRulesGoniometry(RulesTestCase):
         root = tree('sin(t) ^ 2 - cos(t) ^ 2')
         self.assertEqualPos(match_add_quadrants(root), [])
 
+        s, c = root = tree('-sin(t) ^ 2 - cos(t) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root),
+                [P(root, factor_out_quadrant_negation, (Scope(root), s, c))])
+
     def test_add_quadrants(self):
         s, c = root = tree('sin(t) ^ 2 + cos(t) ^ 2')
         self.assertEqual(add_quadrants(root, (Scope(root), s, c)), 1)
@@ -45,6 +50,11 @@ class TestRulesGoniometry(RulesTestCase):
         root, expect = tree('cos(t) ^ 2 + a + sin(t) ^ 2, a + 1')
         (c, a), s = root
         self.assertEqual(add_quadrants(root, (Scope(root), s, c)), expect)
+
+    def test_factor_out_quadrant_negation(self):
+        r, e = tree('-sin(t) ^ 2 - cos(t) ^ 2, -(sin(t) ^ 2 + cos(t) ^ 2)')
+        s, c = r
+        self.assertEqual(factor_out_quadrant_negation(r, (Scope(r), s, c)), e)
 
     def test_match_negated_parameter(self):
         s, c = tree('sin -t, cos -t')

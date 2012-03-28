@@ -17,13 +17,18 @@ def match_add_quadrants(node):
     scope = Scope(node)
 
     for sin_q, cos_q in permutations(scope, 2):
-        if sin_q.is_power(2) and cos_q.is_power(2) \
-                and not sin_q.negated and not cos_q.negated:
+        if sin_q.is_power(2) and cos_q.is_power(2):
             s, c = sin_q[0], cos_q[0]
 
-            if s.is_op(OP_SIN) and c.is_op(OP_COS) and not s.negated \
-                    and not c.negated and s[0] == c[0]:
+            if not s.is_op(OP_SIN) or not c.is_op(OP_COS) or s.negated \
+                    or c.negated or s[0] != c[0]:
+                continue
+
+            if not sin_q.negated and not cos_q.negated:
                 p.append(P(node, add_quadrants, (scope, sin_q, cos_q)))
+            elif sin_q.negated == 1 and cos_q.negated == 1:
+                p.append(P(node, factor_out_quadrant_negation,
+                    (scope, sin_q, cos_q)))
 
     return p
 
@@ -40,6 +45,21 @@ def add_quadrants(root, args):
 
 
 MESSAGES[add_quadrants] = _('Add the sinus and cosinus quadrants to 1.')
+
+
+def factor_out_quadrant_negation(root, args):
+    """
+    -sin(t) ^ 2 - cos(t) ^ 2  ->  -(sin(t) ^ 2 + cos(t) ^ 2)  # ->  -1
+    """
+    scope, s, c = args
+    scope.replace(s, -(+s + +c))
+    scope.remove(c)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[factor_out_quadrant_negation] = _('Factor out the negations of {2} ' \
+        'and {3} to be able to reduce the quadrant addition to 1.')
 
 
 def match_negated_parameter(node):
