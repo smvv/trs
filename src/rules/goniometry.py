@@ -1,5 +1,8 @@
+from itertools import permutations
+
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_ADD, OP_MUL, \
-        OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, TYPE_OPERATOR, sin, cos
+        OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, TYPE_OPERATOR, sin, cos, \
+        Scope
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -11,13 +14,16 @@ def match_add_quadrants(node):
     assert node.is_op(OP_ADD)
 
     p = []
-    sin_q, cos_q = node
+    scope = Scope(node)
 
-    if sin_q.is_power(2) and cos_q.is_power(2):
-        sinus, cosinus = sin_q[0], cos_q[0]
+    for sin_q, cos_q in permutations(scope, 2):
+        if sin_q.is_power(2) and cos_q.is_power(2) \
+                and not sin_q.negated and not cos_q.negated:
+            s, c = sin_q[0], cos_q[0]
 
-        if sinus.is_op(OP_SIN) and cosinus.is_op(OP_COS):
-            p.append(P(node, add_quadrants, ()))
+            if s.is_op(OP_SIN) and c.is_op(OP_COS) and not s.negated \
+                    and not c.negated and s[0] == c[0]:
+                p.append(P(node, add_quadrants, (scope, sin_q, cos_q)))
 
     return p
 
@@ -26,7 +32,11 @@ def add_quadrants(root, args):
     """
     sin(t) ^ 2 + cos(t) ^ 2  ->  1
     """
-    return L(1)
+    scope, s, c = args
+    scope.replace(s, L(1))
+    scope.remove(c)
+
+    return scope.as_nary_node()
 
 
 MESSAGES[add_quadrants] = _('Add the sinus and cosinus quadrants to 1.')
@@ -130,7 +140,7 @@ CONSTANTS = {
 
 def match_standard_radian(node):
     """
-    Apply a direct constant calculation from the constants table.
+    Apply a direct constant calculation from the constants table:
 
         | 0 | pi / 6    | pi / 4    | pi / 3    | pi / 2
     ----+---+-----------+-----------+-----------+-------

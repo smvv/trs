@@ -2,7 +2,7 @@
 from src.rules.goniometry import match_add_quadrants, add_quadrants, \
         match_negated_parameter, negated_sinus_parameter, is_pi_frac, \
         negated_cosinus_parameter, match_standard_radian, standard_radian
-from src.node import PI, OP_SIN, OP_COS, OP_TAN, sin, cos, tan
+from src.node import PI, OP_SIN, OP_COS, OP_TAN, sin, cos, tan, Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 from src.rules import goniometry
@@ -15,12 +15,36 @@ class TestRulesGoniometry(RulesTestCase):
         self.assertEqual(doctest.testmod(m=goniometry)[0], 0)
 
     def test_match_add_quadrants(self):
-        root = tree('sin(t) ^ 2 + cos(t) ^ 2')
-        possibilities = match_add_quadrants(root)
-        self.assertEqualPos(possibilities, [P(root, add_quadrants, ())])
+        s, c = root = tree('sin(t) ^ 2 + cos(t) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root),
+                [P(root, add_quadrants, (Scope(root), s, c))])
+
+        c, s = root = tree('cos(t) ^ 2 + sin(t) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root),
+                [P(root, add_quadrants, (Scope(root), s, c))])
+
+        (s, a), c = root = tree('sin(t) ^ 2 + a + cos(t) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root),
+                [P(root, add_quadrants, (Scope(root), s, c))])
+
+        (s, c0), c1 = root = tree('sin(t) ^ 2 + cos(t) ^ 2 + cos(t) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root),
+                [P(root, add_quadrants, (Scope(root), s, c0)),
+                 P(root, add_quadrants, (Scope(root), s, c1))])
+
+        root = tree('sin(t) ^ 2 + cos(y) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root), [])
+
+        root = tree('sin(t) ^ 2 - cos(t) ^ 2')
+        self.assertEqualPos(match_add_quadrants(root), [])
 
     def test_add_quadrants(self):
-        self.assertEqual(add_quadrants(None, ()), 1)
+        s, c = root = tree('sin(t) ^ 2 + cos(t) ^ 2')
+        self.assertEqual(add_quadrants(root, (Scope(root), s, c)), 1)
+
+        root, expect = tree('cos(t) ^ 2 + a + sin(t) ^ 2, a + 1')
+        (c, a), s = root
+        self.assertEqual(add_quadrants(root, (Scope(root), s, c)), expect)
 
     def test_match_negated_parameter(self):
         s, c = tree('sin -t, cos -t')
