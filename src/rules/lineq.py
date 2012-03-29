@@ -4,7 +4,7 @@ from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
 
-def match_subtract_addition_term(node):
+def match_subtract_term(node):
     """
     x + a = b   ->  x + a - a = b - a
     x = b + cx  ->  x + - cx = b + cx - cx
@@ -16,25 +16,21 @@ def match_subtract_addition_term(node):
     left, right = node
 
     if left.is_op(OP_ADD):
-        scope = Scope(left)
-
-        for n in scope:
+        for n in Scope(left):
             # Bring terms without x to the right
             if not n.contains(x):
-                p.append(P(node, subtract_addition_term, (n,)))
+                p.append(P(node, subtract_term, (n,)))
 
     if right.is_op(OP_ADD):
-        scope = Scope(right)
-
-        for n in scope:
+        for n in Scope(right):
             # Bring terms with x to the left
             if n.contains(x):
-                p.append(P(node, subtract_addition_term, (n,)))
+                p.append(P(node, subtract_term, (n,)))
 
     return p
 
 
-def subtract_addition_term(root, args):
+def subtract_term(root, args):
     """
     x + a = b   ->  x + a - a = b - a
     x = b + cx  ->  x + - cx = b + cx - cx
@@ -45,5 +41,4 @@ def subtract_addition_term(root, args):
     return eq(left - term, right - term)
 
 
-MESSAGES[subtract_addition_term] = \
-        _('Subtract {1} from both sides of the equation.')
+MESSAGES[subtract_term] = _('Subtract {1} from both sides of the equation.')
