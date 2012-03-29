@@ -1,5 +1,6 @@
 from .utils import find_variable
-from ..node import Scope, OP_EQ, OP_ADD, OP_MUL, OP_DIV, eq
+from ..node import ExpressionLeaf as L, Scope, OP_EQ, OP_ADD, OP_MUL, OP_DIV, \
+        eq
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -22,6 +23,7 @@ def match_move_term(node):
     # Multiplication
     x / a = b  ->  x / a * a = b * a  # =>*  x = a * b
     a / x = b  ->  a / x * x = b * x  # =>*  x = a / b
+    -x = b  ->  -x * -1 = b * -1  # =>*  x = -b
     """
     assert node.is_op(OP_EQ)
 
@@ -55,6 +57,10 @@ def match_move_term(node):
     # Multiply both sides by the denominator to move x out of the division
     if left.is_op(OP_DIV):
         p.append(P(node, multiply_term, (left[1],)))
+
+    # Remove any negation from the left side of the equation
+    if left.negated:
+        p.append(P(node, multiply_term, (-L(1),)))
 
     return p
 

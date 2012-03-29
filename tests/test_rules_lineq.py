@@ -37,6 +37,10 @@ class TestRulesLineq(RulesTestCase):
         self.assertEqualPos(match_move_term(root),
                 [P(root, multiply_term, (x,))])
 
+        root, l1 = tree('-x = b, -1')
+        self.assertEqualPos(match_move_term(root),
+                [P(root, multiply_term, (l1,))])
+
     def test_swap_sides(self):
         root, expect = tree('a = bx, bx = a')
         self.assertEqual(swap_sides(root, ()), expect)
@@ -53,7 +57,7 @@ class TestRulesLineq(RulesTestCase):
         root, a, expect = tree('x / a = b, a, x / a * a = b * a')
         self.assertEqual(multiply_term(root, (a,)), expect)
 
-    def test_match_move_term_chain(self):
+    def test_match_move_term_chain_negation(self):
         self.assertRewrite([
             '2x + 3 = -3x - 2',
             '2x + 3 - 3 = -3x - 2 - 3',
@@ -73,4 +77,15 @@ class TestRulesLineq(RulesTestCase):
             'x / 1 = -5 / 5',
             'x = -5 / 5',
             'x = -1',
+        ])
+
+    def test_match_move_term_chain_advanced(self):
+        self.assertRewrite([
+            '-x = a',
+            '-x * -1 = a * -1',
+            '--x * 1 = a * -1',
+            'x * 1 = a * -1',
+            'x = a * -1',
+            'x = -a * 1',
+            'x = -a',
         ])
