@@ -1,6 +1,6 @@
 from src.node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
         nary_node, get_scope, OP_ADD, infinity, absolute, sin, cos, tan, log, \
-        ln, der, integral, indef
+        ln, der, integral, indef, eq
 from tests.rulestestcase import RulesTestCase, tree
 
 
@@ -291,3 +291,7 @@ class TestNode(RulesTestCase):
     def test_indef(self):
         x2, a, b, expect = tree('x ^ 2, a, b, [x ^ 2]_a^b')
         self.assertEqual(indef(x2, a, b), expect)
+
+    def test_eq(self):
+        x, a, b, expect = tree('x, a, b, x + a = b')
+        self.assertEqual(eq(x + a, b), expect)

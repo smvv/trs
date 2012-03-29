@@ -691,3 +691,10 @@ def indef(*args):
     Create an indefinite integral node.
     """
     return ExpressionNode(OP_INT_INDEF, *args)
+
+
+def eq(left, right):
+    """
+    Create an equality operator node.
+    """
+    return ExpressionNode(OP_EQ, left, right)
