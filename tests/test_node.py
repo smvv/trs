@@ -212,13 +212,14 @@ class TestNode(RulesTestCase):
         self.assertEqualNodes(Scope(-n).as_nary_node(), -n)
 
     def test_contains(self):
-        a, ab, bc, ln0, ln1 = tree('a, ab, bc, ln(a) + 1, ln(b) + 1')
+        a, ab, bc, ln0, ln1, ma = tree('a, ab, bc, ln(a) + 1, ln(b) + 1, -a')
 
         self.assertTrue(a.contains(a))
         self.assertTrue(ab.contains(a))
         self.assertFalse(bc.contains(a))
         self.assertTrue(ln0.contains(a))
         self.assertFalse(ln1.contains(a))
+        self.assertTrue(ma.contains(a))
 
     def test_construct_function_derivative(self):
         self.assertEqual(str(tree('der(x ^ 2)')), '[x ^ 2]\'')

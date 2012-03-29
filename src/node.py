@@ -252,7 +252,7 @@ class ExpressionBase(object):
         """
         Check if a node equal to the specified one exists within this node.
         """
-        if include_self and self == node:
+        if include_self and negate(self, 0) == node:
             return True
 
         if not self.is_leaf:
