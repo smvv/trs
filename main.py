@@ -10,6 +10,7 @@ import argparse
 import sys
 import os
 
+from src.backend.backend import app
 
 def init_readline():
     try:
@@ -47,6 +48,12 @@ def get_args():
             default=sys.stdin.isatty(),
             help='Enable interactive mode (default). This is the inverse of' \
                  ' --batch.')
+    parser.add_argument('--backend', action='store_true',
+            default=False,
+            help='Start term rewriting system backend (default: disabled).' \
+                 ' This is the backend for the web frontend.')
+    parser.add_argument('port', type=int, default=8080, nargs='?',
+            help='Port number for system backend (default: 8080).')
 
     return parser.parse_args()
 
@@ -55,6 +62,11 @@ def main():
     from src.parser import Parser
 
     args = get_args()
+
+    if args.backend:
+        sys.argv[1] = str(args.port)
+        return app.run()
+
     interactive = args.interactive and not args.batch
 
     p = Parser(verbose=args.verbose,
