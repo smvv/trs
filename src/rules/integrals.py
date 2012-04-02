@@ -1,4 +1,4 @@
-from .utils import find_variables, replace_variable, find_variable
+from .utils import find_variables, substitute, find_variable
 from ..node import ExpressionLeaf as L, OP_INT, OP_INT_INDEF, OP_MUL, OP_DIV, \
         OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, indef, absolute
 from ..possibilities import Possibility as P, MESSAGES
@@ -40,7 +40,7 @@ def solve_integral(integral, F):
     x, lbnd, ubnd = integral[1:4]
 
     if x != find_variable(F):
-        return replace_variable(F, x, ubnd) - replace_variable(F, x, lbnd)
+        return substitute(F, x, ubnd) - substitute(F, x, lbnd)
 
     return indef(F, lbnd, ubnd)
 
@@ -61,7 +61,7 @@ def solve_indef(root, args):
     Fx, a, b = root
     x = find_variable(Fx)
 
-    return replace_variable(Fx, x, b) - replace_variable(Fx, x, a)
+    return substitute(Fx, x, b) - substitute(Fx, x, a)
 
 
 def match_integrate_variable_power(node):

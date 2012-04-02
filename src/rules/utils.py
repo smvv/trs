@@ -111,7 +111,7 @@ def find_variable(exp):
     return L(first_sorted_variable(variables))
 
 
-def replace_variable(f, x, replacement):
+def substitute(f, x, replacement):
     """
     Replace all occurences of variable x in function f with the specified
     replacement.
@@ -122,6 +122,6 @@ def replace_variable(f, x, replacement):
     if f.is_leaf:
         return f
 
-    children = map(lambda c: replace_variable(c, x, replacement), f)
+    children = map(lambda c: substitute(c, x, replacement), f)
 
     return N(f.op, *children)

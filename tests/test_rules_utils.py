@@ -1,6 +1,6 @@
 from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
-        find_variables, first_sorted_variable, find_variable, replace_variable
+        find_variables, first_sorted_variable, find_variable, substitute
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -50,10 +50,10 @@ class TestRulesUtils(RulesTestCase):
         self.assertEqual(find_variable(tree('1 + 2')), x)
         self.assertEqual(find_variable(tree('y ^ 2')), y)
 
-    def test_replace_variable(self):
+    def test_substitute(self):
         x, a = tree('x, a')
 
-        self.assertEqual(replace_variable(x, x, a), a)
-        self.assertEqual(replace_variable(tree('x2'), x, a), tree('a2'))
-        self.assertEqual(replace_variable(tree('y + x + 1'), x, a),
+        self.assertEqual(substitute(x, x, a), a)
+        self.assertEqual(substitute(tree('x2'), x, a), tree('a2'))
+        self.assertEqual(substitute(tree('y + x + 1'), x, a),
                          tree('y + a + 1'))
