@@ -1,6 +1,7 @@
 from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
-        find_variables, first_sorted_variable, find_variable, substitute
+        find_variables, first_sorted_variable, find_variable, substitute, \
+        divides
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -57,3 +58,10 @@ class TestRulesUtils(RulesTestCase):
         self.assertEqual(substitute(tree('x2'), x, a), tree('a2'))
         self.assertEqual(substitute(tree('y + x + 1'), x, a),
                          tree('y + a + 1'))
+
+    def test_divides(self):
+        self.assertTrue(divides(3, 3))
+        self.assertTrue(divides(2, 4))
+        self.assertTrue(divides(7, 21))
+        self.assertFalse(divides(4, 2))
+        self.assertFalse(divides(2, 3))
