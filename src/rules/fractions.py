@@ -126,7 +126,8 @@ def equalize_denominators(root, args):
             else:
                 nom = L(mult) * n
 
-            scope.replace(fraction, negate(nom / L(d.value * mult), n.negated))
+            scope.replace(fraction, negate(nom / L(d.value * mult),
+                                           fraction.negated))
 
     return scope.as_nary_node()
 
@@ -337,6 +338,9 @@ def match_equal_fraction_parts(node):
     nominator, denominator = node
     n_scope, d_scope = fraction_scopes(node)
     p = []
+
+    if len(n_scope) == 1 and len(d_scope) == 1:
+        return p
 
     # Look for matching parts in scopes
     for i, n in enumerate(n_scope):

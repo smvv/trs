@@ -18,7 +18,7 @@ from node import ExpressionBase, ExpressionNode as Node, \
         ExpressionLeaf as Leaf, OP_MAP, OP_DER, TOKEN_MAP, TYPE_OPERATOR, \
         OP_COMMA, OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_LOG, OP_ADD, Scope, E, \
         DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
-        OP_INT_INDEF, OP_ABS
+        OP_INT_INDEF, OP_ABS, OP_NEG, negation_to_node
 from rules import RULES
 from rules.utils import find_variable
 from strategy import pick_suggestion
@@ -90,10 +90,10 @@ class Parser(BisonParser):
         ('left', ('OR', )),
         ('left', ('AND', )),
         ('left', ('EQ', )),
-        ('left', ('MINUS', 'PLUS')),
+        ('left', ('MINUS', 'PLUS', 'NEG')),
         ('left', ('TIMES', 'DIVIDE')),
         ('right', ('FUNCTION', )),
-        ('left', ('NEG', )),
+        #('left', ('NEG', )),
         ('right', ('POW', )),
         ('left', ('SUB', )),
         ('right', ('FUNCTION_LPAREN', )),
@@ -245,13 +245,12 @@ class Parser(BisonParser):
         if not retval.negated and retval.type != TYPE_OPERATOR:
             return retval
 
-        if retval.type == TYPE_OPERATOR and retval.op in RULES:
-            handlers = RULES[retval.op]
-        else:
-            handlers = []
-
         if retval.negated:
             handlers = RULES[OP_NEG]
+        elif retval.type == TYPE_OPERATOR and retval.op in RULES:
+            handlers = RULES[retval.op]
+        else:
+            return retval
 
         for handler in handlers:
             possibilities = handler(retval)
@@ -360,7 +359,7 @@ class Parser(BisonParser):
         """
 
         if option == 0:
-            print generate_graph(values[1])
+            print generate_graph(negation_to_node(values[1]))
             return values[1]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -396,7 +395,7 @@ class Parser(BisonParser):
 
     def on_unary(self, target, option, names, values):
         """
-        unary : MINUS exp %prec NEG
+        unary : MINUS exp
               | FUNCTION_LPAREN exp RPAREN
               | FUNCTION exp
               | DERIVATIVE exp
@@ -408,16 +407,9 @@ class Parser(BisonParser):
         """
 
         if option == 0:  # rule: NEG exp
-            node = values[1]
+            values[1].negated += 1
 
-            # Add negation to the left-most child
-            if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
-                node.negated += 1
-            else:
-                child = Scope(node)[0]
-                child.negated += 1
-
-            return node
+            return values[1]
 
         if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
             op = values[0].split(' ', 1)[0]
@@ -542,19 +534,13 @@ class Parser(BisonParser):
             return Node(values[1], values[0], values[2])
 
         if option == 6:  # rule: exp MINUS exp
-            node = values[2]
-
-            # Add negation to the left-most child
-            if node.is_leaf or (node.op != OP_MUL and node.op != OP_DIV):
-                node.negated += 1
-            else:
-                node = Scope(node)[0]
-                node.negated += 1
+            right = values[2]
+            right.negated += 1
 
             # Explicit call the hook handler on the created unary negation.
-            self.hook_handler('binary', 3, names, values, node)
+            self.hook_handler('unary', 0, names, values, right)
 
-            return Node(OP_ADD, values[0], values[2])
+            return Node(OP_ADD, values[0], right)
 
         if option == 7:  # rule: power
             return Node(OP_POW, *values[0])

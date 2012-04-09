@@ -95,7 +95,13 @@ class TestRulesGroups(RulesTestCase):
         root, l1 = tree('ab + b + ba,1')
         abb, ba = root
         ab, b = abb
-
         self.assertEqualNodes(combine_groups(root,
                               (Scope(root), l1, ab, ab, l1, ba, ba)),
                               (l1 + 1) * ab + b)
+
+    def test_combine_groups_negation(self):
+        root, expect = tree('3a - 2a, -(3 + 2)a')
+        (l3, a0), (l2, a1) = n0, n1 = root
+        self.assertEqualNodes(combine_groups(root,
+                              (Scope(root), l3, a0, n0, l2, a1, n1)),
+                              expect)

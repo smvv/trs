@@ -1,6 +1,6 @@
 from src.rules.numerics import match_add_numerics, add_numerics, \
         match_divide_numerics, divide_numerics, reduce_fraction_constants, \
-        fraction_to_int_fraction, match_multiply_numerics, multiply_numerics, \
+        match_multiply_numerics, multiply_numerics, \
         raise_numerics
 from src.node import ExpressionLeaf as L, Scope
 from src.possibilities import Possibility as P
@@ -42,67 +42,54 @@ class TestRulesNumerics(RulesTestCase):
 
         root = i6 / i2
         possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (6, 2, 0))])
+        self.assertEqualPos(possibilities, [P(root, divide_numerics)])
 
         root = -i6 / i2
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (6, 2, 1))])
+        self.assertEqualPos(match_divide_numerics(root), [])
 
-        root = i3 / i2
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, fraction_to_int_fraction, (1, 1, 2))])
+        root = i6 / -i2
+        self.assertEqualPos(match_divide_numerics(root), [])
 
         root = i2 / i4
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
+        self.assertEqualPos(match_divide_numerics(root),
                 [P(root, reduce_fraction_constants, (2,))])
 
         root = f3 / i2
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3.0, 2, 0))])
+        self.assertEqualPos(match_divide_numerics(root),
+                [P(root, divide_numerics)])
 
         root = i3 / f2
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3, 2.0, 0))])
+        self.assertEqualPos(match_divide_numerics(root),
+                [P(root, divide_numerics)])
 
         root = f3 / f2
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3.0, 2.0, 0))])
+        self.assertEqualPos(match_divide_numerics(root),
+                [P(root, divide_numerics)])
 
         root = i3 / f1
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities,
-                [P(root, divide_numerics, (3, 1, 0))])
+        self.assertEqualPos(match_divide_numerics(root),
+                [P(root, divide_numerics)])
 
         root = a / b
-        possibilities = match_divide_numerics(root)
-        self.assertEqualPos(possibilities, [])
+        self.assertEqualPos(match_divide_numerics(root), [])
 
     def test_divide_numerics(self):
         i2, i3, i6, f2, f3 = tree('2,3,6,2.0,3.0')
 
-        self.assertEqual(divide_numerics(i6 / i2, (6, 2, 0)), 3)
-        self.assertEqual(divide_numerics(f3 / i2, (3.0, 2, 0)), 1.5)
-        self.assertEqual(divide_numerics(i3 / f2, (3, 2.0, 0)), 1.5)
-        self.assertEqual(divide_numerics(f3 / f2, (3.0, 2.0, 0)), 1.5)
-
-        self.assertEqual(divide_numerics(i6 / i2, (6, 2, 1)), -3)
-        self.assertEqual(divide_numerics(i6 / i2, (6, 2, 2)), --i3)
+        self.assertEqual(divide_numerics(i6 / i2, ()), 3)
+        self.assertEqual(divide_numerics(f3 / i2, ()), 1.5)
+        self.assertEqual(divide_numerics(i3 / f2, ()), 1.5)
+        self.assertEqual(divide_numerics(f3 / f2, ()), 1.5)
+        self.assertEqual(divide_numerics(-(i6 / i2), ()), -i3)
 
     def test_reduce_fraction_constants(self):
         l1, l2 = tree('1,2')
         self.assertEqual(reduce_fraction_constants(l2 / 4, (2,)), l1 / l2)
 
-    def test_fraction_to_int_fraction(self):
-        l1, l4 = tree('1,4')
-        self.assertEqual(fraction_to_int_fraction(l4 / 3, (1, 1, 3)),
-                         l1 + l1 / 3)
+    #def test_fraction_to_int_fraction(self):
+    #    l1, l4 = tree('1,4')
+    #    self.assertEqual(fraction_to_int_fraction(l4 / 3, (1, 1, 3)),
+    #                     l1 + l1 / 3)
 
     def test_match_multiply_numerics(self):
         i2, i3, i6, f2, f3, f6 = tree('2,3,6,2.0,3.0,6.0')

@@ -1,6 +1,6 @@
 from src.node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
         nary_node, get_scope, OP_ADD, infinity, absolute, sin, cos, tan, log, \
-        ln, der, integral, indef, eq
+        ln, der, integral, indef, eq, negation_to_node
 from tests.rulestestcase import RulesTestCase, tree
 
 
@@ -105,6 +105,10 @@ class TestNode(RulesTestCase):
     def test_get_scope_nested_deep(self):
         plus = N('+', N('+', N('+', *self.l[:2]), self.l[2]), self.l[3])
         self.assertEqual(get_scope(plus), self.l)
+
+    def test_get_scope_negation(self):
+        root, a, b, cd = tree('a * b * -cd, a, b, -cd')
+        self.assertEqual(get_scope(root), [a, b, cd])
 
     def test_equals_node_leaf(self):
         a, b = plus = tree('a + b')
@@ -296,3 +300,9 @@ class TestNode(RulesTestCase):
     def test_eq(self):
         x, a, b, expect = tree('x, a, b, x + a = b')
         self.assertEqual(eq(x + a, b), expect)
+
+    def test_negation_to_node(self):
+        a = tree('a')
+        self.assertEqual(negation_to_node(-a), N('-', a))
+        self.assertEqual(negation_to_node(-(a + 1)), N('-', a + 1))
+        self.assertEqual(negation_to_node(-(a - 1)), N('-', a + N('-', 1)))

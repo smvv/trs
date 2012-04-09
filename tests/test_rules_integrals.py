@@ -98,7 +98,7 @@ class TestRulesIntegrals(RulesTestCase):
                 [P(root, split_negation_to_constant)])
 
     def test_split_negation_to_constant(self):
-        root, expect = tree('int -x2 dx, int -1x2 dx')
+        root, expect = tree('int -x2 dx, int (-1)x2 dx')
         self.assertEqual(split_negation_to_constant(root, ()), expect)
 
     def test_factor_out_constant(self):

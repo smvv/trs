@@ -1,5 +1,5 @@
 from rules.sort import move_constant
-from rules.numerics import reduce_fraction_constants, fraction_to_int_fraction
+from rules.numerics import reduce_fraction_constants
 from rules.logarithmic import factor_in_exponent_multiplicant
 
 
@@ -9,8 +9,8 @@ def pick_suggestion(possibilities):
 
     # TODO: pick the best suggestion.
     for suggestion, p in enumerate(possibilities + [None]):
-        if p and p.handler not in [move_constant, fraction_to_int_fraction,
-                reduce_fraction_constants, factor_in_exponent_multiplicant]:
+        if p and p.handler not in [move_constant, reduce_fraction_constants,
+                                   factor_in_exponent_multiplicant]:
             break
 
     if not p:

@@ -359,7 +359,7 @@ class ExpressionNode(Node, ExpressionBase):
         self.nodes[self.nodes.index(old_child)] = new_child
 
     def graph(self):  # pragma: nocover
-        return generate_graph(self)
+        return generate_graph(negation_to_node(self))
 
     def extract_polynome_properties(self):
         """
@@ -602,7 +602,7 @@ def get_scope(node):
     scope = []
 
     for child in node:
-        if child.is_op(node.op):
+        if child.is_op(node.op) and not child.negated:
             scope += get_scope(child)
         else:
             scope.append(child)
@@ -698,3 +698,21 @@ def eq(left, right):
     Create an equality operator node.
     """
     return ExpressionNode(OP_EQ, left, right)
+
+
+def negation_to_node(node):
+    """
+    Recursively replace negation flags inside a node by explicit unary negation
+    nodes.
+    """
+    if node.negated:
+         negations = node.negated
+         node = negate(node, 0)
+
+         for i in range(negations):
+             node = ExpressionNode('-', node)
+
+    if node.is_leaf:
+        return node
+
+    return ExpressionNode(node.op, *map(negation_to_node, node))

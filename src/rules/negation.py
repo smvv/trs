@@ -6,9 +6,10 @@ from ..translate import _
 def match_negated_factor(node):
     """
     This rule assures that negations in the scope of a multiplication are
-    brought to the most left node in the multiplication's scope.
+    brought to the multiplication itself.
 
-    Example:
+    Examples:
+    (-a)b   ->  -ab
     a * -b  ->  -ab
     """
     assert node.is_op(OP_MUL)
@@ -16,10 +17,7 @@ def match_negated_factor(node):
     p = []
     scope = Scope(node)
 
-    # FIXME: The negation that is brought outside is assigned to the first
-    # element in the scope during the next parsing step:
-    # -ab -> -(ab), but -(ab) is printed as -ab
-    for factor in scope[1:]:
+    for factor in scope:
         if factor.negated:
             p.append(P(node, negated_factor, (scope, factor)))
 
@@ -28,13 +26,13 @@ def match_negated_factor(node):
 
 def negated_factor(root, args):
     """
+    (-a)b   ->  -ab
     a * -b  ->  -ab
     """
     scope, factor = args
-    scope[0] = -scope[0]
     scope.replace(factor, +factor)
 
-    return scope.as_nary_node()
+    return -scope.as_nary_node()
 
 
 MESSAGES[negated_factor] = \
@@ -44,32 +42,48 @@ MESSAGES[negated_factor] = \
 def match_negate_polynome(node):
     """
     --a       ->  a
+    ----a     ->  --a
     -(a + b)  ->  -a - b
+    -0        ->  0
     """
-    #print 'match_negate_polynome:', node, node.negated
     assert node.negated, str(node.negated) + '; ' + str(node)
 
     p = []
 
-    if node.negated == 2:
-        # --a
-        p.append(P(node, double_negation, ()))
+    if not (node.negated & 1):
+        # --a, ----a
+        p.append(P(node, double_negation))
 
-    if node.is_op(OP_ADD):
+    if node == 0 or node == 0.0:
+        # -0
+        p.append(P(node, negated_zero))
+    elif node.is_op(OP_ADD):
         # -(a + b)  ->  -a - b
-        p.append(P(node, negate_polynome, ()))
+        p.append(P(node, negate_polynome))
 
     return p
 
 
 def double_negation(root, args):
     """
-    --a  ->  a
+    --a    ->  a
+    ----a  ->  --a
+    ...
     """
     return root.reduce_negation(2)
 
 
 MESSAGES[double_negation] = _('Remove double negation in {0}.')
+
+
+def negated_zero(root, args):
+    """
+    -0  ->  0
+    """
+    return root.reduce_negation()
+
+
+MESSAGES[negated_zero] = _('Remove negation from zero.')
 
 
 def negate_polynome(root, args):
@@ -88,65 +102,49 @@ def negate_polynome(root, args):
 MESSAGES[negate_polynome] = _('Apply negation to the polynome {0}.')
 
 
-#def negate_group(root, args):
-#    """
-#    -(a * -3c)       ->  a * 3c
-#    -(a * ... * -b)  ->  ab
-#    """
-#    node, scope = args
-#
-#    for i, n in enumerate(scope):
-#        if n.negated:
-#            scope[i] = n.reduce_negation()
-#
-#    return nary_node('*', scope).reduce_negation()
-#
-#
-#MESSAGES[negate_polynome] = _('Apply negation to the subexpression {1[0]}.')
-
-
 def match_negated_division(node):
     """
-    -a / -b  ->  a / b
+    (-a) / b  ->  -a / b
+    a / (-b)  ->  -a / b
+
+    Note that:
+    (-a) / (-b)  ->  -a / (-b)  ->  --a / b  ->  a / b
     """
     assert node.is_op(OP_DIV)
 
     a, b = node
+    p = []
 
-    if a.negated and b.negated:
-        return [P(node, double_negated_division, ())]
-    elif b.negated:
-        return [P(node, single_negated_division, (a, +b))]
+    if a.negated:
+        p.append(P(node, negated_nominator))
 
-    return []
+    if b.negated:
+        p.append(P(node, negated_denominator))
+
+    return p
 
 
-def single_negated_division(root, args):
+def negated_nominator(root, args):
     """
-    a / -b  ->  -a / b
-    """
-    a, b = args
-
-    # FIXME: "-a/b" results in "-(a/b)", which will cause a loop.
-
-    return -a / b
-
-
-MESSAGES[single_negated_division] = \
-        _('Bring negation outside of the division: -{1} / {2}.')
-
-
-def double_negated_division(root, args):
-    """
-    -a / -b  ->  a / b
+    (-a) / b  ->  -a / b
     """
     a, b = root
 
-    return +a / +b
+    return -(+a / b).negate(root.negated)
 
 
-MESSAGES[double_negated_division] = \
-        _('Eliminate top and bottom negation in {0}.')
+MESSAGES[negated_nominator] = \
+        _('Bring nominator negation in {0} outside to the fraction itself.')
 
 
-# TODO: negated multiplication: -a * -b = ab
+def negated_denominator(root, args):
+    """
+    a / (-b)  ->  -a / b
+    """
+    a, b = root
+
+    return -(a / +b).negate(root.negated)
+
+
+MESSAGES[negated_denominator] = \
+        _('Bring denominator negation in {0} outside to the fraction itself.')

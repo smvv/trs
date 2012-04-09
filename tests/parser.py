@@ -2,6 +2,11 @@ import sys
 
 from external.graph_drawing.graph import generate_graph
 from external.graph_drawing.line import generate_line
+from src.node import negation_to_node
+
+
+def create_graph(node):
+    return generate_graph(negation_to_node(node))
 
 
 class ParserWrapper(object):
@@ -90,9 +95,9 @@ def run_expressions(base_class, expressions, fail=True, silent=False,
 
             if not silent and hasattr(res, 'nodes'):
                 print >>sys.stderr, 'result graph:'
-                print >>sys.stderr, generate_graph(res)
+                print >>sys.stderr, create_graph(res)
                 print >>sys.stderr, 'expected graph:'
-                print >>sys.stderr, generate_graph(out)
+                print >>sys.stderr, create_graph(out)
 
             if fail:
                 raise
@@ -114,16 +119,16 @@ def apply_expressions(base_class, expressions, fail=True, silent=False,
 
             if not silent and hasattr(res, 'nodes'):
                 print >>sys.stderr, 'result graph:'
-                print >>sys.stderr, generate_graph(res)
+                print >>sys.stderr, create_graph(res)
                 print >>sys.stderr, 'expected graph:'
-                print >>sys.stderr, generate_graph(out)
+                print >>sys.stderr, create_graph(out)
 
             if fail:
                 raise
 
 
 def graph(parser, *exp, **kwargs):
-    return generate_graph(ParserWrapper(parser, **kwargs).run(exp))
+    return create_graph(ParserWrapper(parser, **kwargs).run(exp))
 
 
 def line(parser, *exp, **kwargs):

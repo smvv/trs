@@ -99,6 +99,10 @@ def match_divide_numerics(node):
     assert node.is_op(OP_DIV)
 
     n, d = node
+
+    if n.negated or d.negated:
+        return []
+
     nv, dv = n.value, d.value
 
     if n.is_int() and d.is_int():
@@ -107,20 +111,18 @@ def match_divide_numerics(node):
         if not mod:
             # 6 / 2  ->  3
             # 3 / 2  ->  3 / 2
-            return [P(node, divide_numerics, (nv, dv, n.negated + d.negated))]
+            return [P(node, divide_numerics)]
 
         gcd = greatest_common_divisor(nv, dv)
 
         if 1 < gcd <= nv:
             # 2 / 4  ->  1 / 2
-            # TODO: Test with negations!
             return [P(node, reduce_fraction_constants, (gcd,))]
 
-        if nv > dv:
-            # 4 / 3  ->  1 + 1 / 3
-            # TODO: Test with negations!
-            return [P(node, fraction_to_int_fraction,
-                      ((nv - mod) / dv, mod, dv))]
+        #if nv > dv:
+        #    # 4 / 3  ->  1 + 1 / 3
+        #    return [P(node, fraction_to_int_fraction,
+        #              ((nv - mod) / dv, mod, dv))]
     elif n.is_numeric() and d.is_numeric():
         if d == 1.0:
             # 3 / 1.0  ->  3
@@ -129,7 +131,7 @@ def match_divide_numerics(node):
         # 3.0 / 2  ->  1.5
         # 3 / 2.0  ->  1.5
         # 3.0 / 2.0  ->  1.5
-        return [P(node, divide_numerics, (nv, dv, n.negated + d.negated))]
+        return [P(node, divide_numerics)]
 
     return []
 
@@ -145,9 +147,9 @@ def divide_numerics(root, args):
     3.0 / 2.0  ->  1.5
     3 / 1.0    ->  3
     """
-    n, d, negated = args
+    n, d = root
 
-    return Leaf(n / d).negate(negated)
+    return Leaf(n.value / d.value).negate(root.negated)
 
 
 MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')
@@ -164,27 +166,10 @@ def reduce_fraction_constants(root, args):
     gcd = args[0]
     a, b = root
 
-    return Leaf(a.value / gcd).negate(a.negated) \
-           / Leaf(b.value / gcd).negate(b.negated)
+    return Leaf(a.value / gcd) / Leaf(b.value / gcd)
 
 
 MESSAGES[reduce_fraction_constants] = _('Simplify fraction {0}.')
-
-
-def fraction_to_int_fraction(root, args):
-    """
-    Combine two divided integer into an integer with a fraction.
-
-    Examples:
-    4 / 3  ->  1 + 1 / 3
-    """
-    integer, nominator, denominator = map(Leaf, args)
-
-    return integer + nominator / denominator
-
-
-MESSAGES[fraction_to_int_fraction] = _('Expand fraction with nominator greater'
-    ' than denominator {0} to an integer plus a fraction.')
 
 
 def match_multiply_zero(node):

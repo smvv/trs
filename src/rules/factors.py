@@ -7,17 +7,18 @@ from ..translate import _
 
 def match_expand(node):
     """
-    a * (b + c) -> ab + ac
-    (b + c) * a -> ab + ac
-    (a + b) * (c + d) -> ac + ad + bc + bd
+    a(b + c)        ->  ab + ac
+    (b + c)a        ->  ab + ac
+    (a + b)(c + d)  ->  ac + ad + bc + bd
     """
     assert node.is_op(OP_MUL)
 
     p = []
     leaves = []
     additions = []
+    scope = Scope(node)
 
-    for n in Scope(node):
+    for n in scope:
         if n.is_leaf:
             leaves.append(n)
         elif n.op == OP_ADD:
@@ -27,11 +28,11 @@ def match_expand(node):
 
             additions.append(n)
 
-    for args in product(leaves, additions):
-        p.append(P(node, expand_single, args))
+    for l, a in product(leaves, additions):
+        p.append(P(node, expand_single, (scope, l, a)))
 
-    for args in combinations(additions, 2):
-        p.append(P(node, expand_double, args))
+    for a0, a1 in combinations(additions, 2):
+        p.append(P(node, expand_double, (scope, a0, a1)))
 
     return p
 
@@ -41,12 +42,11 @@ def expand_single(root, args):
     Combine a leaf (a) multiplied with an addition of two expressions
     (b + c) to an addition of two multiplications.
 
-    a * (b + c) -> ab + ac
-    (b + c) * a -> ab + ac
+    a(b + c)  ->  ab + ac
+    (b + c)a  ->  ab + ac
     """
-    a, bc = args
+    scope, a, bc = args
     b, c = bc
-    scope = Scope(root)
 
     # Replace 'a' with the new expression
     scope.replace(a, a * b + a * c)
@@ -64,10 +64,10 @@ def expand_double(root, args):
     """
     Rewrite two multiplied additions to an addition of four multiplications.
 
-    (a + b) * (c + d) -> ac + ad + bc + bd
+    (a + b)(c + d)  ->  ac + ad + bc + bd
     """
-    (a, b), (c, d) = ab, cd = args
-    scope = Scope(root)
+    scope, ab, cd = args
+    (a, b), (c, d) = ab, cd
 
     # Replace 'a + b' with the new expression
     scope.replace(ab, a * c + a * d + b * c + b * d)

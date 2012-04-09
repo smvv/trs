@@ -23,7 +23,7 @@ def match_move_term(node):
     # Multiplication
     x / a = b  ->  x / a * a = b * a  # =>*  x = a * b
     a / x = b  ->  a / x * x = b * x  # =>*  x = a / b
-    -x = b  ->  -x * -1 = b * -1  # =>*  x = -b
+    -x = b  ->  -x * -1 = b * -1      # =>*  x = -b
     """
     assert node.is_op(OP_EQ)
 
