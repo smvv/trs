@@ -1,7 +1,7 @@
 from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
         find_variables, first_sorted_variable, find_variable, substitute, \
-        divides
+        divides, evals_to_numeric
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -65,3 +65,13 @@ class TestRulesUtils(RulesTestCase):
         self.assertTrue(divides(7, 21))
         self.assertFalse(divides(4, 2))
         self.assertFalse(divides(2, 3))
+
+    def test_evals_to_numeric(self):
+        self.assertTrue(evals_to_numeric(tree('1')))
+        self.assertFalse(evals_to_numeric(tree('a')))
+        self.assertTrue(evals_to_numeric(tree('1 + 2')))
+        self.assertFalse(evals_to_numeric(tree('1 + a')))
+        self.assertTrue(evals_to_numeric(tree('1 + 2 / 2 * 9')))
+        self.assertFalse(evals_to_numeric(tree('int 1')))
+        self.assertFalse(evals_to_numeric(tree('int a')))
+        self.assertTrue(evals_to_numeric(tree('sqrt 1')))

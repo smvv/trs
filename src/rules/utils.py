@@ -1,4 +1,5 @@
-from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_MUL, OP_DIV
+from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_MUL, OP_DIV, \
+        OP_ADD, OP_POW, OP_SQRT
 
 
 def greatest_common_divisor(a, b):
@@ -132,3 +133,23 @@ def divides(m, n):
     Check if m | n (m divides n).
     """
     return not divmod(n, m)[1]
+
+
+def is_numeric_node(node):
+    """
+    Check if a node is numeric.
+    """
+    return node.is_numeric()
+
+
+def evals_to_numeric(node):
+    """
+    Check if a node will eventually evaluate to a numeric value, by checking if
+    all leaves are numeric and there are only operators that can be
+    considerered a constant or will evaluate to one (+, *, /, ^, sqrt).
+    """
+    if node.is_leaf:
+        return node.is_numeric()
+
+    return node.op in (OP_ADD, OP_MUL, OP_DIV, OP_POW, OP_SQRT) \
+           and all(map(evals_to_numeric, node))

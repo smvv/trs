@@ -1,8 +1,9 @@
 from itertools import combinations, product
 
-from .utils import least_common_multiple, partition
-from ..node import ExpressionLeaf as L, Scope, OP_DIV, OP_ADD, OP_MUL, \
-        OP_POW, nary_node, negate
+from .utils import least_common_multiple, partition, is_numeric_node, \
+        evals_to_numeric
+from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DIV, \
+        OP_ADD, OP_MUL, OP_POW, nary_node, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -68,51 +69,76 @@ def division_by_self(root, args):
 MESSAGES[division_by_self] = _('Division of {1} by itself reduces to 1.')
 
 
-def match_add_constant_fractions(node):
+def match_add_fractions(node):
     """
-    1 / 2 + 3 / 4  ->  2 / 4 + 3 / 4  # Equalize denominators
-    2 / 2 - 3 / 4  ->  4 / 4 - 3 / 4
-    2 / 4 + 3 / 4  ->  5 / 4          # Equal denominators, so nominators can
-                                      # be added
-    2 / 4 - 3 / 4  ->  -1 / 4
-    1 / 2 + 3 / 4  ->  4 / 8 + 6 / 8  # Equalize denominators by multiplying
-                                      # them with eachother
-
+    a / b + c / b and a, c in Z        ->  (a + c) / b
+    a / b + c / d and a, b, c, d in Z  ->  a' / e + c' / e  # e = lcm(b, d)
+                                                            # | e = b * d
+    a / b + c and a, b, c in Z         ->  a / b + b / b * c # =>* (a + bc) / b
     """
     assert node.is_op(OP_ADD)
 
     p = []
     scope = Scope(node)
+    fractions, others = partition(lambda n: n.is_op(OP_DIV), scope)
+    numerics = filter(is_numeric_node, others)
 
-    fractions = filter(lambda node: node.is_op(OP_DIV), scope)
+    for ab, cd in combinations(fractions, 2):
+        a, b = ab
+        c, d = cd
 
-    for a, b in combinations(fractions, 2):
-        na, da = a
-        nb, db = b
-
-        if da == db:
+        if b == d:
             # Equal denominators, add nominators to create a single fraction
-            p.append(P(node, add_nominators, (a, b)))
-        elif da.is_numeric() and db.is_numeric():
+            p.append(P(node, add_nominators, (scope, ab, cd)))
+        elif all(map(is_numeric_node, (a, b, c, d))):
             # Denominators are both numeric, rewrite both fractions to the
             # least common multiple of their denominators. Later, the
             # nominators will be added
-            denom = least_common_multiple(da.value, db.value)
-            p.append(P(node, equalize_denominators, (scope, a, b, denom)))
+            lcm = least_common_multiple(b.value, d.value)
+            p.append(P(node, equalize_denominators, (scope, ab, cd, lcm)))
 
             # Also, add the (non-recommended) possibility to multiply the
-            # denominators
-            p.append(P(node, equalize_denominators, (scope, a, b,
-                                                     da.value * db.value)))
+            # denominators. Do this only if the multiplication is not equal to
+            # the least common multiple, to avoid duplicate possibilities
+            mult = b.value * d.value
+
+            if mult != lcm:
+                p.append(P(node, equalize_denominators, (scope, ab, cd, mult)))
+
+    for ab, c in product(fractions, numerics):
+        a, b = ab
+
+        if a.is_numeric() and b.is_numeric():
+            # Fraction of constants added to a constant -> create a single
+            # constant fraction
+            p.append(P(node, constant_to_fraction, (scope, ab, c)))
 
     return p
 
 
+def add_nominators(root, args):
+    """
+    a / b + c / b and a, c in Z  ->  (a + c) / b
+    """
+    scope, ab, cb = args
+    a, b = ab
+    c = cb[0]
+
+    # Replace the left node with the new expression, transfer fraction
+    # negations to nominators
+    scope.replace(ab, (a.negate(ab.negated) + c.negate(cb.negated)) / b)
+    scope.remove(cb)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[add_nominators] = \
+        _('Add the nominators of {2} and {3} to create a single fraction.')
+
+
 def equalize_denominators(root, args):
     """
-    1 / 2 + 3 / 4  ->  2 / 4 + 3 / 4
-    1 / 2 - 3 / 4  ->  2 / 4 - 3 / 4
-    a / 2 + b / 4  ->  2a / 4 + b / 4
+    a / b + c / d and a, b, c, d in Z  ->  a' / e + c' / e
     """
     scope, denom = args[::3]
 
@@ -132,65 +158,46 @@ def equalize_denominators(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[equalize_denominators] = _('Equalize the denominators of divisions'
-    ' {2} and {3} to {4}.')
+MESSAGES[equalize_denominators] = \
+        _('Equalize the denominators of divisions' ' {2} and {3} to {4}.')
 
 
-def add_nominators(root, args):
+def constant_to_fraction(root, args):
     """
-    a / b + c / b      ->  (a + c) / b
-    a / b - c / b      ->  (a - c) / b
-    -(a / b) + c / b   ->  -((a + c) / b)
-    -(a / b) - c / b   ->  (c - a) / -b
+    a / b + c and a, b, c in Z  ->  a / b + b / b * c  # =>* (a + bc) / b
     """
-    # TODO: is 'add' Appropriate when rewriting to "(a + (-c)) / b"?
-    ab, cb = args
-    a, b = ab
-    scope = Scope(root)
-
-    # Replace the left node with the new expression
-    scope.replace(ab, (a + cb[0].negate(cb.negated)) / b)
-
-    # Remove the right node
-    scope.remove(cb)
+    scope, ab, c = args
+    b = ab[1]
+    scope.replace(c, b / b * c)
 
     return scope.as_nary_node()
 
 
-# TODO: convert this to a lambda. Example: 22 / 77 - 28 / 77. the "-" is above
-# the "28/77" division.
-MESSAGES[add_nominators] = _('Add the nominators of {1} and {2}.')
-
-
-def match_expand_and_add_fractions(node):
-    """
-    a * b / c + d * b / c      ->  (a + d) * (b / c)
-    a * b / c + (- d * b / c)  ->  (a + (-d)) * (b / c)
-    """
-    # TODO: is 'add' Appropriate when rewriting to "(a + (-d)) / * (b / c)"?
-    assert node.is_op(OP_MUL)
-
-    p = []
-
-    return p
+MESSAGES[constant_to_fraction] = \
+        _('Rewrite constant {3} to a fraction to be able to add it to {2}.')
 
 
 def match_multiply_fractions(node):
     """
     a / b * (c / d)  ->  ac / (bd)
-    a * (b / c)      ->  ab / c
+    a / b * c and a, c in Z or (a = 1 and eval(b) not in Z)  ->  ac / b
     """
     assert node.is_op(OP_MUL)
 
     p = []
     scope = Scope(node)
     fractions, others = partition(lambda n: n.is_op(OP_DIV), scope)
+    numerics = filter(is_numeric_node, others)
 
     for ab, cd in combinations(fractions, 2):
         p.append(P(node, multiply_fractions, (scope, ab, cd)))
 
-    for a, bc in product(others, fractions):
-        p.append(P(node, multiply_with_fraction, (scope, a, bc)))
+    for ab, c in product(fractions, others):
+        a, b = ab
+
+        if (a.is_numeric() and c.is_numeric()) or \
+                (a == 1 and evals_to_numeric(b)):
+            p.append(P(node, multiply_with_fraction, (scope, ab, c)))
 
     return p
 
@@ -203,7 +210,7 @@ def multiply_fractions(root, args):
     a, b = ab
     c, d = cd
 
-    scope.replace(ab, a * c / (b * d))
+    scope.replace(ab, (a * c / (b * d)).negate(ab.negated + cd.negated))
     scope.remove(cd)
 
     return scope.as_nary_node()
@@ -214,18 +221,19 @@ MESSAGES[multiply_fractions] = _('Multiply fractions {2} and {3}.')
 
 def multiply_with_fraction(root, args):
     """
-    a * (b / c)  ->  ab / c
+    a / b * c and a, c in Z or a == 1  ->  ac / b
     """
-    scope, a, bc = args
-    b, c = bc
+    scope, ab, c = args
+    a, b = ab
 
-    scope.replace(a, a * b / c)
-    scope.remove(bc)
+    scope.replace(ab, (a * c / b).negate(ab.negated))
+    scope.remove(c)
 
     return scope.as_nary_node()
 
 
-MESSAGES[multiply_with_fraction] = _('Multiply {2} with fraction {3}.')
+MESSAGES[multiply_with_fraction] = \
+        _('Multiply {3} with the nominator of fraction {2}.')
 
 
 def match_divide_fractions(node):
@@ -306,16 +314,34 @@ def fraction_scopes(node):
     nominator, denominator = node
 
     if nominator.is_op(OP_MUL):
-        n_scope = list(Scope(nominator))
+        n_scope = Scope(nominator)
     else:
-        n_scope = [nominator]
+        n_scope = Scope(N(OP_MUL, nominator))
 
     if denominator.is_op(OP_MUL):
-        d_scope = list(Scope(denominator))
+        d_scope = Scope(denominator)
     else:
-        d_scope = [denominator]
+        d_scope = Scope(N(OP_MUL, denominator))
 
     return n_scope, d_scope
+
+
+def is_power_combination(a, b):
+    """
+    Check if two nodes are powers that can be combined in a fraction, for
+    example:
+
+    a and a^2
+    a^2 and a^2
+    a^2 and a
+    """
+    if a.is_power():
+        a = a[0]
+
+    if b.is_power():
+        b = b[0]
+
+    return a == b
 
 
 def match_equal_fraction_parts(node):
@@ -323,15 +349,13 @@ def match_equal_fraction_parts(node):
     Divide nominator and denominator by the same part.
 
     Examples:
-    ab / (ac)  ->  b / c
-    ab / a     ->  b / 1
-    a / (ab)   ->  1 / b
+    a ^ b * c / (a ^ d * e)  ->  a ^ b / a ^ d * (c / e)
 
-    If the same root appears in both nominator and denominator, extrct it so
-    that it can be reduced to a single power by power division rules.
-    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
-    a ^ p * b / a      ->  a ^ p / a * b / 1
-    a * b / a ^ q      ->  a / a ^ q * b / 1
+    #If the same root appears in both nominator and denominator, extract it so
+    #that it can be reduced to a single power by power division rules.
+    #a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
+    #a ^ p * b / a      ->  a ^ p / a * b / 1
+    #a * b / a ^ q      ->  a / a ^ q * b / 1
     """
     assert node.is_op(OP_DIV)
 
@@ -343,88 +367,111 @@ def match_equal_fraction_parts(node):
         return p
 
     # Look for matching parts in scopes
-    for i, n in enumerate(n_scope):
-        for j, d in enumerate(d_scope):
-            if n.equals(d, ignore_negation=True):
-                p.append(P(node, divide_fraction_parts,
-                           (negate(n, 0), n_scope, d_scope, i, j)))
+    for n, d in product(n_scope, d_scope):
+        if is_power_combination(n, d):
+            p.append(P(N, extract_fraction_terms, (n_scope, d_scope, n, d)))
 
-            if n.is_op(OP_POW):
-                a = n[0]
+    #for i, n in enumerate(n_scope):
+    #    for j, d in enumerate(d_scope):
+    #        if n.equals(d, ignore_negation=True):
+    #            p.append(P(node, divide_fraction_parts,
+    #                       (negate(n, 0), n_scope, d_scope, i, j)))
 
-                if d == a or (d.is_op(OP_POW) and d[0] == a):
-                    # a ^ p * b / a  ->  a ^ p / a * b
-                    p.append(P(node, extract_divided_roots,
-                               (a, n_scope, d_scope, i, j)))
-            elif d.is_op(OP_POW) and n == d[0]:
-                # a * b / a ^ q  ->  a / a ^ q * b
-                p.append(P(node, extract_divided_roots,
-                           (d[0], n_scope, d_scope, i, j)))
+    #        if n.is_op(OP_POW):
+    #            a = n[0]
+
+    #            if d == a or (d.is_op(OP_POW) and d[0] == a):
+    #                # a ^ p * b / a  ->  a ^ p / a * b
+    #                p.append(P(node, extract_divided_roots,
+    #                           (a, n_scope, d_scope, i, j)))
+    #        elif d.is_op(OP_POW) and n == d[0]:
+    #            # a * b / a ^ q  ->  a / a ^ q * b
+    #            p.append(P(node, extract_divided_roots,
+    #                       (d[0], n_scope, d_scope, i, j)))
 
     return p
 
 
-def remove_from_scopes(n_scope, d_scope, i, j):
-    a_n, a_d = n_scope[i], d_scope[j]
+def extract_fraction_terms(root, args):
+    """
+    a ^ b * c / (a ^ d * e)  ->  a ^ b / a ^ d * (c / e)
+    """
+    n_scope, d_scope, n, d = args
 
-    del n_scope[i]
-    del d_scope[j]
-
-    if not n_scope:
-        # Last element of nominator scope, replace by 1
-        nom = L(1)
-    elif len(n_scope) == 1:
-        # Only one element left, no multiplication
-        nom = n_scope[0]
+    if len(n_scope) == 1:
+        n_scope.replace(n, L(1))
     else:
-        # Still a multiplication
-        nom = nary_node('*', n_scope)
+        n_scope.remove(n)
 
-    if not d_scope:
-        denom = L(1)
-    elif len(n_scope) == 1:
-        denom = d_scope[0]
+    if len(d_scope) == 1:
+        d_scope.replace(d, L(1))
     else:
-        denom = nary_node('*', d_scope)
+        d_scope.remove(n)
 
-    return a_n, a_d, nom, denom
-
-
-def divide_fraction_parts(root, args):
-    """
-    Divide nominator and denominator by the same part.
-
-    Examples:
-    ab / (ac)  ->  b / c
-    ab / a     ->  b / 1
-    a / (ab)   ->  1 / b
-    -ab / a     ->  -b / 1
-    """
-    a, n_scope, d_scope, i, j = args
-    n, d = root
-    a_n, a_d, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)
-
-    # Move negation of removed part to nominator and denominator
-    return nom.negate(n.negated + a_n.negated) \
-           / denom.negate(d.negated + a_d.negated)
+    return n / d * (n_scope.as_nary_node() / d_scope.as_nary_node())
 
 
-MESSAGES[divide_fraction_parts] = \
-        _('Divide nominator and denominator in {0} by {1}.')
-
-
-def extract_divided_roots(root, args):
-    """
-    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
-    a ^ p * b / a      ->  a ^ p / a * b / 1
-    a * b / a ^ q      ->  a / a ^ q * b / 1
-    """
-    a, n_scope, d_scope, i, j = args
-    n, d = root
-    ap, aq, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)
-
-    return ap / aq * nom.negate(n.negated) / denom.negate(d.negated)
-
-
-MESSAGES[extract_divided_roots] = \
-        _('Extract the root {1} from nominator and denominator in {0}.')
+#def remove_from_scopes(n_scope, d_scope, i, j):
+#    a_n, a_d = n_scope[i], d_scope[j]
+#
+#    del n_scope[i]
+#    del d_scope[j]
+#
+#    if not n_scope:
+#        # Last element of nominator scope, replace by 1
+#        nom = L(1)
+#    elif len(n_scope) == 1:
+#        # Only one element left, no multiplication
+#        nom = n_scope[0]
+#    else:
+#        # Still a multiplication
+#        nom = nary_node('*', n_scope)
+#
+#    if not d_scope:
+#        denom = L(1)
+#    elif len(n_scope) == 1:
+#        denom = d_scope[0]
+#    else:
+#        denom = nary_node('*', d_scope)
+#
+#    return a_n, a_d, nom, denom
+#
+#
+#def divide_fraction_parts(root, args):
+#    """
+#    Divide nominator and denominator by the same part.
+#
+#    Examples:
+#    ab / (ac)  ->  b / c
+#    ab / a     ->  b / 1
+#    a / (ab)   ->  1 / b
+#    -ab / a     ->  -b / 1
+#    """
+#    a, n_scope, d_scope, i, j = args
+#    n, d = root
+#    a_n, a_d, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)
+#
+#    # Move negation of removed part to nominator and denominator
+#    return nom.negate(n.negated + a_n.negated) \
+#           / denom.negate(d.negated + a_d.negated)
+#
+#
+#MESSAGES[divide_fraction_parts] = \
+#        _('Divide nominator and denominator in {0} by {1}.')
+#
+#
+#def extract_divided_roots(root, args):
+#    """
+#    a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
+#    a ^ p * b / a      ->  a ^ p / a * b / 1
+#    a * b / a ^ q      ->  a / a ^ q * b / 1
+#    """
+#    a, n_scope, d_scope, i, j = args
+#    n, d = root
+#    ap, aq, nom, denom = remove_from_scopes(n_scope, d_scope, i, j)
+#
+#    return ap / aq * nom.negate(n.negated) / denom.negate(d.negated)
+#
+#
+#MESSAGES[extract_divided_roots] = \
+#        _('Extract the root {1} from nominator and denominator in {0}.')

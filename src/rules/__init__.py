@@ -9,9 +9,9 @@ from .powers import match_add_exponents, match_subtract_exponents, \
 from .numerics import match_add_numerics, match_divide_numerics, \
         match_multiply_numerics, match_multiply_zero, match_multiply_one, \
         match_raise_numerics
-from .fractions import match_constant_division, match_add_constant_fractions, \
-        match_expand_and_add_fractions, match_multiply_fractions, \
-        match_divide_fractions, match_equal_fraction_parts
+from .fractions import match_constant_division, match_add_fractions, \
+        match_multiply_fractions, match_divide_fractions, \
+        match_equal_fraction_parts
 from .negation import match_negated_factor, match_negate_polynome, \
         match_negated_division
 from .sort import match_sort_multiplicants
@@ -30,12 +30,11 @@ from src.rules.integrals import match_solve_indef, match_constant_integral, \
 from src.rules.lineq import match_move_term
 
 RULES = {
-        OP_ADD: [match_add_numerics, match_add_constant_fractions,
+        OP_ADD: [match_add_numerics, match_add_fractions,
                  match_combine_groups, match_add_quadrants,
                  match_add_logarithms],
         OP_MUL: [match_multiply_numerics, match_expand, match_add_exponents,
-                 match_expand_and_add_fractions, match_multiply_zero,
-                 match_negated_factor, match_multiply_one,
+                 match_multiply_zero, match_negated_factor, match_multiply_one,
                  match_sort_multiplicants, match_multiply_fractions,
                  match_factor_in_multiplicant],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
