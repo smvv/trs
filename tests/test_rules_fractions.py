@@ -3,7 +3,7 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
         multiply_fractions, multiply_with_fraction, match_divide_fractions, \
         divide_fraction, divide_by_fraction, match_extract_fraction_terms, \
-        constant_to_fraction, extract_fraction_terms
+        constant_to_fraction, extract_nominator_term, extract_fraction_terms
 from src.node import ExpressionNode as N, Scope, OP_MUL
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -233,6 +233,23 @@ class TestRulesFractions(RulesTestCase):
         (ap, b), a = n, d = root = tree('a ^ p * b / a')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), lscp(d), ap, a))])
+
+        (l2, a), l3 = n, d = root = tree('2a / 3')
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_nominator_term, (2, a))])
+
+        root = tree('2*4 / 3')
+        self.assertEqualPos(match_extract_fraction_terms(root), [])
+
+        n, d = root = tree('2a / 2')
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (Scope(n), lscp(d), 2, 2)),
+                 P(root, extract_nominator_term, (2, a))])
+
+    def test_extract_nominator_term(self):
+        root, expect = tree('2a / 3, 2 / 3 * a')
+        l2, a = root[0]
+        self.assertEqual(extract_nominator_term(root, (l2, a)), expect)
 
     def test_extract_fraction_terms_basic(self):
         root, expect = tree('ab / (ca), a / a * (b / c)')

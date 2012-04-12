@@ -1,4 +1,5 @@
 from itertools import combinations, product
+import copy
 
 from .utils import least_common_multiple, partition, is_numeric_node, \
         evals_to_numeric
@@ -288,28 +289,6 @@ MESSAGES[divide_by_fraction] = \
         _('Move {3} to nominator of fraction {1} / {2}.')
 
 
-def fraction_scopes(node):
-    """
-    Get the multiplication scopes of the nominator and denominator of a
-    fraction.
-    """
-    assert node.is_op(OP_DIV)
-
-    nominator, denominator = node
-
-    if nominator.is_op(OP_MUL):
-        n_scope = Scope(nominator)
-    else:
-        n_scope = Scope(N(OP_MUL, nominator))
-
-    if denominator.is_op(OP_MUL):
-        d_scope = Scope(denominator)
-    else:
-        d_scope = Scope(N(OP_MUL, denominator))
-
-    return n_scope, d_scope
-
-
 def is_power_combination(a, b):
     """
     Check if two nodes are powers that can be combined in a fraction, for
@@ -328,35 +307,71 @@ def is_power_combination(a, b):
     return a == b
 
 
+def mult_scope(node):
+    """
+    Get the multiplication scope of a node that may or may no be a
+    multiplication itself.
+    """
+    if node.is_op(OP_MUL):
+        return Scope(node)
+
+    return Scope(N(OP_MUL, node))
+
+
+def remove_from_mult_scope(scope, node):
+    if len(scope) == 1:
+        scope.replace(node, L(1))
+    else:
+        scope.remove(node)
+
+    return scope.as_nary_node()
+
+
 def match_extract_fraction_terms(node):
     """
-    Divide nominator and denominator by the same part.
+    Divide nominator and denominator by the same part. If the same root of a
+    power appears in both nominator and denominator, also extract it so that it
+    can be reduced to a single power by power division rules.
 
     Examples:
-    a ^ b * c / (a ^ d * e)  ->  a ^ b / a ^ d * (c / e)
+    ab / (ac)                ->  a / a * (c / e)          # =>* c / e
+    a ^ b * c / (a ^ d * e)  ->  a ^ b / a ^ d * (c / e)  # -> a^(b - d)(c / e)
 
-    #If the same root appears in both nominator and denominator, extract it so
-    #that it can be reduced to a single power by power division rules.
-    #a ^ p * b / a ^ q  ->  a ^ p / a ^ q * b / 1
-    #a ^ p * b / a      ->  a ^ p / a * b / 1
-    #a * b / a ^ q      ->  a / a ^ q * b / 1
+    ac / b and eval(c) not in Z and eval(a / b) in Z  ->  a / b * c
     """
-    # TODO: ac / b  ->  a / b * c
     assert node.is_op(OP_DIV)
 
-    nominator, denominator = node
-    n_scope, d_scope = fraction_scopes(node)
+    n_scope, d_scope = map(mult_scope, node)
     p = []
 
     if len(n_scope) == 1 and len(d_scope) == 1:
         return p
 
-    # Look for matching parts in scopes
-    for n, d in product(n_scope, d_scope):
-        if is_power_combination(n, d):
+    nominator, denominator = node
+
+    for n in n_scope:
+        # ac / b
+        if not evals_to_numeric(n):
+            a_scope = mult_scope(nominator)
+            a = remove_from_mult_scope(a_scope, n)
+
+            if evals_to_numeric(a / denominator):
+                p.append(P(node, extract_nominator_term, (a, n)))
+
+        # a ^ b * c / (a ^ d * e)
+        for d in [d for d in d_scope if is_power_combination(n, d)]:
             p.append(P(node, extract_fraction_terms, (n_scope, d_scope, n, d)))
 
     return p
+
+
+def extract_nominator_term(root, args):
+    """
+    ac / b and eval(c) not in Z and eval(a / b) in Z  ->  a / b * c
+    """
+    a, c = args
+
+    return a / root[1] * c
 
 
 def extract_fraction_terms(root, args):
@@ -368,17 +383,8 @@ def extract_fraction_terms(root, args):
     """
     n_scope, d_scope, n, d = args
 
-    if len(n_scope) == 1:
-        n_scope.replace(n, L(1))
-    else:
-        n_scope.remove(n)
-
-    if len(d_scope) == 1:
-        d_scope.replace(d, L(1))
-    else:
-        d_scope.remove(d)
-
-    return n / d * (n_scope.as_nary_node() / d_scope.as_nary_node())
+    return n / d * (remove_from_mult_scope(n_scope, n) \
+                    / remove_from_mult_scope(d_scope, d))
 
 
 MESSAGES[extract_fraction_terms] = _('Extract {3} / {4} from fraction {0}.')

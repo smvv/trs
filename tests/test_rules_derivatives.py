@@ -113,7 +113,7 @@ class TestRulesDerivatives(RulesTestCase):
             "e ^ (xln(x))(ln(x) + x(1 / (xln(e))))",
             "e ^ (xln(x))(ln(x) + x(1 / (x * 1)))",
             "e ^ (xln(x))(ln(x) + x(1 / x))",
-            "e ^ (xln(x))(ln(x) + x * 1 / x)",
+            "e ^ (xln(x))(ln(x) + 1x / x)",
             "e ^ (xln(x))(ln(x) + x / x)",
             "e ^ (xln(x))(ln(x) + 1)",
             "e ^ ln(x ^ x)(ln(x) + 1)",
