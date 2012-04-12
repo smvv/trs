@@ -1,5 +1,6 @@
 from itertools import combinations
 
+from .utils import evals_to_numeric
 from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_MUL, nary_node, \
         negate
 from ..possibilities import Possibility as P, MESSAGES
@@ -35,9 +36,7 @@ def match_combine_groups(node):
             l = len(n_scope)
 
             for i, sub_node in enumerate(n_scope):
-                # TODO: use utitlity function evals_to_numeric
-                #if evals_to_numeric(sub_node):
-                if sub_node.is_numeric():
+                if evals_to_numeric(sub_node):
                     others = [n_scope[j] for j in range(i) + range(i + 1, l)]
 
                     if len(others) == 1:

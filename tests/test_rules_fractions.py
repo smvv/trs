@@ -2,9 +2,9 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         division_of_zero, division_by_self, match_add_fractions, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
         multiply_fractions, multiply_with_fraction, match_divide_fractions, \
-        divide_fraction, divide_by_fraction, match_equal_fraction_parts, \
+        divide_fraction, divide_by_fraction, match_extract_fraction_terms, \
         constant_to_fraction, extract_fraction_terms
-from src.node import Scope
+from src.node import ExpressionNode as N, Scope, OP_MUL
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
@@ -181,119 +181,82 @@ class TestRulesFractions(RulesTestCase):
         (a, b), c = root = tree('a / b / c')
         self.assertEqual(divide_fraction(root, (a, b, c)), a / (b * c))
 
+        (a, b), c = root = tree('-a / b / c')
+        self.assertEqual(divide_fraction(root, (a, b, c)), -(a / (b * c)))
+
+        root = tree('a / b / -c')
+        self.assertEqual(divide_fraction(root, (a, b, c)), a / (b * -c))
+
     def test_divide_by_fraction(self):
         a, (b, c) = root = tree('a / (b / c)')
         self.assertEqual(divide_by_fraction(root, (a, b, c)), a * c / b)
 
-    def test_match_equal_fraction_parts(self):
+        a, (b, c) = root = tree('-a / (b / c)')
+        self.assertEqual(divide_by_fraction(root, (a, b, c)), -(a * c / b))
+
+        root = tree('a / -(b / c)')
+        self.assertEqual(divide_by_fraction(root, (a, b, c)), -(a * c / b))
+
+    def test_match_extract_fraction_terms(self):
         root, a, b, c = tree('ab / (ca), a, b, c')
         n, d = root
-        self.assertEqualPos(match_equal_fraction_parts(root),
+        self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), Scope(d), a, a))])
+
+        lscp = lambda l: Scope(N(OP_MUL, l))
 
         n, d = root = tree('ab / a')
-        self.assertEqualPos(match_equal_fraction_parts(root),
-                [P(root, extract_fraction_terms, (Scope(n), Scope(d), a, a))])
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (Scope(n), lscp(d), a, a))])
 
         n, d = root = tree('a / (ab)')
-        self.assertEqualPos(match_equal_fraction_parts(root),
-                [P(root, extract_fraction_terms, (Scope(n), Scope(d), a, a))])
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (lscp(n), Scope(d), a, a))])
 
         n, d = root = tree('abc / (cba)')
-        self.assertEqualPos(match_equal_fraction_parts(root),
-                [P(root, extract_fraction_terms, (Scope(n), scope(d), a, a)),
-                 P(root, extract_fraction_terms, (Scope(n), scope(d), b, b)),
-                 P(root, extract_fraction_terms, (Scope(n), scope(d), c, c))])
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (Scope(n), Scope(d), a, a)),
+                 P(root, extract_fraction_terms, (Scope(n), Scope(d), b, b)),
+                 P(root, extract_fraction_terms, (Scope(n), Scope(d), c, c))])
 
         root = tree('a / a')
-        self.assertEqualPos(match_equal_fraction_parts(root), [])
+        self.assertEqualPos(match_extract_fraction_terms(root), [])
 
-        (ap, b), aq = root = tree('a ^ p * b / a ^ q')
-        self.assertequalpos(match_equal_fraction_parts(root),
-                [p(root, extract_fraction_terms, (a, [ap, b], [aq], 0, 0))])
+        (ap, b), aq = n, d = root = tree('a ^ p * b / a ^ q')
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (Scope(n), lscp(d), ap, aq))])
 
-        (a, b), aq = root = tree('a * b / a ^ q')
-        self.assertequalpos(match_equal_fraction_parts(root),
-                [p(root, extract_fraction_terms, (a, [a, b], [aq], 0, 0))])
+        (a, b), aq = n, d = root = tree('a * b / a ^ q')
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (Scope(n), lscp(d), a, aq))])
 
-        (ap, b), a = root = tree('a ^ p * b / a')
-        self.assertequalpos(match_equal_fraction_parts(root),
-                [p(root, extract_fraction_terms, (a, [ap, b], [a], 0, 0))])
+        (ap, b), a = n, d = root = tree('a ^ p * b / a')
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_fraction_terms, (Scope(n), lscp(d), ap, a))])
 
-    #def test_match_equal_fraction_parts(self):
-    #    (a, b), (c, a) = root = tree('ab / (ca)')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, divide_fraction_parts, (a, [a, b], [c, a], 0, 1))])
+    def test_extract_fraction_terms_basic(self):
+        root, expect = tree('ab / (ca), a / a * (b / c)')
+        n, d = root
+        self.assertEqual(extract_fraction_terms(root,
+                (Scope(n), Scope(d), n[0], d[1])), expect)
 
-    #    (a, b), a = root = tree('ab / a')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, divide_fraction_parts, (a, [a, b], [a], 0, 0))])
+    def test_extract_fraction_terms_leaf(self):
+        root, expect = tree('ba / a, a / a * (b / 1)')
+        n, d = root
+        self.assertEqual(extract_fraction_terms(root,
+                (Scope(n), Scope(N(OP_MUL, d)), n[1], d)), expect)
 
-    #    a, (a, b) = root = tree('a / (ab)')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, divide_fraction_parts, (a, [a], [a, b], 0, 0))])
+        root, expect = tree('a / (ab), a / a * (1 / b)')
+        n, d = root
+        self.assertEqual(extract_fraction_terms(root,
+                (Scope(N(OP_MUL, n)), Scope(d), n, d[0])), expect)
 
-    #    root = tree('abc / (cba)')
-    #    ((a, b), c) = root[0]
-    #    s0, s1 = [a, b, c], [c, b, a]
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, divide_fraction_parts, (a, s0, s1, 0, 2)),
-    #             P(root, divide_fraction_parts, (b, s0, s1, 1, 1)),
-    #             P(root, divide_fraction_parts, (c, s0, s1, 2, 0))])
-
-    #    root = tree('-a / a')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, divide_fraction_parts, (a, [-a], [a], 0, 0))])
-
-    #    (ap, b), aq = root = tree('a ^ p * b / a ^ q')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, extract_divided_roots, (a, [ap, b], [aq], 0, 0))])
-
-    #    (a, b), aq = root = tree('a * b / a ^ q')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, extract_divided_roots, (a, [a, b], [aq], 0, 0))])
-
-    #    (ap, b), a = root = tree('a ^ p * b / a')
-    #    self.assertEqualPos(match_equal_fraction_parts(root),
-    #            [P(root, extract_divided_roots, (a, [ap, b], [a], 0, 0))])
-
-    #def test_divide_fraction_parts(self):
-    #    (a, b), (c, a) = root = tree('ab / (ca)')
-    #    result = divide_fraction_parts(root, (a, [a, b], [c, a], 0, 1))
-    #    self.assertEqual(result, b / c)
-
-    #    (a, b), a = root = tree('ab / a')
-    #    result = divide_fraction_parts(root, (a, [a, b], [a], 0, 0))
-    #    self.assertEqual(result, b / 1)
-
-    #    root, l1 = tree('a / (ab), 1')
-    #    a, (a, b) = root
-    #    result = divide_fraction_parts(root, (a, [a], [a, b], 0, 0))
-    #    self.assertEqual(result, l1 / b)
-
-    #    root = tree('abc / (cba)')
-    #    ((a, b), c) = root[0]
-    #    result = divide_fraction_parts(root, (a, [a, b, c], [c, b, a], 0, 2))
-    #    self.assertEqual(result, b * c / (c * b))
-    #    result = divide_fraction_parts(root, (b, [a, b, c], [c, b, a], 1, 1))
-    #    self.assertEqual(result, a * c / (c * a))
-    #    result = divide_fraction_parts(root, (c, [a, b, c], [c, b, a], 2, 0))
-    #    self.assertEqual(result, a * b / (b * a))
-
-    #    (a, b), a = root = tree('-ab / a')
-    #    result = divide_fraction_parts(root, (a, [-a, b], [a], 0, 0))
-    #    self.assertEqual(result, -b / 1)
-
-    #def test_extract_divided_roots(self):
-    #    r, a = tree('a ^ p * b / a ^ q, a')
-    #    ((a, p), b), (a, q) = (ap, b), aq = r
-    #    self.assertEqual(extract_divided_roots(r, (a, [ap, b], [aq], 0, 0)),
-    #                     a ** p / a ** q * b / 1)
-
-    #    r = tree('a * b / a ^ q, a')
-    #    self.assertEqual(extract_divided_roots(r, (a, [a, b], [aq], 0, 0)),
-    #                     a / a ** q * b / 1)
-
-    #    r = tree('a ^ p * b / a, a')
-    #    self.assertEqual(extract_divided_roots(r, (a, [ap, b], [a], 0, 0)),
-    #                     a ** p / a * b / 1)
+    def test_extract_fraction_terms_chain(self):
+        self.assertRewrite([
+            'a ^ 3 * 4 / (a ^ 2 * 5)',
+            'a ^ 3 / a ^ 2 * (4 / 5)',
+            'a ^ (3 - 2)(4 / 5)',
+            'a ^ 1 * (4 / 5)',
+            'a(4 / 5)',
+            # FIXME: '4 / 5 * a',
+        ])

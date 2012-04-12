@@ -11,7 +11,7 @@ from .numerics import match_add_numerics, match_divide_numerics, \
         match_raise_numerics
 from .fractions import match_constant_division, match_add_fractions, \
         match_multiply_fractions, match_divide_fractions, \
-        match_equal_fraction_parts
+        match_extract_fraction_terms
 from .negation import match_negated_factor, match_negate_polynome, \
         match_negated_division
 from .sort import match_sort_multiplicants
@@ -39,7 +39,7 @@ RULES = {
                  match_factor_in_multiplicant],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
                  match_constant_division, match_divide_fractions,
-                 match_negated_division, match_equal_fraction_parts],
+                 match_negated_division, match_extract_fraction_terms],
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
                  match_raised_fraction, match_remove_negative_exponent,
                  match_exponent_to_root, match_extend_exponent,
