@@ -1,4 +1,4 @@
-from itertools import combinations, product
+from itertools import combinations, product, ifilterfalse
 import copy
 
 from .utils import least_common_multiple, partition, is_numeric_node, \
@@ -289,7 +289,7 @@ MESSAGES[divide_by_fraction] = \
         _('Move {3} to nominator of fraction {1} / {2}.')
 
 
-def is_power_combination(a, b):
+def is_power_combination(pair):
     """
     Check if two nodes are powers that can be combined in a fraction, for
     example:
@@ -298,6 +298,8 @@ def is_power_combination(a, b):
     a^2 and a^2
     a^2 and a
     """
+    a, b = pair
+
     if a.is_power():
         a = a[0]
 
@@ -343,24 +345,22 @@ def match_extract_fraction_terms(node):
 
     n_scope, d_scope = map(mult_scope, node)
     p = []
+    nominator, denominator = node
+
+    # ac / b
+    for n in ifilterfalse(evals_to_numeric, n_scope):
+        a_scope = mult_scope(nominator)
+        a = remove_from_mult_scope(a_scope, n)
+
+        if evals_to_numeric(a / denominator):
+            p.append(P(node, extract_nominator_term, (a, n)))
 
     if len(n_scope) == 1 and len(d_scope) == 1:
         return p
 
-    nominator, denominator = node
-
-    for n in n_scope:
-        # ac / b
-        if not evals_to_numeric(n):
-            a_scope = mult_scope(nominator)
-            a = remove_from_mult_scope(a_scope, n)
-
-            if evals_to_numeric(a / denominator):
-                p.append(P(node, extract_nominator_term, (a, n)))
-
-        # a ^ b * c / (a ^ d * e)
-        for d in [d for d in d_scope if is_power_combination(n, d)]:
-            p.append(P(node, extract_fraction_terms, (n_scope, d_scope, n, d)))
+    # a ^ b * c / (a ^ d * e)
+    for n, d in filter(is_power_combination, product(n_scope, d_scope)):
+        p.append(P(node, extract_fraction_terms, (n_scope, d_scope, n, d)))
 
     return p
 
@@ -372,6 +372,10 @@ def extract_nominator_term(root, args):
     a, c = args
 
     return a / root[1] * c
+
+
+MESSAGES[extract_nominator_term] = \
+        _('Extract {2} from the nominator of fraction {0}.')
 
 
 def extract_fraction_terms(root, args):

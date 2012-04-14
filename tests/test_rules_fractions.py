@@ -238,18 +238,25 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_nominator_term, (2, a))])
 
+        a, l3 = n, d = root = tree('a / 3')
+        self.assertEqualPos(match_extract_fraction_terms(root),
+                [P(root, extract_nominator_term, (1, a))])
+
         root = tree('2*4 / 3')
         self.assertEqualPos(match_extract_fraction_terms(root), [])
 
         n, d = root = tree('2a / 2')
         self.assertEqualPos(match_extract_fraction_terms(root),
-                [P(root, extract_fraction_terms, (Scope(n), lscp(d), 2, 2)),
-                 P(root, extract_nominator_term, (2, a))])
+                [P(root, extract_nominator_term, (2, a)),
+                 P(root, extract_fraction_terms, (Scope(n), lscp(d), 2, 2))])
 
     def test_extract_nominator_term(self):
         root, expect = tree('2a / 3, 2 / 3 * a')
         l2, a = root[0]
         self.assertEqual(extract_nominator_term(root, (l2, a)), expect)
+
+        root, expect, l1 = tree('a / 3, 1 / 3 * a, 1')
+        self.assertEqual(extract_nominator_term(root, (l1, root[0])), expect)
 
     def test_extract_fraction_terms_basic(self):
         root, expect = tree('ab / (ca), a / a * (b / c)')
