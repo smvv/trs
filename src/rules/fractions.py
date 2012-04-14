@@ -1,10 +1,9 @@
 from itertools import combinations, product, ifilterfalse
-import copy
 
 from .utils import least_common_multiple, partition, is_numeric_node, \
         evals_to_numeric
 from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DIV, \
-        OP_ADD, OP_MUL, OP_POW, nary_node, negate
+        OP_ADD, OP_MUL, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -188,16 +187,11 @@ def match_multiply_fractions(node):
     p = []
     scope = Scope(node)
     fractions, others = partition(lambda n: n.is_op(OP_DIV), scope)
-    numerics = filter(is_numeric_node, others)
 
     for ab, cd in combinations(fractions, 2):
         p.append(P(node, multiply_fractions, (scope, ab, cd)))
 
     for ab, c in product(fractions, others):
-        a, b = ab
-
-        #if (a.is_numeric() and c.is_numeric()) or \
-        #        (a == 1 and evals_to_numeric(b)):
         if c.is_numeric() or not evals_to_numeric(ab):
             p.append(P(node, multiply_with_fraction, (scope, ab, c)))
 
