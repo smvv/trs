@@ -62,6 +62,7 @@ class TestParser(unittest.TestCase):
         # FIXME: self.assertEqual(tree('|a|(b)'), tree('|a| * (b)'))
         # FIXME: self.assertEqual(tree('a|b|'), tree('a * |b|'))
         # FIXME: self.assertEqual(tree('|a|b'), tree('|a| * b'))
+        self.assertEqual(tree('|a||b|'), tree('|a| * |b|'))
 
     def test_functions(self):
         x = tree('x')

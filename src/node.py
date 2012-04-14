@@ -700,6 +700,13 @@ def eq(left, right):
     return ExpressionNode(OP_EQ, left, right)
 
 
+def sqrt(exp):
+    """
+    Create a square root node.
+    """
+    return ExpressionNode(OP_SQRT, exp)
+
+
 def negation_to_node(node):
     """
     Recursively replace negation flags inside a node by explicit unary negation
