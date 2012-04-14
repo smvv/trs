@@ -1,5 +1,5 @@
 from src.rules.lineq import match_move_term, swap_sides, subtract_term, \
-        divide_term, multiply_term
+        divide_term, multiply_term, split_absolute_equation
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -41,6 +41,15 @@ class TestRulesLineq(RulesTestCase):
         self.assertEqualPos(match_move_term(root),
                 [P(root, multiply_term, (l1,))])
 
+    def test_match_move_term_absolute(self):
+        root = tree('|x| = 2')
+        self.assertEqualPos(match_move_term(root),
+                [P(root, split_absolute_equation)])
+
+        root = tree('|x - 1| = 2')
+        self.assertEqualPos(match_move_term(root),
+                [P(root, split_absolute_equation)])
+
     def test_swap_sides(self):
         root, expect = tree('a = bx, bx = a')
         self.assertEqual(swap_sides(root, ()), expect)
@@ -56,6 +65,13 @@ class TestRulesLineq(RulesTestCase):
     def test_multiply_term(self):
         root, a, expect = tree('x / a = b, a, x / a * a = b * a')
         self.assertEqual(multiply_term(root, (a,)), expect)
+
+    def test_split_absolute_equation(self):
+        root, expect = tree('|x| = 2, x = 2 vv x = -2')
+        self.assertEqual(split_absolute_equation(root, ()), expect)
+
+        # FIXME: following call exeeds recursion limit
+        # FIXME: self.assertValidate('|x - 1| = 2', 'x = -1 vv x = 3')
 
     def test_match_move_term_chain_negation(self):
         self.assertRewrite([

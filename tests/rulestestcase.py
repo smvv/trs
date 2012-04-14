@@ -3,6 +3,7 @@ import doctest
 
 from src.node import ExpressionNode
 from src.parser import Parser
+from src.validation import validate
 from tests.parser import ParserWrapper
 
 
@@ -73,3 +74,7 @@ class RulesTestCase(unittest.TestCase):
             e.args = (e.message,) + e.args[1:]
 
             raise
+
+    def assertValidate(self, exp, result):
+        self.assertTrue(validate(exp, result),
+                        'Validation failed: %s  !=>  %s')
