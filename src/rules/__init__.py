@@ -17,18 +17,19 @@ from .negation import match_negated_factor, match_negate_polynome, \
 from .sort import match_sort_multiplicants
 from .goniometry import match_add_quadrants, match_negated_parameter, \
         match_half_pi_subtraction, match_standard_radian
-from src.rules.derivatives import match_zero_derivative, \
+from .derivatives import match_zero_derivative, \
         match_one_derivative, match_variable_power, \
         match_const_deriv_multiplication, match_logarithmic, \
         match_goniometric, match_sum_product_rule, match_quotient_rule
-from src.rules.logarithmic import match_constant_logarithm, \
+from .logarithmic import match_constant_logarithm, \
         match_add_logarithms, match_raised_base, match_factor_out_exponent, \
         match_factor_in_multiplicant
-from src.rules.integrals import match_solve_indef, match_constant_integral, \
+from .integrals import match_solve_indef, match_constant_integral, \
         match_integrate_variable_power, match_factor_out_constant, \
         match_division_integral, match_function_integral
-from src.rules.lineq import match_move_term
-from src.rules.absolute import match_factor_out_abs_term
+from .lineq import match_move_term
+from .absolute import match_factor_out_abs_term
+
 
 RULES = {
         OP_ADD: [match_add_numerics, match_add_fractions,
