@@ -152,7 +152,7 @@ def divide_numerics(root, args):
     return Leaf(n.value / d.value).negate(root.negated)
 
 
-MESSAGES[divide_numerics] = _('Divide constant {1} by constant {2}.')
+MESSAGES[divide_numerics] = _('Constant division {0} reduces to a number.')
 
 
 def reduce_fraction_constants(root, args):
@@ -169,7 +169,8 @@ def reduce_fraction_constants(root, args):
     return Leaf(a.value / gcd) / Leaf(b.value / gcd)
 
 
-MESSAGES[reduce_fraction_constants] = _('Simplify fraction {0}.')
+MESSAGES[reduce_fraction_constants] = \
+        _('Divide the nominator and denominator of fraction {0} by {1}.')
 
 
 def match_multiply_zero(node):
