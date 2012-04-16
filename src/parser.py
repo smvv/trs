@@ -132,6 +132,8 @@ class Parser(BisonParser):
         BisonParser.__init__(self, **kwargs)
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
+        self.root_node = None
+        self.root_node_changed = True
 
         self.reset()
 
@@ -140,7 +142,7 @@ class Parser(BisonParser):
         self.read_queue = Queue.Queue()
 
         #self.subtree_map = {}
-        self.root_node = None
+        self.set_root_node(None)
         self.possibilities = self.last_possibilities = []
 
     def run(self, *args, **kwargs):
@@ -288,13 +290,24 @@ class Parser(BisonParser):
 
         #return retval
 
+    def set_root_node(self, node):
+        self.root_node = node
+        self.root_node_changed = True
+
     def find_possibilities(self):
         if not self.root_node:
             raise RuntimeError('No expression')
 
+        if not self.root_node_changed:
+            if self.verbose:
+                print 'Expression has not changed, do not update possibilities'
+
+            return
+
         p = find_possibilities(self.root_node)
         #sort_possiblities(p)
         self.root_possibilities = [pos for pos, depth in p]
+        self.root_node_changed = False
 
     def display_hint(self):
         self.find_possibilities()
@@ -326,7 +339,7 @@ class Parser(BisonParser):
         if self.verbose:
             print 'After application:', expression
 
-        self.root_node = expression
+        self.set_root_node(expression)
 
         return True
 
@@ -382,7 +395,7 @@ class Parser(BisonParser):
              | RAISE NEWLINE
         """
         if option in (1, 2):  # rule: {exp,debug} NEWLINE
-            self.root_node = values[0]
+            self.set_root_node(values[0])
             return values[0]
 
         if option == 3:  # rule: HINT NEWLINE
