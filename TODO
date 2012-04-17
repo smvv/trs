@@ -104,10 +104,12 @@ Division of 0 by 1 reduces to 0.
 
  - Line generator: 'der(f(x), x)'  ->  'd/dx f(x)'
 
- - Create unit tests for parser preprocessor.
-
- - Create unit tests for node inequivalece operator.
+ - Create unit tests for node inequivalence operator.
 
  - Line printer: 1 / (n + n)x  ->  1 / (n + n) * x
 
  - Parser: 'apia' -> 'aa'
+
+ - 'x(1 / x)'  ->  '(x * 1) / x'  (currently no left/right check: '1x / x')
+
+ - Unit tests for strategy.
