@@ -130,20 +130,8 @@ def to_expression(obj):
 
 
 class ExpressionBase(object):
-    hash_counter = 1
-
     def __init__(self, *args, **kwargs):
         self.negated = 0
-
-        # Create a unique hash value
-        self.hash_value = self.__class__.hash_counter
-        self.__class__.hash_counter += 1
-
-    def __hash__(self):
-        return self.hash_value
-
-    def __cmp__(self):
-        return hash(other) - hash(self)
 
     def __lt__(self, other):
         """
@@ -192,6 +180,9 @@ class ExpressionBase(object):
         Check strict inequivalence, using the strict equivalence operator.
         """
         return not (self == other)
+
+    def clone(self):
+        return copy.deepcopy(self)
 
     def is_op(self, *ops):
         return not self.is_leaf and self.op in ops
@@ -363,18 +354,6 @@ class ExpressionNode(Node, ExpressionBase):
         return isinstance(other, ExpressionNode) and self.op == other.op \
                and self.negated == other.negated and self.nodes == other.nodes
 
-    def clone(self):
-        """
-        Create a clone of the current node. Copy the hash value for comparison
-        in Scope operations.
-        """
-        children = [child.clone() for child in self]
-        clone = ExpressionNode(self.op, *children)
-        clone.negated = self.negated
-        #clone.hash_value = self.hash_value
-
-        return clone
-
     def substitute(self, old_child, new_child):
         self.nodes[self.nodes.index(old_child)] = new_child
 
@@ -514,17 +493,6 @@ class ExpressionLeaf(Leaf, ExpressionBase):
     def __repr__(self):
         return str(self)
 
-    def clone(self):
-        """
-        Create a clone of the current leaf. Copy the hash value for comparison
-        in Scope operations.
-        """
-        clone = ExpressionLeaf(self.value)
-        clone.negated = self.negated
-        #clone.hash_value = self.hash_value
-
-        return clone
-
     def equals(self, other, ignore_negation=False):
         """
         Check non-strict equivalence.
@@ -634,7 +602,7 @@ def negate(node, n=1):
     """Negate the given node n times."""
     assert n >= 0
 
-    new_node = copy.deepcopy(node)
+    new_node = node.clone()
     new_node.negated = n
 
     return new_node
