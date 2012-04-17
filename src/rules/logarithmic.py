@@ -179,7 +179,8 @@ def match_raised_base(node):
         logs, others = partition(is_matching_logarithm, scope)
 
         for other, log in product(others, logs):
-            # TODO: Give this function a high precedence
+            # Add this possibility so that a 'raised_base' possibility is
+            # generated in the following iteration
             p.append(P(node, factor_in_exponent_multiplicant,
                        (scope, other, log)))
 
@@ -250,7 +251,7 @@ MESSAGES[factor_out_exponent] = _('Factor out exponent {0[0][0]} from {0}.')
 
 def match_factor_in_multiplicant(node):
     """
-    Only bring a multiplicant inside a logarithms if both the multiplicant and
+    Only bring a multiplicant inside a logarithm if both the multiplicant and
     the logaritm's content are constants. This will yield a new simplification
     of constants inside the logarithm.
     2log(2)      ->  log(2 ^ 2)        # -> log(4)

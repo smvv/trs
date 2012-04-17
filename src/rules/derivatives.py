@@ -200,10 +200,13 @@ def variable_exponent(root, args):
     """
     der(g ^ x, x)  ->  g ^ x * ln(g)
 
-    Note that (in combination with logarithmic/constant rules):
-    der(e ^ x)  ->  e ^ x * ln(e)  ->  e ^ x * 1  ->  e ^ x
+    Shortcut rule (because of presence on formula list):
+    der(e ^ x, x)  ->  e ^ x
     """
     g, x = root[0]
+
+    if g == E:
+        return g ** x
 
     return g ** x * ln(g)
 
@@ -236,9 +239,15 @@ def match_logarithmic(node):
 
 def logarithmic(root, args):
     """
-    der(log(x, g), x)  ->  1 / (x * ln(g))
+    der(log(x, g), x)  ->  1 / (xln(g))
+
+    Shortcut function (because of presence on formula list):
+    der(ln(x), x)      ->  1 / x
     """
     x, g = root[0]
+
+    if g == E:
+        return L(1) / x
 
     return L(1) / (x * ln(g))
 
@@ -331,13 +340,9 @@ def match_sum_product_rule(node):
     if len(functions) < 2:
         return []
 
-    p = []
     handler = sum_rule if node[0].op == OP_ADD else product_rule
 
-    for f in functions:
-        p.append(P(node, handler, (scope, f)))
-
-    return p
+    return [P(node, handler, (scope, f)) for f in functions]
 
 
 def sum_rule(root, args):
