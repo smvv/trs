@@ -1,6 +1,7 @@
-from src.parser import Parser
+from parser import Parser
+from possibilities import apply_suggestion
+from strategy import find_possibilities
 from tests.parser import ParserWrapper
-from src.possibilities import apply_suggestion
 
 
 def validate(exp, result):
@@ -8,25 +9,21 @@ def validate(exp, result):
     Validate that exp =>* result.
     """
     parser = ParserWrapper(Parser)
+    exp = parser.run([exp])
     result = parser.run([result])
 
-    return traverse_preorder(parser, exp, result)
+    def traverse_preorder(node, result):
+        if node.equals(result):
+            return True
 
+        for p in find_possibilities(node):
+            # Clone the root node because it will be used in multiple
+            # substitutions
+            child = apply_suggestion(node.clone(), p)
 
-def traverse_preorder(parser, exp, result):
-    """
-    Traverse the possibility tree using pre-order traversal.
-    """
-    root = parser.run([exp])
+            if traverse_preorder(child, result):
+                return True
 
-    if root.equals(result):
-        return root
+        return False
 
-    possibilities = parser.parser.possibilities
-
-    for p in possibilities:
-        child = apply_suggestion(root, p)
-        next_root = traverse_preorder(parser, str(child), result)
-
-        if next_root:
-            return next_root
+    return traverse_preorder(exp, result)
