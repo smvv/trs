@@ -14,15 +14,14 @@ sys.path.insert(1, EXTERNAL_MODS)
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
 
-from node import ExpressionBase, ExpressionNode as Node, \
+from node import ExpressionNode as Node, \
         ExpressionLeaf as Leaf, OP_MAP, OP_DER, TOKEN_MAP, TYPE_OPERATOR, \
-        OP_COMMA, OP_NEG, OP_MUL, OP_DIV, OP_POW, OP_LOG, OP_ADD, Scope, E, \
+        OP_COMMA, OP_MUL, OP_POW, OP_LOG, OP_ADD, Scope, E, OP_ABS, \
         DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
-        OP_INT_INDEF, OP_ABS, OP_NEG, negation_to_node
-from rules import RULES
+        OP_INT_INDEF, negation_to_node
 from rules.utils import find_variable
-#from strategy import sort_possiblities
-from possibilities import filter_duplicates, apply_suggestion
+from strategy import find_possibilities
+from possibilities import apply_suggestion
 
 import Queue
 import re
@@ -56,34 +55,6 @@ def find_integration_variable(exp):
         return scope.as_nary_node(), x
 
     return exp, find_variable(exp)
-
-
-def find_possibilities(node, depth=0):
-    """
-    Find all possibilities inside a node and return them in a list.
-    """
-    p = []
-    handlers = []
-
-    # Add negation handlers
-    if node.negated:
-        handlers.extend(RULES[OP_NEG])
-
-    if not node.is_leaf:
-        # Traverse through child nodes first using postorder traversal
-        for child in node:
-            p.extend(find_possibilities(child, depth + 1))
-
-        # Add operator-specific handlers
-        if node.op in RULES:
-            handlers.extend(RULES[node.op])
-
-    # Run handlers
-    for handler in handlers:
-        possibilities = [(pos, depth) for pos in handler(node)]
-        p.extend(possibilities)
-
-    return p
 
 
 class Parser(BisonParser):
@@ -133,7 +104,7 @@ class Parser(BisonParser):
         self.interactive = kwargs.get('interactive', 0)
         self.timeout = kwargs.get('timeout', 0)
         self.root_node = None
-        self.root_node_changed = True
+        self.possibilities = None
 
         self.reset()
 
@@ -143,7 +114,7 @@ class Parser(BisonParser):
 
         #self.subtree_map = {}
         self.set_root_node(None)
-        self.possibilities = self.last_possibilities = []
+        self.possibilities = None
 
     def run(self, *args, **kwargs):
         self.reset()
@@ -172,15 +143,7 @@ class Parser(BisonParser):
         return read_buffer[:nbytes]
 
     def hook_read_before(self):
-        if self.possibilities:
-            if self.verbose:  # pragma: nocover
-                print 'possibilities:'
-
-            items = filter_duplicates(self.possibilities)
-            self.last_possibilities = self.possibilities
-
-            if self.verbose:  # pragma: nocover
-                print '  ' + '\n  '.join(map(str, items))
+        pass
 
     def hook_read_after(self, data):
         """
@@ -190,8 +153,6 @@ class Parser(BisonParser):
         """
         if not data.strip():
             return data
-
-        self.possibilities = []
 
         # Replace known keywords with escape sequences.
         words = list(self.__class__.words)
@@ -270,66 +231,43 @@ class Parser(BisonParser):
     def hook_handler(self, target, option, names, values, retval):
         return retval
 
-        #if target in ['exp', 'line', 'input'] \
-        #        or not isinstance(retval, ExpressionBase):
-        #    return retval
-
-        #if not retval.negated and retval.type != TYPE_OPERATOR:
-        #    return retval
-
-        #if retval.negated:
-        #    handlers = RULES[OP_NEG]
-        #elif retval.type == TYPE_OPERATOR and retval.op in RULES:
-        #    handlers = RULES[retval.op]
-        #else:
-        #    return retval
-
-        #for handler in handlers:
-        #    possibilities = handler(retval)
-        #    self.possibilities.extend(possibilities)
-
-        #return retval
-
     def set_root_node(self, node):
         self.root_node = node
-        self.root_node_changed = True
+        self.possibilities = None
 
     def find_possibilities(self):
         if not self.root_node:
             raise RuntimeError('No expression')
 
-        if not self.root_node_changed:
+        if self.possibilities != None:
             if self.verbose:
-                print 'Expression has not changed, do not update possibilities'
-
+                print 'Expression has not changed, not updating possibilities'
             return
 
-        p = find_possibilities(self.root_node)
-        #sort_possiblities(p)
-        self.root_possibilities = [pos for pos, depth in p]
-        self.root_node_changed = False
+        self.possibilities = find_possibilities(self.root_node)
 
     def display_hint(self):
         self.find_possibilities()
 
-        if self.root_possibilities:
-            print self.root_possibilities[0]
-        else:
-            print 'No further reduction is possible.'
+        if self.interactive:
+            if self.possibilities:
+                print self.possibilities[0]
+            else:
+                print 'No further reduction is possible.'
 
     def display_possibilities(self):
         self.find_possibilities()
 
-        if self.root_possibilities:
-            print '\n'.join(map(str, self.root_possibilities))
+        for i, p in enumerate(self.possibilities):
+            print '%d %s' % (i, p)
 
-    def rewrite(self):
+    def rewrite(self, index=0):
         self.find_possibilities()
 
-        if not self.root_possibilities:
+        if not self.possibilities:
             return False
 
-        suggestion = self.root_possibilities[0]
+        suggestion = self.possibilities[index]
 
         if self.verbose:
             print 'Applying suggestion:', suggestion
@@ -337,7 +275,7 @@ class Parser(BisonParser):
         expression = apply_suggestion(self.root_node, suggestion)
 
         if self.verbose:
-            print 'After application:', expression
+            print 'After application:  ', expression
 
         self.set_root_node(expression)
 
@@ -391,6 +329,7 @@ class Parser(BisonParser):
              | HINT NEWLINE
              | POSSIBILITIES NEWLINE
              | REWRITE NEWLINE
+             | REWRITE NUMBER NEWLINE
              | REWRITE_ALL NEWLINE
              | RAISE NEWLINE
         """
@@ -410,11 +349,15 @@ class Parser(BisonParser):
             self.rewrite()
             return self.root_node
 
-        if option == 6:  # rule: REWRITE_ALL NEWLINE
+        if option == 6:  # rule: REWRITE NUMBER NEWLINE
+            self.rewrite(int(values[1]))
+            return self.root_node
+
+        if option == 7:  # rule: REWRITE_ALL NEWLINE
             self.rewrite_all()
             return self.root_node
 
-        if option == 7:
+        if option == 8:
             raise RuntimeError('on_line: exception raised')
 
     def on_debug(self, target, option, names, values):

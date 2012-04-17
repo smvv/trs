@@ -25,33 +25,13 @@ class Possibility(object):
                 % (self.root, self.handler.func_name, self.args)
 
     def __eq__(self, other):
+        """
+        Use node hash comparison when comparing to other Possibility to assert
+        that its is the same object as in this one.
+        """
         return self.handler == other.handler \
                and hash(self.root) == hash(other.root) \
                and self.args == other.args
-
-
-def filter_duplicates(possibilities):
-    """
-    Filter duplicated possibilities. Duplicated possibilities occur in n-ary
-    nodes, the root-level node and a lower-level node will both recognize a
-    rewrite possibility within their scope, whereas only the root-level one
-    matters.
-
-    Example: 1 + 2 + 3
-    The addition of 1 and 2 is recognized by n-ary additions "1 + 2" and
-    "1 + 2 + 3". The "1 + 2" addition should be removed by this function.
-    """
-    features = []
-    unique = []
-
-    for p in reversed(possibilities):
-        feature = (p.handler, p.args)
-
-        if feature not in features:
-            features.append(feature)
-            unique.insert(0, p)
-
-    return unique
 
 
 def find_parent_node(root, child):
@@ -61,7 +41,6 @@ def find_parent_node(root, child):
         node = nodes.pop()
 
         while node:
-
             if node.type != TYPE_OPERATOR:
                 break
 
@@ -78,10 +57,9 @@ def apply_suggestion(root, suggestion):
     # TODO: clone the root node before modifying. After deep copying the root
     # node, the subtree_map cannot be used since the hash() of each node in the
     # deep copied root node has changed.
-    #root_clone = root.clone()
+    #root = root.clone()
 
     subtree = suggestion.handler(suggestion.root, suggestion.args)
-
     parent_node = find_parent_node(root, suggestion.root)
 
     # There is either a parent node or the subtree is the root node.

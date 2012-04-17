@@ -126,16 +126,24 @@ TOKEN_MAP = {
 
 
 def to_expression(obj):
-    return obj if isinstance(obj, ExpressionBase) else ExpressionLeaf(obj)
+    return obj.clone() if isinstance(obj, ExpressionBase) else ExpressionLeaf(obj)
 
 
 class ExpressionBase(object):
+    hash_counter = 1
 
     def __init__(self, *args, **kwargs):
         self.negated = 0
 
-    def clone(self):
-        return copy.deepcopy(self)
+        # Create a unique hash value
+        self.hash_value = self.__class__.hash_counter
+        self.__class__.hash_counter += 1
+
+    def __hash__(self):
+        return self.hash_value
+
+    def __cmp__(self):
+        return hash(other) - hash(self)
 
     def __lt__(self, other):
         """
@@ -355,6 +363,18 @@ class ExpressionNode(Node, ExpressionBase):
         return isinstance(other, ExpressionNode) and self.op == other.op \
                and self.negated == other.negated and self.nodes == other.nodes
 
+    def clone(self):
+        """
+        Create a clone of the current node. Copy the hash value for comparison
+        in Scope operations.
+        """
+        children = [child.clone() for child in self]
+        clone = ExpressionNode(self.op, *children)
+        clone.negated = self.negated
+        #clone.hash_value = self.hash_value
+
+        return clone
+
     def substitute(self, old_child, new_child):
         self.nodes[self.nodes.index(old_child)] = new_child
 
@@ -494,6 +514,17 @@ class ExpressionLeaf(Leaf, ExpressionBase):
     def __repr__(self):
         return str(self)
 
+    def clone(self):
+        """
+        Create a clone of the current leaf. Copy the hash value for comparison
+        in Scope operations.
+        """
+        clone = ExpressionLeaf(self.value)
+        clone.negated = self.negated
+        #clone.hash_value = self.hash_value
+
+        return clone
+
     def equals(self, other, ignore_negation=False):
         """
         Check non-strict equivalence.
@@ -555,27 +586,16 @@ class Scope(object):
         return '<Scope of "%s">' % repr(self.node)
 
     def remove(self, node, **kwargs):
-        if node.is_leaf:
-            node_cmp = hash(node)
-        else:
-            node_cmp = node
+        try:
+            i = self.nodes.index(node)
 
-        for i, n in enumerate(self.nodes):
-            if n.is_leaf:
-                n_cmp = hash(n)
+            if 'replacement' in kwargs:
+                self[i] = kwargs['replacement']
             else:
-                n_cmp = n
-
-            if n_cmp == node_cmp:
-                if 'replacement' in kwargs:
-                    self[i] = kwargs['replacement']
-                else:
-                    del self.nodes[i]
-
-                return
-
-        raise ValueError('Node "%s" is not in the scope of "%s".'
-                         % (node, self.node))
+                del self.nodes[i]
+        except ValueError:
+            raise ValueError('Node "%s" is not in the scope of "%s".'
+                             % (node, self.node))
 
     def replace(self, node, replacement):
         self.remove(node, replacement=replacement)
@@ -614,7 +634,7 @@ def negate(node, n=1):
     """Negate the given node n times."""
     assert n >= 0
 
-    new_node = node.clone()
+    new_node = copy.deepcopy(node)
     new_node.negated = n
 
     return new_node
