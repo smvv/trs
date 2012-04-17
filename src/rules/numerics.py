@@ -192,56 +192,6 @@ def match_multiply_zero(node):
     return []
 
 
-def multiply_zero(root, args):
-    """
-    a * 0  ->  0
-    0 * a  ->  0
-    -0 * a   ->  -0
-    0 * -a   ->  -0
-    -0 * -a  ->  0
-    """
-    return negate(Leaf(0), args[0])
-
-
-MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
-
-
-def match_multiply_one(node):
-    """
-    a * 1    ->  a
-    1 * a    ->  a
-    -1 * a   ->  -a
-    1 * -a   ->  -a
-    -1 * -a  ->  a
-    """
-    assert node.is_op(OP_MUL)
-
-    left, right = node
-
-    if left.value == 1:
-        return [P(node, multiply_one, (right, left))]
-
-    if right.value == 1:
-        return [P(node, multiply_one, (left, right))]
-
-    return []
-
-
-def multiply_one(root, args):
-    """
-    a * 1  ->  a
-    1 * a  ->  a
-    -1 * a   ->  -a
-    1 * -a   ->  -a
-    -1 * -a  ->  a
-    """
-    a, one = args
-    return a.negate(one.negated + root.negated)
-
-
-MESSAGES[multiply_one] = _('Multiplication with one yields the multiplicant.')
-
-
 def match_multiply_numerics(node):
     """
     3 * 2      ->  6
@@ -255,10 +205,45 @@ def match_multiply_numerics(node):
     scope = Scope(node)
     numerics = filter(lambda n: n.is_numeric(), scope)
 
+    for n in numerics:
+        if n.negated:
+            continue
+
+        if n.value == 0:
+            p.append(P(node, multiply_zero, (n,)))
+
+        if n.value == 1:
+            p.append(P(node, multiply_one, (scope, n)))
+
     for c0, c1 in combinations(numerics, 2):
         p.append(P(node, multiply_numerics, (scope, c0, c1)))
 
     return p
+
+
+def multiply_zero(root, args):
+    """
+    0 * a   ->  0
+    -0 * a  ->  -0
+    """
+    return args[0].negate(root.negated)
+
+
+MESSAGES[multiply_zero] = _('Multiplication with zero yields zero.')
+
+
+def multiply_one(root, args):
+    """
+    1 * a   ->  a
+    -1 * a  ->  -a
+    """
+    scope, one = args
+    scope.remove(one)
+
+    return scope.as_nary_node().negate(one.negated)
+
+
+MESSAGES[multiply_one] = _('Multiplication with one yields the multiplicant.')
 
 
 def multiply_numerics(root, args):
