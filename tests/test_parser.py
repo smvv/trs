@@ -1,14 +1,15 @@
 # vim: set fileencoding=utf-8 :
-import unittest
-
-from src.parser import Parser
+from src.parser import Parser, find_possibilities
 from src.node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
-        SPECIAL_TOKENS, sin, cos, der, log, ln, integral, indef, absolute
+        SPECIAL_TOKENS, sin, cos, der, log, ln, integral, indef, absolute, \
+        Scope
+from src.possibilities import Possibility as P
+from src.rules.numerics import add_numerics
 from tests.parser import ParserWrapper, run_expressions, line, graph
-from tests.rulestestcase import tree
+from tests.rulestestcase import RulesTestCase, tree
 
 
-class TestParser(unittest.TestCase):
+class TestParser(RulesTestCase):
     def test_constructor(self):
         node = Node('+', Leaf(1), Leaf(4))
         self.assertEqual(ParserWrapper(Parser).run(['1 + 4']), node)
@@ -29,10 +30,12 @@ class TestParser(unittest.TestCase):
     def test_reset_after_failure(self):
         parser = ParserWrapper(Parser)
         parser.run(['-(3a+6b)'])
+        parser.parser.find_possibilities()
         possibilities1 = parser.parser.possibilities
         self.assertNotEqual(possibilities1, [])
 
         parser.run(['5+2*6'])
+        parser.parser.find_possibilities()
         possibilities2 = parser.parser.possibilities
         self.assertNotEqual(possibilities2, [])
 
@@ -139,3 +142,18 @@ class TestParser(unittest.TestCase):
 
         self.assertEqual(tree('|x|'), absolute(x))
         self.assertEqual(tree('|x2|'), absolute(x ** 2))
+
+    def test_find_possibilities_basic(self):
+        l1, l2 = root = tree('1 + 2')
+        self.assertEqual(find_possibilities(root),
+                [P(root, add_numerics, (Scope(root), l1, l2))])
+
+    def test_find_possibilities_duplicates(self):
+        (l1, l2), l3 = root = tree('1 + 2 + 3')
+        self.assertEqual(find_possibilities(root),
+                [P(root, add_numerics, (Scope(root), l1, l2)),
+                 P(root, add_numerics, (Scope(root), l1, l3)),
+                 P(root, add_numerics, (Scope(root), l2, l3))])
+
+    def test_no_expression_error(self):
+        self.assertRaises(RuntimeError, ParserWrapper(Parser).run, ['', '?'])

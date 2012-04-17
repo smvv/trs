@@ -190,8 +190,7 @@ class TestNode(RulesTestCase):
         self.assertEqual(self.scope.nodes, [self.a, self.b])
 
     def test_scope_remove_error(self):
-        with self.assertRaises(ValueError):
-            self.scope.remove(self.f)
+        self.assertRaises(ValueError, self.scope.remove, self.f)
 
     def test_scope_replace(self):
         self.scope.replace(self.cd, self.f)
@@ -305,4 +304,4 @@ class TestNode(RulesTestCase):
         a = tree('a')
         self.assertEqual(negation_to_node(-a), N('-', a))
         self.assertEqual(negation_to_node(-(a + 1)), N('-', a + 1))
-        self.assertEqual(negation_to_node(-(a - 1)), N('-', a + N('-', 1)))
+        self.assertEqual(negation_to_node(-(a - 1)), N('-', a + N('-', L(1))))

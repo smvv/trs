@@ -103,21 +103,18 @@ class TestRulesDerivatives(RulesTestCase):
         self.assertRewrite([
             "[x ^ x]'",
             "[e ^ ln(x ^ x)]'",
-            "[e ^ (xln(x))]'",
-            "e ^ (xln(x))ln(e)[xln(x)]'",
-            "e ^ (xln(x))1[xln(x)]'",
-            "e ^ (xln(x))[xln(x)]'",
-            "e ^ (xln(x))([x]' * ln(x) + x[ln(x)]')",
-            "e ^ (xln(x))(1ln(x) + x[ln(x)]')",
-            "e ^ (xln(x))(ln(x) + x[ln(x)]')",
-            "e ^ (xln(x))(ln(x) + x(1 / (xln(e))))",
-            "e ^ (xln(x))(ln(x) + x(1 / (x * 1)))",
-            "e ^ (xln(x))(ln(x) + x(1 / x))",
-            "e ^ (xln(x))(ln(x) + 1x / x)",
-            "e ^ (xln(x))(ln(x) + x / x)",
-            "e ^ (xln(x))(ln(x) + 1)",
-            "e ^ ln(x ^ x)(ln(x) + 1)",
-            # FIXME: "x ^ x(ln(x) + 1)",  ->  needs strategy
+            "e ^ ln(x ^ x)[ln(x ^ x)]'",
+            "x ^ x * [ln(x ^ x)]'",
+            "x ^ x * [xln(x)]'",
+            "x ^ x * ([x]' * ln(x) + x[ln(x)]')",
+            "x ^ x * (1ln(x) + x[ln(x)]')",
+            "x ^ x * (ln(x) + x[ln(x)]')",
+            "x ^ x * (ln(x) + x(1 / x))",
+            "x ^ x * (ln(x) + 1x / x)",
+            "x ^ x * (ln(x) + x / x)",
+            "x ^ x * (ln(x) + 1)",
+            "x ^ x * ln(x) + x ^ x * 1",
+            "x ^ x * ln(x) + x ^ x",
         ])
 
     def test_variable_root(self):
@@ -129,6 +126,10 @@ class TestRulesDerivatives(RulesTestCase):
         root = tree('der(2 ^ x)')
         g, x = root[0]
         self.assertEqual(variable_exponent(root, ()), g ** x * ln(g))
+
+        root = tree('der(e ^ x)')
+        e, x = root[0]
+        self.assertEqual(variable_exponent(root, ()), e ** x)
 
     def test_chain_rule(self):
         root = tree('der(2 ^ x ^ 3)')
@@ -149,6 +150,9 @@ class TestRulesDerivatives(RulesTestCase):
     def test_logarithmic(self):
         root, x, l1, l10 = tree('der(log(x)), x, 1, 10')
         self.assertEqual(logarithmic(root, ()), l1 / (x * ln(l10)))
+
+        root, x, l1, l10 = tree('der(ln(x)), x, 1, 10')
+        self.assertEqual(logarithmic(root, ()), l1 / x)
 
     def test_match_goniometric(self):
         root = tree('der(sin(x))')
@@ -252,10 +256,10 @@ class TestRulesDerivatives(RulesTestCase):
         self.assertEqual(quotient_rule(root, ()),
                          (der(f) * g - f * der(g)) / g ** 2)
 
-    def test_natural_pase_chain(self):
-        self.assertRewrite([
-            'der(e ^ x)',
-            'e ^ x * ln(e)',
-            'e ^ x * 1',
-            'e ^ x',
-        ])
+    #def test_natural_pase_chain(self):
+    #    self.assertRewrite([
+    #        'der(e ^ x)',
+    #        'e ^ x * ln(e)',
+    #        'e ^ x * 1',
+    #        'e ^ x',
+    #    ])

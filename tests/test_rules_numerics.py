@@ -1,7 +1,7 @@
 from src.rules.numerics import match_add_numerics, add_numerics, \
         match_divide_numerics, divide_numerics, reduce_fraction_constants, \
-        match_multiply_numerics, multiply_numerics, \
-        raise_numerics
+        match_multiply_numerics, multiply_numerics, multiply_zero, \
+        multiply_one, raise_numerics
 from src.node import ExpressionLeaf as L, Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -109,6 +109,20 @@ class TestRulesNumerics(RulesTestCase):
         root = f3 * f2
         self.assertEqual(match_multiply_numerics(root),
                 [P(root, multiply_numerics, (Scope(root), f3, f2))])
+
+    def test_match_multiply_zero(self):
+        l0, x = root = tree('0x')
+        self.assertEqual(match_multiply_numerics(root),
+                [P(root, multiply_zero, (l0,))])
+
+    def test_match_multiply_one(self):
+        l1, x = root = tree('1x')
+        self.assertEqual(match_multiply_numerics(root),
+                [P(root, multiply_one, (Scope(root), l1))])
+
+        (x, l1), x = root = tree('x * 1x')
+        self.assertEqual(match_multiply_numerics(root),
+                [P(root, multiply_one, (Scope(root), l1))])
 
     def test_multiply_numerics(self):
         a, b, i2, i3, i6, f2, f3, f6 = tree('a,b,2,3,6,2.0,3.0,6.0')

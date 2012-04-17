@@ -13,7 +13,8 @@ from tests.rulestestcase import RulesTestCase, tree
 class TestRulesLogarithmic(RulesTestCase):
 
     def test_match_constant_logarithm(self):
-        self.assertRaises(ValueError, tree, 'log_1(a)')
+        self.assertRaises(ValueError, match_constant_logarithm,
+                          tree('log_1(a)'))
 
         root = tree('log 1')
         self.assertEqualPos(match_constant_logarithm(root),

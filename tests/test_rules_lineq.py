@@ -87,7 +87,6 @@ class TestRulesLineq(RulesTestCase):
             '5x = -3x - 5 + 3x',
             '5x = (-1 + 1)3x - 5',
             '5x = 0 * 3x - 5',
-            '5x = 0x - 5',
             '5x = 0 - 5',
             '5x = -5',
             '5x / 5 = (-5) / 5',
