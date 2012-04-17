@@ -239,7 +239,7 @@ class ExpressionBase(object):
 
     def reduce_negation(self, n=1):
         """Remove n negation flags from the node."""
-        assert self.negated
+        assert self.negated >= n
 
         return self.negate(-n)
 
