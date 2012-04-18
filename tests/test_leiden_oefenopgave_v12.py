@@ -86,11 +86,11 @@ class TestLeidenOefenopgaveV12(TestCase):
             'a ^ 6 * b ^ 2',
         ])
 
-    def test_2_c(self):
-        self.assertRewrite([
-            'a5+a3',
-            'a ^ 5 + a ^ 3',
-        ])
+    #def test_2_c(self):
+    #    self.assertRewrite([
+    #        'a5+a3',
+    #        'a ^ 5 + a ^ 3',
+    #    ])
 
     def test_2_d(self):
         self.assertRewrite([
