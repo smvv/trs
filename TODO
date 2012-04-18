@@ -4,8 +4,6 @@
 
  - Sort polynom by its exponents?
 
- - MESSAGES needs to be expanded.
-
  - Fix division by zero caused by "0/0": Catch exception in front-end
 
 smvv@multivac ~/work/trs $ printf "a/0\n??" | ./main.py
@@ -89,8 +87,6 @@ Division of 0 by 1 reduces to 0.
     >>> @
     7 / 5
 
- - filter_duplicates does not seem to work anymore...
-
  - Fix error while parsing unicode PI:
    >>> sin(1/2 * pi)
    sin(1 / 2 * π)
@@ -102,8 +98,6 @@ Division of 0 by 1 reduces to 0.
 
  - No matches for sin(pi), sin(2pi), sin(4pi), etc...
 
- - Line generator: 'der(f(x), x)'  ->  'd/dx f(x)'
-
  - Create unit tests for node inequivalence operator.
 
  - Line printer: 1 / (n + n)x  ->  1 / (n + n) * x
@@ -113,3 +107,7 @@ Division of 0 by 1 reduces to 0.
  - 'x(1 / x)'  ->  '(x * 1) / x'  (currently no left/right check: '1x / x')
 
  - Unit tests for strategy.
+
+ - MESSAGES needs to be expanded.
+
+ - Create blacklist of implicit rules that are not printed when '@@@' is issued.
