@@ -47,6 +47,9 @@ def chain_rule(root, args):
     return f_deriv(root, f_deriv_args) * der(g, x)
 
 
+MESSAGES[chain_rule] = _('Apply the chain rule to {0}.')
+
+
 def match_zero_derivative(node):
     """
     der(x, y)  ->  0
