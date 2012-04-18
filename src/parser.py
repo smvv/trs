@@ -86,7 +86,7 @@ class Parser(BisonParser):
     # ------------------------------
     precedences = (
         ('left', ('COMMA', )),
-        ('right', ('INTEGRAL', 'DERIVATIVE')),
+        ('left', ('INTEGRAL', 'DERIVATIVE')),
         ('left', ('OR', )),
         ('left', ('AND', )),
         ('left', ('EQ', )),

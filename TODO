@@ -111,3 +111,5 @@ Division of 0 by 1 reduces to 0.
  - MESSAGES needs to be expanded.
 
  - Use pretty-print for expressions in hint messages.
+
+ - Parser: add unit tests for operator associativity (derivatives/integrals).
