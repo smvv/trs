@@ -66,7 +66,7 @@ def solve_indef(root, args):
 
 def match_integrate_variable_power(node):
     """
-    int x ^ n dx  ->  x ^ (n + 1) / (n + 1)
+    int x ^ n dx  ->  1 / (n + 1) * x ^ (n + 1)
     int g ^ x dx  ->  g ^ x / ln(g)
     """
     assert node.is_op(OP_INT)
@@ -87,11 +87,11 @@ def match_integrate_variable_power(node):
 
 def integrate_variable_root(root, args):
     """
-    int x ^ n dx  ->  x ^ (n + 1) / (n + 1)
+    int x ^ n dx  ->  1 / (n + 1) * x ^ (n + 1)
     """
     x, n = root[0]
 
-    return solve_integral(root, x ** (n + 1) / (n + 1))
+    return solve_integral(root, L(1) / (n + 1) * x ** (n + 1))
 
 
 MESSAGES[integrate_variable_root] = \

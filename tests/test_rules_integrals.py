@@ -57,7 +57,7 @@ class TestRulesIntegrals(RulesTestCase):
                     [P(root, integrate_variable_exponent)])
 
     def test_integrate_variable_root(self):
-        root, expect = tree('int x ^ n, x ^ (n + 1) / (n + 1) + c')
+        root, expect = tree('int x ^ n, 1 / (n + 1) * x ^ (n + 1) + c')
         self.assertEqual(integrate_variable_root(root, ()), expect)
 
     def test_integrate_variable_exponent(self):
