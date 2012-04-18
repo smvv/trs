@@ -111,3 +111,5 @@ Division of 0 by 1 reduces to 0.
  - MESSAGES needs to be expanded.
 
  - Create blacklist of implicit rules that are not printed when '@@@' is issued.
+
+ - Use pretty-print for expressions in hint messages.
