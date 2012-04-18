@@ -12,7 +12,10 @@ def tree(exp, **kwargs):
 
 
 def rewrite(exp, **kwargs):
-    return ParserWrapper(Parser, **kwargs).run([exp, '@'])
+    wrapper = ParserWrapper(Parser, **kwargs)
+    wrapper.run([exp])
+
+    return wrapper.parser.rewrite(check_implicit=False)
 
 
 class RulesTestCase(unittest.TestCase):

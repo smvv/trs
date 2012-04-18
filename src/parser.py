@@ -20,6 +20,7 @@ from node import ExpressionNode as Node, \
         DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
         OP_INT_INDEF, negation_to_node
 from rules.utils import find_variable
+from rules.precedences import IMPLICIT_RULES
 from strategy import find_possibilities
 from possibilities import apply_suggestion
 
@@ -239,9 +240,10 @@ class Parser(BisonParser):
         if not self.root_node:
             raise RuntimeError('No expression')
 
-        if self.possibilities != None:
+        if self.possibilities is not None:
             if self.verbose:
                 print 'Expression has not changed, not updating possibilities'
+
             return
 
         self.possibilities = find_possibilities(self.root_node)
@@ -261,29 +263,49 @@ class Parser(BisonParser):
         for i, p in enumerate(self.possibilities):
             print '%d %s' % (i, p)
 
-    def rewrite(self, index=0, verbose=False):
+    def rewrite(self, index=0, verbose=False, check_implicit=True):
         self.find_possibilities()
 
         if not self.possibilities:
-            return False
+            return
 
         suggestion = self.possibilities[index]
 
         if self.verbose:
-            print 'Applying suggestion:', suggestion
+            print 'EXPLICIT:', suggestion
         elif verbose:
             print suggestion
 
-        expression = apply_suggestion(self.root_node, suggestion)
+        self.set_root_node(apply_suggestion(self.root_node, suggestion))
 
         if self.verbose:
-            print 'After application:  ', expression
-        elif verbose:
-            print expression
+            print '         ', self.root_node
 
-        self.set_root_node(expression)
+        # Only apply any remaining implicit hints if the suggestion itself is
+        # not implicit
+        if check_implicit and suggestion.handler not in IMPLICIT_RULES:
+            self.find_possibilities()
 
-        return True
+            while self.possibilities:
+                sugg = self.possibilities[0]
+
+                if sugg.handler not in IMPLICIT_RULES:
+                    break
+
+                if self.verbose:
+                    print 'IMPLICIT:', sugg
+
+                self.set_root_node(apply_suggestion(self.root_node, sugg))
+
+                if self.verbose:
+                    print '         ', self.root_node
+
+                self.find_possibilities()
+
+        if verbose and not self.verbose:
+            print self.root_node
+
+        return self.root_node
 
     def rewrite_all(self, verbose=False):
         i = 0
@@ -292,10 +314,10 @@ class Parser(BisonParser):
             i += 1
 
             if i > 100:
-                print 'Too many rewrite steps, aborting...'
+                lines.append('Too many rewrite steps, aborting...')
                 break
 
-        if not verbose:
+        if not verbose or not i:
             return self.root_node
 
     #def hook_run(self, filename, retval):
@@ -354,8 +376,7 @@ class Parser(BisonParser):
             return
 
         if option == 5:  # rule: REWRITE NEWLINE
-            self.rewrite()
-            return self.root_node
+            return self.rewrite()
 
         if option == 6:  # rule: REWRITE NUMBER NEWLINE
             self.rewrite(int(values[1]))

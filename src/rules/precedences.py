@@ -4,7 +4,7 @@ from .numerics import reduce_fraction_constants
 from .logarithmic import factor_in_exponent_multiplicant, \
         factor_out_exponent, raised_base
 from .derivatives import chain_rule
-
+from .negation import double_negation
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
 # the list itself are compared by their position in the list: lower in the list
@@ -40,3 +40,10 @@ RELATIVE = [
 # Convert to dictionaries for efficient lookup
 HIGH = dict([(h, i) for i, h in enumerate(HIGH)])
 LOW = dict([(h, i) for i, h in enumerate(LOW)])
+
+
+# List of implicit rules. Implicit rules are condidererd trivial and are
+# therefore not printed in verbose rewrite_all mode
+IMPLICIT_RULES = [
+        double_negation,
+        ]
