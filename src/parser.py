@@ -261,7 +261,7 @@ class Parser(BisonParser):
         for i, p in enumerate(self.possibilities):
             print '%d %s' % (i, p)
 
-    def rewrite(self, index=0):
+    def rewrite(self, index=0, verbose=False):
         self.find_possibilities()
 
         if not self.possibilities:
@@ -271,25 +271,32 @@ class Parser(BisonParser):
 
         if self.verbose:
             print 'Applying suggestion:', suggestion
+        elif verbose:
+            print suggestion
 
         expression = apply_suggestion(self.root_node, suggestion)
 
         if self.verbose:
             print 'After application:  ', expression
+        elif verbose:
+            print expression
 
         self.set_root_node(expression)
 
         return True
 
-    def rewrite_all(self):
+    def rewrite_all(self, verbose=False):
         i = 0
 
-        while self.rewrite():
+        while self.rewrite(verbose=verbose):
             i += 1
 
             if i > 100:
                 print 'Too many rewrite steps, aborting...'
                 break
+
+        if not verbose:
+            return self.root_node
 
     #def hook_run(self, filename, retval):
     #    return retval
@@ -331,6 +338,7 @@ class Parser(BisonParser):
              | REWRITE NEWLINE
              | REWRITE NUMBER NEWLINE
              | REWRITE_ALL NEWLINE
+             | REWRITE_ALL_VERBOSE NEWLINE
              | RAISE NEWLINE
         """
         if option in (1, 2):  # rule: {exp,debug} NEWLINE
@@ -353,11 +361,10 @@ class Parser(BisonParser):
             self.rewrite(int(values[1]))
             return self.root_node
 
-        if option == 7:  # rule: REWRITE_ALL NEWLINE
-            self.rewrite_all()
-            return self.root_node
+        if option in (7, 8):  # rule: REWRITE_ALL NEWLINE
+            return self.rewrite_all(verbose=(option == 8))
 
-        if option == 8:
+        if option == 9:
             raise RuntimeError('on_line: exception raised')
 
     def on_debug(self, target, option, names, values):

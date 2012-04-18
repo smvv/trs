@@ -50,7 +50,8 @@ OP_EQ = 21
 OP_POSSIBILITIES = 22
 OP_HINT = 23
 OP_REWRITE_ALL = 24
-OP_REWRITE = 25
+OP_REWRITE_ALL_VERBOSE = 25
+OP_REWRITE = 26
 
 # Special identifiers
 PI = 'pi'
@@ -90,8 +91,9 @@ OP_MAP = {
         '=': OP_EQ,
         '??': OP_POSSIBILITIES,
         '?': OP_HINT,
-        '@@': OP_REWRITE_ALL,
         '@': OP_REWRITE,
+        '@@': OP_REWRITE_ALL,
+        '@@@': OP_REWRITE_ALL_VERBOSE,
         }
 
 OP_VALUE_MAP = dict([(v, k) for k, v in OP_MAP.iteritems()])
@@ -120,8 +122,9 @@ TOKEN_MAP = {
         OP_EQ: 'EQ',
         OP_POSSIBILITIES: 'POSSIBILITIES',
         OP_HINT: 'HINT',
-        OP_REWRITE_ALL: 'REWRITE_ALL',
         OP_REWRITE: 'REWRITE',
+        OP_REWRITE_ALL: 'REWRITE_ALL',
+        OP_REWRITE_ALL_VERBOSE: 'REWRITE_ALL_VERBOSE',
         }
 
 
