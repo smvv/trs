@@ -281,68 +281,81 @@ class ExpressionNode(Node, ExpressionBase):
             self.value = OP_VALUE_MAP[op]
             self.op = op
 
-    def construct_function(self, children):
-        if self.op == OP_DER:
-            f = children[0]
+    def construct_derivative(self, children):
+        f = children[0]
 
-            if len(children) < 2:
-                # der(der(x ^ 2))  ->  [x ^ 2]''
-                if self[0].is_op(OP_DER) and len(self[0]) < 2:
-                    return f + '\''
+        if len(children) < 2:
+            # der(der(x ^ 2))  ->  [x ^ 2]''
+            if self[0].is_op(OP_DER) and len(self[0]) < 2:
+                return f + '\''
 
-                # der(x ^ 2)  ->  [x ^ 2]'
-                return '[' + f + ']\''
+            # der(x ^ 2)  ->  [x ^ 2]'
+            return '[' + f + ']\''
 
-            # der(x ^ 2, x)  ->  d/dx (x ^ 2)
-            return 'd/d%s (%s)' % (children[1], f)
+        # der(x ^ 2, x)  ->  d/dx (x ^ 2)
+        return 'd/d%s (%s)' % (children[1], f)
 
-        if self.op == OP_LOG:
-            if self[0].is_op(OP_ABS):
-                content = children[0]
-            else:
-                content = '(' + children[0] + ')'
+    def construct_logarithm(self, children):
+        if self[0].is_op(OP_ABS):
+            content = children[0]
+        else:
+            content = '(' + children[0] + ')'
 
-            # log(a, e)  ->  ln(a)
-            if self[1].is_identifier(E):
-                return 'ln%s' % content
+        # log(a, e)  ->  ln(a)
+        if self[1].is_identifier(E):
+            return 'ln%s' % content
 
-            # log(a, 10)  ->  log(a)
-            if self[1] == 10:
-                return 'log%s' % content
+        # log(a, 10)  ->  log(a)
+        if self[1] == 10:
+            return 'log%s' % content
 
-            # log(a, 2)  ->  log_2(a)
-            if children[1].isdigit():
-                return 'log_%s%s' % (children[1], content)
+        # log(a, 2)  ->  log_2(a)
+        if children[1].isdigit():
+            return 'log_%s%s' % (children[1], content)
 
-        if self.op == OP_INT:
-            # Make sure that any needed parentheses around f(x) are generated,
-            # and append ' dx' to it (result 'f(x) dx')
-            fx, x = self[:2]
-            operand = re.sub(r'(\s*\*)?\s*d$', ' d' + x.value, str(fx * 'd'))
-            op = 'int'
+    def construct_integral(self, children):
+        # Make sure that any needed parentheses around f(x) are generated,
+        # and append ' dx' to it (result 'f(x) dx')
+        fx, x = self[:2]
+        operand = re.sub(r'(\s*\*)?\s*d$', ' d' + x.value, str(fx * 'd'))
+        op = 'int'
 
-            # Add bounds
-            if len(self) > 2:
-                lbnd, ubnd = self[2:]
-                lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
-                ubnd = str(ExpressionNode(OP_POW, ubnd))
-                op += lbnd + ubnd
-
-            # int x ^ 2      ->  int x ^ 2 dx
-            # int x + 1      ->  int (x + 1) dx
-            # int_a^b x ^ 2  ->  int_a^b x ^ 2 dx
-            return op + ' ' + operand
-
-        if self.op == OP_INT_INDEF:
-            # [x ^ 2]_a^b
-            F, lbnd, ubnd = self
+        # Add bounds
+        if len(self) > 2:
+            lbnd, ubnd = self[2:]
             lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
             ubnd = str(ExpressionNode(OP_POW, ubnd))
+            op += lbnd + ubnd
 
-            return '[%s]%s%s' % (F, lbnd, ubnd)
+        # int x ^ 2      ->  int x ^ 2 dx
+        # int x + 1      ->  int (x + 1) dx
+        # int_a^b x ^ 2  ->  int_a^b x ^ 2 dx
+        return op + ' ' + operand
 
+    def construct_indef_integral(self, children):
+        # [x ^ 2]_a^b
+        F, lbnd, ubnd = self
+        lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
+        ubnd = str(ExpressionNode(OP_POW, ubnd))
+
+        return '[%s]%s%s' % (F, lbnd, ubnd)
+
+    def construct_function(self, children):
         if self.op == OP_ABS:
             return '|%s|' % children[0]
+
+        constructors = {
+                OP_DER: self.construct_derivative,
+                OP_LOG: self.construct_logarithm,
+                OP_INT: self.construct_integral,
+                OP_INT_INDEF: self.construct_indef_integral
+                }
+
+        if self.op in constructors:
+            result = constructors[self.op](children)
+
+            if result != None:
+                return result
 
         # Function with absolute value as only parameter does not need
         # parentheses
