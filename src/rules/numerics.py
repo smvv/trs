@@ -47,6 +47,9 @@ def remove_zero(root, args):
     return scope.as_nary_node()
 
 
+MESSAGES[remove_zero] = _('Remove addition of zero.')
+
+
 def add_numerics(root, args):
     """
     2 + 3    ->  5
