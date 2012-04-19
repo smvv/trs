@@ -129,7 +129,10 @@ TOKEN_MAP = {
 
 
 def to_expression(obj):
-    return obj.clone() if isinstance(obj, ExpressionBase) else ExpressionLeaf(obj)
+    if isinstance(obj, ExpressionBase):
+        return obj.clone()
+
+    return ExpressionLeaf(obj)
 
 
 class ExpressionBase(object):
@@ -704,11 +707,11 @@ def negation_to_node(node):
     nodes.
     """
     if node.negated:
-         negations = node.negated
-         node = negate(node, 0)
+        negations = node.negated
+        node = negate(node, 0)
 
-         for i in range(negations):
-             node = ExpressionNode('-', node)
+        for i in range(negations):
+            node = ExpressionNode('-', node)
 
     if node.is_leaf:
         return node
