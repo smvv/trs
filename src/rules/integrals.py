@@ -64,6 +64,9 @@ def solve_indef(root, args):
     return substitute(Fx, x, b) - substitute(Fx, x, a)
 
 
+MESSAGES[solve_indef] = _('Solve indefinite integral {0} using substitution.')
+
+
 def match_integrate_variable_power(node):
     """
     int x ^ n dx  ->  1 / (n + 1) * x ^ (n + 1)
