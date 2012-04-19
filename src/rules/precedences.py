@@ -1,11 +1,12 @@
 from .factors import expand_double, expand_single
 from .sort import move_constant
-from .numerics import reduce_fraction_constants, raise_numerics
+from .numerics import multiply_one, multiply_zero, reduce_fraction_constants, \
+        raise_numerics, remove_zero
 from .logarithmic import factor_in_exponent_multiplicant, \
         factor_out_exponent, raised_base, factor_out_exponent_important
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
-        negated_denominator
+        negated_denominator, negated_zero
 from .fractions import multiply_with_fraction
 from .integrals import factor_out_constant
 
@@ -57,4 +58,8 @@ IMPLICIT_RULES = [
         double_negation,
         negated_nominator,
         negated_denominator,
+        multiply_one,
+        multiply_zero,
+        negated_zero,
+        remove_zero,
         ]
