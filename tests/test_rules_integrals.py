@@ -125,8 +125,10 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertRewrite([
             'int a / x',
             'int a * 1 / x dx',
-            # FIXME: 'a int 1 / x dx',  # fix with strategy
-            # FIXME: 'aln|x| + c',
+            'aint 1 / x dx',
+            'a(ln|x| + c)',
+            'aln|x| + ac',
+            # FIXME: 'aln|x| + c',  # ac -> c
         ])
 
     def test_match_function_integral(self):

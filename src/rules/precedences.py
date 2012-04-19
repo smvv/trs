@@ -6,6 +6,9 @@ from .logarithmic import factor_in_exponent_multiplicant, \
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator
+from .fractions import multiply_with_fraction
+from .integrals import factor_out_constant
+
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
 # the list itself are compared by their position in the list: lower in the list
@@ -37,6 +40,8 @@ RELATIVE = [
         (expand_single, expand_double),
 
         (factor_out_exponent_important, raise_numerics),
+
+        (factor_out_constant, multiply_with_fraction)
         ]
 
 
