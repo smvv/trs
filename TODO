@@ -114,6 +114,3 @@ Division of 0 by 1 reduces to 0.
 
  - Parser:
    + add unit tests for operator associativity (derivatives/integrals).
-   + plus << integral/derivative << times
-   + divide >> times
-   + a2 -> a*2 instead of a^2
