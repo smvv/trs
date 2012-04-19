@@ -132,13 +132,20 @@ class TestRulesIntegrals(RulesTestCase):
         ])
 
     def test_match_function_integral(self):
-        root0, root1, root2 = tree('int ln x, int sin x, int cos x')
-        self.assertEqualPos(match_function_integral(root0),
-                [P(root0, logarithm_integral)])
-        self.assertEqualPos(match_function_integral(root1),
-                [P(root1, sinus_integral)])
-        self.assertEqualPos(match_function_integral(root2),
-                [P(root2, cosinus_integral)])
+        root = tree('int ln x')
+        self.assertEqualPos(match_function_integral(root),
+                [P(root, logarithm_integral)])
+
+        root = tree('int sin x')
+        self.assertEqualPos(match_function_integral(root),
+                [P(root, sinus_integral)])
+
+        root = tree('int cos x')
+        self.assertEqualPos(match_function_integral(root),
+                [P(root, cosinus_integral)])
+
+        root = tree('int sqrt x')
+        self.assertEqualPos(match_function_integral(root), [])
 
     def test_logarithm_integral(self):
         root, expect = tree('int ln x, (xlnx - x) / ln e + c')

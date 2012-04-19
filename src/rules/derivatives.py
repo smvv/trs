@@ -155,22 +155,19 @@ def match_variable_power(node):
     evars = find_variables(exponent)
     x = get_derivation_variable(node, rvars | evars)
 
-    if x in rvars and x in evars:
-        return [P(node, power_rule)]
-
     if x in rvars:
+        if x in evars:
+            return [P(node, power_rule)]
+
         if root.is_variable():
             return [P(node, variable_root)]
 
         return [P(node, chain_rule, (root, variable_root, ()))]
 
-    if x in evars:
-        if exponent.is_variable():
-            return [P(node, variable_exponent)]
+    if exponent.is_variable():
+        return [P(node, variable_exponent)]
 
-        return [P(node, chain_rule, (exponent, variable_exponent, ()))]
-
-    return []
+    return [P(node, chain_rule, (exponent, variable_exponent, ()))]
 
 
 def power_rule(root, args):
