@@ -4,7 +4,7 @@ from tests.rulestestcase import RulesTestCase as TestCase
 class TestLeidenOefenopgaveV12(TestCase):
     def test_1_a(self):
         self.assertRewrite([
-            '-5(x2 - 3x + 6)',
+            '-5(x^2 - 3x + 6)',
             '-(5x ^ 2 + 5(-3x) + 5 * 6)',
             '-(5x ^ 2 - 5 * 3x + 5 * 6)',
             '-(5x ^ 2 - 15x + 5 * 6)',
@@ -57,44 +57,44 @@ class TestLeidenOefenopgaveV12(TestCase):
 
     def test_2_a(self):
         self.assertRewrite([
-            '(a2b^-1)^3(ab2)',
-            '(a ^ 2 * (1 / b ^ 1)) ^ 3 * ab ^ 2',
-            '(a ^ 2 * (1 / b)) ^ 3 * ab ^ 2',
-            '(1a ^ 2 / b) ^ 3 * ab ^ 2',
+            '(a^2b^-1)^3(ab^2)',
+            '(a ^ 2 * 1 / b ^ 1) ^ 3 * ab ^ 2',
+            '(a ^ 2 * 1 / b) ^ 3 * ab ^ 2',
+            '((1a ^ 2) / b) ^ 3 * ab ^ 2',
             '(a ^ 2 / b) ^ 3 * ab ^ 2',
             '(a ^ 2) ^ 3 / b ^ 3 * ab ^ 2',
             'a ^ (2 * 3) / b ^ 3 * ab ^ 2',
             'a ^ 6 / b ^ 3 * ab ^ 2',
-            'a ^ 6 * a / b ^ 3 * b ^ 2',
+            '(a ^ 6 * a) / b ^ 3 * b ^ 2',
             'a ^ (6 + 1) / b ^ 3 * b ^ 2',
             'a ^ 7 / b ^ 3 * b ^ 2',
-            'a ^ 7 * b ^ 2 / b ^ 3',
-            'b ^ 2 / b ^ 3 * (a ^ 7 / 1)',
-            'b ^ (2 - 3)(a ^ 7 / 1)',
-            'b ^ (-1)(a ^ 7 / 1)',
-            '1 / b ^ 1 * (a ^ 7 / 1)',
-            '1 / b * (a ^ 7 / 1)',
+            '(a ^ 7 * b ^ 2) / b ^ 3',
+            'b ^ 2 / b ^ 3 * a ^ 7 / 1',
+            'b ^ (2 - 3)a ^ 7 / 1',
+            'b ^ (-1)a ^ 7 / 1',
+            '1 / b ^ 1 * a ^ 7 / 1',
+            '1 / b * a ^ 7 / 1',
             '1 / b * a ^ 7',
-            '1a ^ 7 / b',
+            '(1a ^ 7) / b',
             'a ^ 7 / b',
         ])
 
     def test_2_b(self):
         self.assertRewrite([
-            'a3b2a3',
+            'a^3b^2a^3',
             'a ^ (3 + 3)b ^ 2',
             'a ^ 6 * b ^ 2',
         ])
 
     #def test_2_c(self):
     #    self.assertRewrite([
-    #        'a5+a3',
+    #        'a^5+a^3',
     #        'a ^ 5 + a ^ 3',
     #    ])
 
     def test_2_d(self):
         self.assertRewrite([
-            'a2+a2',
+            'a^2+a^2',
             '(1 + 1)a ^ 2',
             '2a ^ 2',
         ])
@@ -102,8 +102,8 @@ class TestLeidenOefenopgaveV12(TestCase):
     def test_2_e(self):
         self.assertRewrite([
             '4b^-2',
-            '4(1 / b ^ 2)',
-            '1 * 4 / b ^ 2',
+            '4 * 1 / b ^ 2',
+            '(1 * 4) / b ^ 2',
             '4 / b ^ 2',
         ])
 
@@ -113,7 +113,7 @@ class TestLeidenOefenopgaveV12(TestCase):
             '4 ^ (-2)b ^ (-2)',
             '1 / 4 ^ 2 * b ^ (-2)',
             '1 / 16 * b ^ (-2)',
-            '1 / 16 * (1 / b ^ 2)',
-            '1 * 1 / (16b ^ 2)',
+            '1 / 16 * 1 / b ^ 2',
+            '(1 * 1) / (16b ^ 2)',
             '1 / (16b ^ 2)',
         ])

@@ -52,7 +52,7 @@ class TestParser(RulesTestCase):
     def test_preprocessor(self):
         self.assertEqual(tree('ab'), tree('a * b'))
         self.assertEqual(tree('abc'), tree('a * b * c'))
-        self.assertEqual(tree('a2'), tree('a ^ 2'))
+        self.assertEqual(tree('a2'), tree('a * 2'))
         self.assertEqual(tree('a 2'), tree('a * 2'))
         self.assertEqual(tree('2a'), tree('2 * a'))
         self.assertEqual(tree('2(a + b)'), tree('2 * (a + b)'))
@@ -91,8 +91,8 @@ class TestParser(RulesTestCase):
 
         self.assertEqual(tree('d/dx x ^ 2'), der(exp, x))
         self.assertEqual(tree('d / dx x ^ 2'), der(exp, x))
-        self.assertEqual(tree('d/dx x ^ 2 + x'), der(exp + x, x))
-        self.assertEqual(tree('(d/dx x ^ 2) + x'), der(exp, x) + x)
+        self.assertEqual(tree('d/dx x ^ 2 + x'), der(exp, x) + x)
+        self.assertEqual(tree('d/dx (x ^ 2 + x)'), der(exp + x, x))
         self.assertEqual(tree('d/d'), d / d)
         # FIXME: self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))
 
@@ -120,17 +120,27 @@ class TestParser(RulesTestCase):
         x, y, dx, a, b, l2 = tree('x, y, dx, a, b, 2')
 
         self.assertEqual(tree('int x'), integral(x, x))
-        self.assertEqual(tree('int x2'), integral(x ** 2, x))
-        self.assertEqual(tree('int x2 dx'), integral(x ** 2, x))
-        self.assertEqual(tree('int x2 dy'), integral(x ** 2, y))
+        self.assertEqual(tree('int x ^ 2'), integral(x ** 2, x))
+        self.assertEqual(tree('int x ^ 2 dx'), integral(x ** 2, x))
+        self.assertEqual(tree('int x ^ 2 dy'), integral(x ** 2, y))
 
-        self.assertEqual(tree('int_a^b x2'), integral(x ** 2, x, a, b))
-        self.assertEqual(tree('int_a^b x2 dy'), integral(x ** 2, y, a, b))
-        self.assertEqual(tree('int_(a-b)^(a+b) x2'),
+        self.assertEqual(tree('int_a^b x ^ 2'), integral(x ** 2, x, a, b))
+        self.assertEqual(tree('int_a^b x ^ 2 dy'), integral(x ** 2, y, a, b))
+        self.assertEqual(tree('int_(a-b)^(a+b) x ^ 2'),
                          integral(x ** 2, x, a - b, a + b))
 
         self.assertEqual(tree('int_a^b 2x'), integral(l2 * x, x, a, b))
-        self.assertEqual(tree('int_a^b2 x'), integral(x, x, a, b ** 2))
+        self.assertEqual(tree('int_a^b^2 x'), integral(x, x, a, b ** 2))
+        self.assertEqual(tree('int_a^(b2) x'), integral(x, x, a, b * 2))
+
+        self.assertEqual(tree('int x ^ 2 + 1'), integral(x ** 2, x) + 1)
+        self.assertEqual(tree('int x ^ 2 + 1 dx'), integral(x ** 2 + 1, x))
+
+        self.assertEqual(tree('int_a^b x ^ 2 dx'), integral(x ** 2, x, a, b))
+        self.assertEqual(tree('int_a^(b2) x ^ 2 + 1 dx'),
+                         integral(x ** 2 + 1, x, a, b * 2))
+        self.assertEqual(tree('int_(a^2)^b x ^ 2 + 1 dx'),
+                         integral(x ** 2 + 1, x, a ** 2, b))
 
     def test_indefinite_integral(self):
         x2, a, b = tree('x ^ 2, a, b')
@@ -141,7 +151,7 @@ class TestParser(RulesTestCase):
         x = tree('x')
 
         self.assertEqual(tree('|x|'), absolute(x))
-        self.assertEqual(tree('|x2|'), absolute(x ** 2))
+        self.assertEqual(tree('|x2|'), absolute(x * 2))
 
     def test_find_possibilities_basic(self):
         l1, l2 = root = tree('1 + 2')
@@ -157,3 +167,6 @@ class TestParser(RulesTestCase):
 
     def test_no_expression_error(self):
         self.assertRaises(RuntimeError, ParserWrapper(Parser).run, ['', '?'])
+
+    def test_precedence(self):
+        self.assertEqual(tree('ab / cd'), tree('a * (b / c) * d'))

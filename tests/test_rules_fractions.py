@@ -198,14 +198,14 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqual(divide_by_fraction(root, (a, b, c)), -(a * c / b))
 
     def test_match_extract_fraction_terms(self):
-        root, a, b, c = tree('ab / (ca), a, b, c')
+        root, a, b, c = tree('(ab) / (ca), a, b, c')
         n, d = root
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), Scope(d), a, a))])
 
         lscp = lambda l: Scope(N(OP_MUL, l))
 
-        n, d = root = tree('ab / a')
+        n, d = root = tree('(ab) / a')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), lscp(d), a, a))])
 
@@ -213,7 +213,7 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (lscp(n), Scope(d), a, a))])
 
-        n, d = root = tree('abc / (cba)')
+        n, d = root = tree('(abc) / (cba)')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), Scope(d), a, a)),
                  P(root, extract_fraction_terms, (Scope(n), Scope(d), b, b)),
@@ -222,19 +222,19 @@ class TestRulesFractions(RulesTestCase):
         root = tree('a / a')
         self.assertEqualPos(match_extract_fraction_terms(root), [])
 
-        (ap, b), aq = n, d = root = tree('a ^ p * b / a ^ q')
+        (ap, b), aq = n, d = root = tree('(a ^ p * b) / a ^ q')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), lscp(d), ap, aq))])
 
-        (a, b), aq = n, d = root = tree('a * b / a ^ q')
+        (a, b), aq = n, d = root = tree('(ab) / a ^ q')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), lscp(d), a, aq))])
 
-        (ap, b), a = n, d = root = tree('a ^ p * b / a')
+        (ap, b), a = n, d = root = tree('(a ^ p * b) / a')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_fraction_terms, (Scope(n), lscp(d), ap, a))])
 
-        (l2, a), l3 = n, d = root = tree('2a / 3')
+        (l2, a), l3 = n, d = root = tree('(2a) / 3')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_nominator_term, (2, a))])
 
@@ -242,16 +242,16 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_nominator_term, (1, a))])
 
-        root = tree('2*4 / 3')
+        root = tree('(2 * 4) / 3')
         self.assertEqualPos(match_extract_fraction_terms(root), [])
 
-        n, d = root = tree('2a / 2')
+        n, d = root = tree('(2a) / 2')
         self.assertEqualPos(match_extract_fraction_terms(root),
                 [P(root, extract_nominator_term, (2, a)),
                  P(root, extract_fraction_terms, (Scope(n), lscp(d), 2, 2))])
 
     def test_extract_nominator_term(self):
-        root, expect = tree('2a / 3, 2 / 3 * a')
+        root, expect = tree('(2a) / 3, 2 / 3 * a')
         l2, a = root[0]
         self.assertEqual(extract_nominator_term(root, (l2, a)), expect)
 
@@ -259,28 +259,28 @@ class TestRulesFractions(RulesTestCase):
         self.assertEqual(extract_nominator_term(root, (l1, root[0])), expect)
 
     def test_extract_fraction_terms_basic(self):
-        root, expect = tree('ab / (ca), a / a * (b / c)')
+        root, expect = tree('(ab) / (ca), a / a * b / c')
         n, d = root
         self.assertEqual(extract_fraction_terms(root,
                 (Scope(n), Scope(d), n[0], d[1])), expect)
 
     def test_extract_fraction_terms_leaf(self):
-        root, expect = tree('ba / a, a / a * (b / 1)')
+        root, expect = tree('(ba) / a, a / a * b / 1')
         n, d = root
         self.assertEqual(extract_fraction_terms(root,
                 (Scope(n), Scope(N(OP_MUL, d)), n[1], d)), expect)
 
-        root, expect = tree('a / (ab), a / a * (1 / b)')
+        root, expect = tree('a / (ab), a / a * 1 / b')
         n, d = root
         self.assertEqual(extract_fraction_terms(root,
                 (Scope(N(OP_MUL, n)), Scope(d), n, d[0])), expect)
 
     def test_extract_fraction_terms_chain(self):
         self.assertRewrite([
-            'a ^ 3 * 4 / (a ^ 2 * 5)',
-            'a ^ 3 / a ^ 2 * (4 / 5)',
-            'a ^ (3 - 2)(4 / 5)',
-            'a ^ 1 * (4 / 5)',
-            'a(4 / 5)',
+            '(a ^ 3 * 4) / (a ^ 2 * 5)',
+            'a ^ 3 / a ^ 2 * 4 / 5',
+            'a ^ (3 - 2)4 / 5',
+            'a ^ 1 * 4 / 5',
+            'a * 4 / 5',
             # FIXME: '4 / 5 * a',
         ])

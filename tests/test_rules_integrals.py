@@ -37,7 +37,7 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqual(solve_integral(root, F), Fx(b) - Fx(a))
 
     def test_solve_indef(self):
-        root, expect = tree('[x ^ 2]_a^b, b2 - a2')
+        root, expect = tree('[x ^ 2]_a^b, b ^ 2 - a ^ 2')
         self.assertEqual(solve_indef(root, ()), expect)
 
     def test_match_integrate_variable_power(self):
@@ -98,11 +98,11 @@ class TestRulesIntegrals(RulesTestCase):
                 [P(root, split_negation_to_constant)])
 
     def test_split_negation_to_constant(self):
-        root, expect = tree('int -x2 dx, int (-1)x2 dx')
+        root, expect = tree('int -x ^ 2 dx, int (-1)x ^ 2 dx')
         self.assertEqual(split_negation_to_constant(root, ()), expect)
 
     def test_factor_out_constant(self):
-        root, expect = tree('int cx2 dx, c int x2 dx')
+        root, expect = tree('int cx dx, c int x dx')
         c, x2 = cx2 = root[0]
         self.assertEqual(factor_out_constant(root, (Scope(cx2), c)), expect)
 
@@ -124,7 +124,7 @@ class TestRulesIntegrals(RulesTestCase):
     def test_match_division_integral_chain(self):
         self.assertRewrite([
             'int a / x',
-            'int a(1 / x) dx',
+            'int a * 1 / x dx',
             # FIXME: 'a int 1 / x dx',  # fix with strategy
             # FIXME: 'aln|x| + c',
         ])

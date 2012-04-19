@@ -240,7 +240,7 @@ class TestNode(RulesTestCase):
         self.assertEqual(str(tree('int x ^ 2 dx')), 'int x ^ 2 dx')
         self.assertEqual(str(tree('int x ^ 2 dy')), 'int x ^ 2 dy')
         self.assertEqual(str(tree('int x ^ 2 dy')), 'int x ^ 2 dy')
-        self.assertEqual(str(tree('int x + 1')), 'int (x + 1) dx')
+        self.assertEqual(str(tree('int x + 1')), 'int x dx + 1')
 
         self.assertEqual(str(tree('int_a^b x ^ 2')), 'int_a^b x ^ 2 dx')
         self.assertEqual(str(tree('int_(a-b)^(a+b) x ^ 2')),
@@ -259,7 +259,7 @@ class TestNode(RulesTestCase):
         self.assertEqual(infinity(), tree('oo'))
 
     def test_absolute(self):
-        self.assertEqual(absolute(tree('x2')), tree('|x2|'))
+        self.assertEqual(absolute(tree('x^2')), tree('|x^2|'))
 
     def test_sin(self):
         self.assertEqual(sin(tree('x')), tree('sin(x)'))
@@ -288,9 +288,9 @@ class TestNode(RulesTestCase):
 
     def test_integral(self):
         x2, x, y, a, b = tree('x ^ 2, x, y, a, b')
-        self.assertEqual(integral(x2, x), tree('int x2 dx'))
-        self.assertEqual(integral(x2, x, a, b), tree('int_a^b x2 dx'))
-        self.assertEqual(integral(x2, y, a, b), tree('int_a^b x2 dy'))
+        self.assertEqual(integral(x2, x), tree('int x^2 dx'))
+        self.assertEqual(integral(x2, x, a, b), tree('int_a^b x^2 dx'))
+        self.assertEqual(integral(x2, y, a, b), tree('int_a^b x^2 dy'))
 
     def test_indef(self):
         x2, a, b, expect = tree('x ^ 2, a, b, [x ^ 2]_a^b')

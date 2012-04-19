@@ -59,7 +59,7 @@ class TestRulesLineq(RulesTestCase):
         self.assertEqual(subtract_term(root, (a,)), expect)
 
     def test_divide_term(self):
-        root, a, expect = tree('x * a = b, a, x * a / a = b / a')
+        root, a, expect = tree('x * a = b, a, (xa) / a = b / a')
         self.assertEqual(divide_term(root, (a,)), expect)
 
     def test_multiply_term(self):
@@ -89,7 +89,7 @@ class TestRulesLineq(RulesTestCase):
             '5x = 0 * 3x - 5',
             '5x = 0 - 5',
             '5x = -5',
-            '5x / 5 = (-5) / 5',
+            '(5x) / 5 = (-5) / 5',
             '5 / 5 * x = (-5) / 5',
             '1x = (-5) / 5',
             'x = (-5) / 5',

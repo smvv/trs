@@ -179,7 +179,7 @@ class TestRulesPowers(RulesTestCase):
                               N('sqrt', a, m))
 
     def test_match_constant_exponent(self):
-        a0, a1, a2 = tree('a0,a1,a2')
+        a0, a1, a2 = tree('a ^ 0, a ^ 1, a ^ 2')
 
         self.assertEqualPos(match_constant_exponent(a0),
                             [P(a0, remove_power_of_zero, ())])

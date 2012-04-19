@@ -15,7 +15,7 @@ class TestLeidenOefenopgave(TestCase):
         return
 
         for exp, solution in [
-                ('-5(x2 - 3x + 6)',       '-30 + 15x - 5x ^ 2'),
+                ('-5(x^2 - 3x + 6)',     '-30 + 15x - 5x ^ 2'),
                 ('(x+1)^2',              'x ^ 2 + 2x + 1'),
                 ('(x-1)^2',              'x ^ 2 - 2x + 1'),
                 ('(2x+x)*x',             '3x ^ 2'),
@@ -172,7 +172,7 @@ class TestLeidenOefenopgave(TestCase):
     def test_4_3(self):
         self.assertRewrite([
             '(7/3)(3/5)',
-            '7 * 3 / (3 * 5)',
+            '(7 * 3) / (3 * 5)',
             '21 / (3 * 5)',
             '21 / 15',
             '7 / 5',
@@ -184,7 +184,7 @@ class TestLeidenOefenopgave(TestCase):
     def test_4_5(self):
         self.assertRewrite([
             '1/4 * 1/x',
-            '1 / 4 / x',
+            '(1 * 1) / (4x)',
             '1 / (4x)',
         ])
 
