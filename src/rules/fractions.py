@@ -179,8 +179,8 @@ MESSAGES[constant_to_fraction] = \
 
 def match_multiply_fractions(node):
     """
-    a / b * (c / d)  ->  ac / (bd)
-    a / b * c and (c in Z or eval(a / b) not in Z)  ->  ac / b
+    a / b * c / d  ->  (ac) / (bd)
+    a / b * c and (eval(c) in Z or eval(a / b) not in Z)  ->  (ac) / b
     """
     assert node.is_op(OP_MUL)
 
@@ -192,7 +192,7 @@ def match_multiply_fractions(node):
         p.append(P(node, multiply_fractions, (scope, ab, cd)))
 
     for ab, c in product(fractions, others):
-        if c.is_numeric() or not evals_to_numeric(ab):
+        if evals_to_numeric(c) or not evals_to_numeric(ab):
             p.append(P(node, multiply_with_fraction, (scope, ab, c)))
 
     return p
