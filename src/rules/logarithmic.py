@@ -1,8 +1,8 @@
-from itertools import combinations, product
+from itertools import combinations, product, ifilterfalse
 
-from .utils import find_variables, partition
+from .utils import find_variables, partition, divides, is_numeric_node
 from ..node import ExpressionLeaf as L, OP_LOG, OP_ADD, OP_MUL, OP_POW, \
-        Scope, log
+        Scope, log, DEFAULT_LOGARITHM_BASE, E, OP_DIV
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -11,8 +11,8 @@ def match_constant_logarithm(node):
     """
     log_1(a)   ->  # raise ValueError for base 1
     log(1)     ->  0
-    log(a, a)  ->  1  # Explicit possibility to prevent cycles
-    log(a, a)  ->  log(a) / log(a)  # ->  1
+    log(a, a)  ->  1
+    log(a, b) and b not in  (10, e)  ->  log(a) / log(b)
     """
     assert node.is_op(OP_LOG)
 
@@ -30,8 +30,9 @@ def match_constant_logarithm(node):
     if raised == base:
         # log(a, a)  ->  1
         p.append(P(node, base_equals_raised))
-        # log(a, a)  ->  log(a) / log(a)  # ->  1
-        # TODO: When to do this except for this case?
+        p.append(P(node, divide_same_base))
+    elif base not in (DEFAULT_LOGARITHM_BASE, E):
+        # log(a, b)  ->  log(a) / log(b)
         p.append(P(node, divide_same_base))
 
     return p
@@ -56,12 +57,12 @@ def base_equals_raised(root, args):
     return L(1).negate(root.negated)
 
 
-MESSAGES[base_equals_raised] = _('Logarithm {0} recuces to 1.')
+MESSAGES[base_equals_raised] = _('Logarithm {0} reduces to 1.')
 
 
 def divide_same_base(root, args):
     """
-    log(a, b)  ->  log(a) / log(b)
+    log(a, b) and b != 10  ->  log(a) / log(b)
     """
     raised, base = root
 
@@ -73,10 +74,10 @@ MESSAGES[divide_same_base] = _('Apply log_b(a) = log(a) / log(b) on {0}.')
 
 def match_add_logarithms(node):
     """
-    log(a) + log(b)   ->  log(ab)
-    -log(a) - log(b)  ->  -(log(a) + log(b))  # ->  -log(ab)
-    log(a) - log(b)   ->  log(a / b)
-    -log(a) + log(b)  ->  log(b / a)
+    log(a) + log(b) and a,b in Z   ->  log(ab)
+    -log(a) - log(b) and a,b in Z  ->  -(log(a) + log(b))  # ->  -log(ab)
+    log(a) - log(b) and a/b in Z   ->  log(a / b)
+    -log(a) + log(b) and a/b in Z  ->  log(b / a)
     """
     assert node.is_op(OP_ADD)
 
@@ -86,7 +87,10 @@ def match_add_logarithms(node):
 
     for log_a, log_b in combinations(logarithms, 2):
         # Compare base
-        if log_a[1] != log_b[1]:
+        (a, base_a), (b, base_b) = log_a, log_b
+
+        if base_a != base_b or not a.is_numeric() \
+                or not b.is_numeric():  # pragma: nocover
             continue
 
         a_negated = log_a.negated == 1
@@ -98,10 +102,10 @@ def match_add_logarithms(node):
         elif a_negated and b_negated:
             # -log(a) - log(b)  ->  -(log(a) + log(b))
             p.append(P(node, expand_negations, (scope, log_a, log_b)))
-        elif not log_a.negated and b_negated:
+        elif not log_a.negated and b_negated and divides(b.value, a.value):
             # log(a) - log(b)  ->  log(a / b)
             p.append(P(node, subtract_logarithms, (scope, log_a, log_b)))
-        elif a_negated and not log_b.negated:
+        elif a_negated and not log_b.negated and  divides(a.value, b.value):
             # -log(a) + log(b)  ->  log(b / a)
             p.append(P(node, subtract_logarithms, (scope, log_b, log_a)))
 
@@ -161,8 +165,8 @@ MESSAGES[subtract_logarithms] = _('Apply log(a) - log(b) = log(a / b).')
 
 def match_raised_base(node):
     """
-    g ^ log_g(a)     ->  a
-    g ^ (blog_g(a))  ->  g ^ log_g(a ^ b)
+    g ^ log_g(a)        ->  a
+    g ^ (b * log_g(a))  ->  g ^ log_g(a ^ b)
     """
     assert node.is_op(OP_POW)
 
@@ -188,9 +192,16 @@ def match_raised_base(node):
 
 
 def factor_in_exponent_multiplicant(root, args):
+    """
+    g ^ (b * log_g(a))  ->  g ^ log_g(a ^ b)
+    """
     r, e = root
 
     return r ** factor_in_multiplicant(e, args)
+
+
+MESSAGES[factor_in_exponent_multiplicant] = \
+        _('Bring {2} into {3} as exponent so that the power can be removed.')
 
 
 def raised_base(root, args):
@@ -285,3 +296,53 @@ def factor_in_multiplicant(root, args):
 
 MESSAGES[factor_in_multiplicant] = \
         _('Bring multiplicant {2} into {3} as the exponent of {3[0]}.')
+
+
+def match_expand_terms(node):
+    """
+    log(ab) and a not in Z  ->  log(a) + log(b)
+    log(a / b)              ->  log(a) - log(b)
+    """
+    assert node.is_op(OP_LOG)
+
+    exp = node[0]
+
+    if exp.is_op(OP_MUL):
+        scope = Scope(exp)
+
+        return [P(node, expand_multiplication_terms, (scope, n)) \
+                for n in ifilterfalse(is_numeric_node, scope)]
+
+    if exp.is_op(OP_DIV):
+        return [P(node, expand_division_terms)]
+
+    return []
+
+
+def expand_multiplication_terms(root, args):
+    """
+    log(ab) and a not in Z  ->  log(a) + log(b)
+    """
+    scope, n = args
+    scope.remove(n)
+    base = root[1]
+    addition = log(n, base=base) + log(scope.as_nary_node(), base=base)
+
+    return addition.negate(root.negated)
+
+
+MESSAGES[expand_multiplication_terms] = _('Extract {2} from {0}.')
+
+
+def expand_division_terms(root, args):
+    """
+    log(a / b)  ->  log(a) - log(b)
+    """
+    division, base = root
+    n, d = division
+    addition = log(n.negate(division.negated), base=base) - log(d, base=base)
+
+    return addition.negate(root.negated)
+
+
+MESSAGES[expand_division_terms] = _('Expand {0} to a subtraction.')

@@ -4,7 +4,9 @@ from src.rules.logarithmic import log, match_constant_logarithm, \
         subtract_logarithms, match_raised_base, raised_base, \
         match_factor_out_exponent, split_negative_exponent, \
         factor_out_exponent, match_factor_in_multiplicant, \
-        factor_in_multiplicant
+        factor_in_multiplicant, match_expand_terms, \
+        expand_multiplication_terms, expand_division_terms, \
+        factor_in_exponent_multiplicant
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -30,9 +32,20 @@ class TestRulesLogarithmic(RulesTestCase):
                 [P(root, base_equals_raised),
                  P(root, divide_same_base)])
 
+        root = tree('log(a, b)')
+        self.assertEqualPos(match_constant_logarithm(root),
+                [P(root, divide_same_base)])
+
     def test_logarithm_of_one(self):
         root = tree('log 1')
         self.assertEqual(logarithm_of_one(root, ()), 0)
+
+    def test_base_equals_raised(self):
+        root, expect = tree('log(a, a), 1')
+        self.assertEqual(base_equals_raised(root, ()), expect)
+
+        root, expect = tree('-log(a, a), -1')
+        self.assertEqual(base_equals_raised(root, ()), expect)
 
     def test_divide_same_base(self):
         root, l5, l6 = tree('log(5, 6), 5, 6')
@@ -42,19 +55,27 @@ class TestRulesLogarithmic(RulesTestCase):
         root = tree('log a + ln b')
         self.assertEqualPos(match_add_logarithms(root), [])
 
-        log_a, log_b = root = tree('log a + log b')
+        # log(ab) is not desired if ab is not reduceable
+        root = tree('log a + log b')
+        self.assertEqualPos(match_add_logarithms(root), [])
+
+        log_a, log_b = root = tree('log 2 + log 3')
         self.assertEqualPos(match_add_logarithms(root),
                 [P(root, add_logarithms, (Scope(root), log_a, log_b))])
 
-        log_a, log_b = root = tree('-log a - log b')
+        log_a, log_b = root = tree('-log 2 - log 3')
         self.assertEqualPos(match_add_logarithms(root),
                 [P(root, expand_negations, (Scope(root), log_a, log_b))])
 
-        log_a, log_b = root = tree('log a - log b')
+        # log(2 / 3) is not desired because 2 / 3 cannot be reduced
+        log_a, log_b = root = tree('log 2 - log 3')
+        self.assertEqualPos(match_add_logarithms(root), [])
+
+        log_a, log_b = root = tree('log 4 - log 2')
         self.assertEqualPos(match_add_logarithms(root),
                 [P(root, subtract_logarithms, (Scope(root), log_a, log_b))])
 
-        log_a, log_b = root = tree('-log a + log b')
+        log_a, log_b = root = tree('-log 2 + log 4')
         self.assertEqualPos(match_add_logarithms(root),
                 [P(root, subtract_logarithms, (Scope(root), log_b, log_a))])
 
@@ -92,6 +113,18 @@ class TestRulesLogarithmic(RulesTestCase):
 
         root = tree('2 ^ log_3(a)')
         self.assertEqualPos(match_raised_base(root), [])
+
+        root = tree('e ^ (2ln x)')
+        l2, lnx = mul = root[1]
+        self.assertEqualPos(match_raised_base(root),
+                [P(root, factor_in_exponent_multiplicant,
+                   (Scope(mul), l2, lnx))])
+
+    def test_factor_in_exponent_multiplicant(self):
+        root, expect = tree('e ^ (2ln x), e ^ ln x ^ 2')
+        l2, lnx = mul = root[1]
+        self.assertEqual(factor_in_exponent_multiplicant(root,
+                         (Scope(mul), l2, lnx)), expect)
 
     def test_raised_base(self):
         root, a = tree('2 ^ log_2(a), a')
@@ -136,3 +169,25 @@ class TestRulesLogarithmic(RulesTestCase):
         l2, log3 = root
         self.assertEqual(factor_in_multiplicant(root, (Scope(root), l2, log3)),
                          expect)
+
+    def test_match_expand_terms(self):
+        ab, base = root = tree('log(2x)')
+        a, b = ab
+        self.assertEqualPos(match_expand_terms(root),
+                [P(root, expand_multiplication_terms, (Scope(ab), b))])
+
+        root = tree('log(2 * 3)')
+        self.assertEqualPos(match_expand_terms(root), [])
+
+        root = tree('log(2 / a)')
+        self.assertEqualPos(match_expand_terms(root),
+                [P(root, expand_division_terms)])
+
+    def test_expand_multiplication_terms(self):
+        root, expect = tree('log(2x), log x + log 2')
+        self.assertEqual(expand_multiplication_terms(root,
+                         (Scope(root[0]), root[0][1])), expect)
+
+    def test_expand_division_terms(self):
+        root, expect = tree('log(2 / x), log 2 - log x')
+        self.assertEqual(expand_division_terms(root, ()), expect)

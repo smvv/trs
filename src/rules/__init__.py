@@ -22,7 +22,7 @@ from .derivatives import match_zero_derivative, \
         match_goniometric, match_sum_product_rule, match_quotient_rule
 from .logarithmic import match_constant_logarithm, \
         match_add_logarithms, match_raised_base, match_factor_out_exponent, \
-        match_factor_in_multiplicant
+        match_factor_in_multiplicant, match_expand_terms
 from .integrals import match_solve_indef, match_constant_integral, \
         match_integrate_variable_power, match_factor_out_constant, \
         match_division_integral, match_function_integral
@@ -56,7 +56,8 @@ RULES = {
                  match_variable_power, match_const_deriv_multiplication,
                  match_logarithmic, match_goniometric, match_sum_product_rule,
                  match_quotient_rule],
-        OP_LOG: [match_constant_logarithm, match_factor_out_exponent],
+        OP_LOG: [match_constant_logarithm, match_factor_out_exponent,
+                 match_expand_terms],
         OP_INT: [match_integrate_variable_power, match_constant_integral,
                  match_factor_out_constant, match_division_integral,
                  match_function_integral],
