@@ -208,7 +208,7 @@ class TestRulesDerivatives(RulesTestCase):
                  P(root, product_rule, (Scope(f), x))])
 
     def test_match_sum_product_rule_none(self):
-        root = tree('der(x ^ 2 + 2)')
+        root = tree('der(2 + 2)')
         self.assertEqualPos(match_sum_product_rule(root), [])
 
         root = tree('der(x ^ 2 * 2)')

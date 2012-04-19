@@ -340,10 +340,13 @@ def match_sum_product_rule(node):
     x = L(x)
     functions = [n for n in scope if n.contains(x)]
 
-    if len(functions) < 2:
-        return []
+    if node[0].op == OP_MUL:
+        if len(functions) < 2:
+            return []
 
-    handler = sum_rule if node[0].op == OP_ADD else product_rule
+        handler = product_rule
+    else:
+        handler = sum_rule
 
     return [P(node, handler, (scope, f)) for f in functions]
 
