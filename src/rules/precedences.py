@@ -1,8 +1,8 @@
 from .factors import expand_double, expand_single
 from .sort import move_constant
-from .numerics import reduce_fraction_constants
+from .numerics import reduce_fraction_constants, raise_numerics
 from .logarithmic import factor_in_exponent_multiplicant, \
-        factor_out_exponent, raised_base
+        factor_out_exponent, raised_base, factor_out_exponent_important
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator
@@ -35,6 +35,8 @@ RELATIVE = [
 
         # Expand 'single' before 'double' to avoid unnessecary complexity
         (expand_single, expand_double),
+
+        (factor_out_exponent_important, raise_numerics),
         ]
 
 

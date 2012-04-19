@@ -6,7 +6,8 @@ from src.rules.logarithmic import log, match_constant_logarithm, \
         factor_out_exponent, match_factor_in_multiplicant, \
         factor_in_multiplicant, match_expand_terms, \
         expand_multiplication_terms, expand_division_terms, \
-        factor_in_exponent_multiplicant
+        factor_in_exponent_multiplicant, factor_out_exponent_important, \
+        make_raised_base
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -140,6 +141,27 @@ class TestRulesLogarithmic(RulesTestCase):
                 [P(root, split_negative_exponent),
                  P(root, factor_out_exponent)])
 
+    def test_match_factor_out_exponent_important(self):
+        root = tree('log(10 ^ 2)')
+        self.assertEqualPos(match_factor_out_exponent(root),
+                [P(root, factor_out_exponent_important)])
+
+    def test_match_factor_out_exponent_make_raised_base(self):
+        root = tree('log(100)')
+        self.assertEqualPos(match_factor_out_exponent(root),
+                [P(root, make_raised_base, (2,))])
+
+        root = tree('log(1000)')
+        self.assertEqualPos(match_factor_out_exponent(root),
+                [P(root, make_raised_base, (3,))])
+
+        root = tree('log_2(16)')
+        self.assertEqualPos(match_factor_out_exponent(root),
+                [P(root, make_raised_base, (4,))])
+
+        root = tree('log(99)')
+        self.assertEqualPos(match_factor_out_exponent(root), [])
+
     def test_split_negative_exponent(self):
         root, expect = tree('log(a ^ -b), log((a ^ b) ^ -1)')
         self.assertEqual(split_negative_exponent(root, ()), expect)
@@ -147,6 +169,17 @@ class TestRulesLogarithmic(RulesTestCase):
     def test_factor_out_exponent(self):
         ((a, l2), l10) = root = tree('log(a ^ 2)')
         self.assertEqual(factor_out_exponent(root, ()), l2 * log(a))
+
+    def test_make_raised_base(self):
+        root, expect = tree('log(1000), log(10 ^ 3)')
+        self.assertEqual(make_raised_base(root, (3,)), expect)
+
+        root, expect = tree('log_2(64), log_2(2 ^ 4)')
+        self.assertEqual(make_raised_base(root, (4,)), expect)
+
+    def test_factor_out_exponent_important(self):
+        ((a, l2), l10) = root = tree('log(10 ^ 2)')
+        self.assertEqual(factor_out_exponent_important(root, ()), l2 * log(a))
 
     def test_match_factor_in_multiplicant(self):
         (l2, log_3) = root = tree('2log(3)')

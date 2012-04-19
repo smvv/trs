@@ -1,4 +1,5 @@
 from itertools import combinations, product, ifilterfalse
+import math
 
 from .utils import find_variables, partition, divides, is_numeric_node
 from ..node import ExpressionLeaf as L, OP_LOG, OP_ADD, OP_MUL, OP_POW, \
@@ -219,18 +220,29 @@ def match_factor_out_exponent(node):
     This match simplifies a power with a variable in it to a multiplication:
     log(a ^ b)   ->  blog(a)
     log(a ^ -b)  ->  log((a ^ b) ^ -1)  # =>*  -log(a ^ b)
+    log(b, a) and a ** y = b with y in Z  ->  log(a ^ y, a)  # =>* y
     """
     assert node.is_op(OP_LOG)
 
     p = []
+    exp, base = node
 
-    if node[0].is_power():
-        a, b = node[0]
+    if exp.is_power():
+        a, b = exp
 
         if b.negated:
             p.append(P(node, split_negative_exponent))
 
-        p.append(P(node, factor_out_exponent))
+        if a == base:
+            p.append(P(node, factor_out_exponent_important))
+        else:
+            p.append(P(node, factor_out_exponent))
+    elif exp.is_numeric() and not exp.negated:
+        b, a = exp.value, base.value
+        y = int(round(math.log(b, a)))
+
+        if b == a ** y:
+            p.append(P(node, make_raised_base, (y,)))
 
     return p
 
@@ -257,7 +269,27 @@ def factor_out_exponent(root, args):
     return b * log(a, base=base)
 
 
-MESSAGES[factor_out_exponent] = _('Factor out exponent {0[0][0]} from {0}.')
+MESSAGES[factor_out_exponent] = _('Factor out exponent {0[0][1]} from {0}.')
+
+
+def factor_out_exponent_important(root, args):
+    return factor_out_exponent(root, args)
+
+
+MESSAGES[factor_out_exponent_important] = MESSAGES[factor_out_exponent]
+
+
+def make_raised_base(root, args):
+    """
+    log(b, a) and b ** y = a with y in Z  ->  log(a ^ y, a)  # =>* y
+    """
+    exp, base = root
+    y = L(args[0])
+
+    return log(base.clone() ** y, base=base).negate(root.negated)
+
+
+MESSAGES[make_raised_base] = _('Write {0[0]} as a power of {0[1]}.')
 
 
 def match_factor_in_multiplicant(node):
