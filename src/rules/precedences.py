@@ -9,6 +9,7 @@ from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
 from .fractions import multiply_with_fraction
 from .integrals import factor_out_constant
+from .powers import remove_power_of_one
 
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
@@ -62,4 +63,5 @@ IMPLICIT_RULES = [
         multiply_zero,
         negated_zero,
         remove_zero,
+        remove_power_of_one,
         ]
