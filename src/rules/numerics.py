@@ -69,17 +69,6 @@ def add_numerics(root, args):
 MESSAGES[add_numerics] = _('Add the constants {2} and {3}.')
 
 
-#def match_subtract_numerics(node):
-#    """
-#    3 - 2      ->  2.0
-#    3.0 - 2    ->  1.0
-#    3 - 2.0    ->  1.0
-#    3.0 - 2.0  ->  1.0
-#    """
-#    # TODO: This should be handled by match_combine_polynomes
-#    assert node.is_op(OP_MUL)
-
-
 def match_divide_numerics(node):
     """
     Combine two constants to a single constant in a division, if it does not
