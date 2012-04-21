@@ -8,7 +8,7 @@ from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
 from .fractions import multiply_with_fraction
-from .integrals import factor_out_constant
+from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 
 
@@ -24,9 +24,9 @@ HIGH = [
 # list itself are compared by their position in the list: lower in the list
 # means lower priority
 LOW = [
-        move_constant,
-        reduce_fraction_constants,
         factor_in_exponent_multiplicant,
+        reduce_fraction_constants,
+        move_constant,
         ]
 
 
@@ -43,7 +43,11 @@ RELATIVE = [
 
         (factor_out_exponent_important, raise_numerics),
 
-        (factor_out_constant, multiply_with_fraction)
+        (factor_out_constant, multiply_with_fraction),
+
+        # int x dx  ->  int x ^ 1 dx  # do not remove power of one that has
+        #                             # deliberately been inserted
+        (integrate_variable_root, remove_power_of_one),
         ]
 
 
