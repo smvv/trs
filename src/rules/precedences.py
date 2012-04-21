@@ -56,7 +56,7 @@ HIGH = dict([(h, i) for i, h in enumerate(HIGH)])
 LOW = dict([(h, i) for i, h in enumerate(LOW)])
 
 
-# List of implicit rules. Implicit rules are condidererd trivial and are
+# List of implicit rules. Implicit rules are considered trivial and are
 # therefore not printed in verbose rewrite_all mode
 IMPLICIT_RULES = [
         negated_factor,
