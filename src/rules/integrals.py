@@ -1,6 +1,7 @@
 from .utils import find_variables, substitute, find_variable
 from ..node import ExpressionLeaf as L, OP_INT, OP_INT_INDEF, OP_MUL, OP_DIV, \
-        OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, indef, absolute
+        OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, indef, \
+        absolute, OP_ADD
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -307,3 +308,36 @@ def cosinus_integral(root, args):
 
 MESSAGES[cosinus_integral] = \
         _('{0[0]} has the standard anti-derivative sin({0[0][0]}) + c.')
+
+
+def match_sum_rule_integral(node):
+    """
+    int f(x) + g(x) dx  ->  int f(x) dx + int g(x) dx
+    """
+    assert node.is_op(OP_INT)
+
+    if not node[0].is_op(OP_ADD):
+        return []
+
+    p = []
+    scope = Scope(node[0])
+
+    if len(scope) == 2:
+        return [P(node, sum_rule_integral, (scope, scope[0]))]
+
+    return [P(node, sum_rule_integral, (scope, n)) for n in scope]
+
+
+def sum_rule_integral(root, args):
+    """
+    int f(x) + g(x) dx  ->  int f(x) dx + int g(x) dx
+    """
+    scope, f = args
+    x = root[1]
+    scope.remove(f)
+    addition = integral(f, x) + integral(scope.as_nary_node(), x)
+
+    return addition.negate(root.negated)
+
+
+MESSAGES[sum_rule_integral] = _('Apply the sum rule to {0}.')

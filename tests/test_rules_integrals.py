@@ -5,7 +5,8 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         match_factor_out_constant, split_negation_to_constant, \
         factor_out_constant, match_division_integral, division_integral, \
         extend_division_integral, match_function_integral, \
-        logarithm_integral, sinus_integral, cosinus_integral
+        logarithm_integral, sinus_integral, cosinus_integral, \
+        match_sum_rule_integral, sum_rule_integral
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -158,3 +159,23 @@ class TestRulesIntegrals(RulesTestCase):
     def test_cosinus_integral(self):
         root, expect = tree('int cos x, sin x + c')
         self.assertEqual(cosinus_integral(root, ()), expect)
+
+    def test_match_sum_rule_integral(self):
+        (f, g), x = root = tree('int 2x + 3x dx')
+        self.assertEqualPos(match_sum_rule_integral(root),
+                [P(root, sum_rule_integral, (Scope(root[0]), f))])
+
+        ((f, g), h), x = root = tree('int 2x + 3x + 4x dx')
+        self.assertEqualPos(match_sum_rule_integral(root),
+                [P(root, sum_rule_integral, (Scope(root[0]), f)),
+                 P(root, sum_rule_integral, (Scope(root[0]), g)),
+                 P(root, sum_rule_integral, (Scope(root[0]), h))])
+
+    def test_sum_rule_integral(self):
+        ((f, g), h), x = root = tree('int 2x + 3x + 4x dx')
+        self.assertEqual(sum_rule_integral(root, (Scope(root[0]), f)),
+                         tree('int 2x dx + int 3x + 4x dx'))
+        self.assertEqual(sum_rule_integral(root, (Scope(root[0]), g)),
+                         tree('int 3x dx + int 2x + 4x dx'))
+        self.assertEqual(sum_rule_integral(root, (Scope(root[0]), h)),
+                         tree('int 4x dx + int 2x + 3x dx'))
