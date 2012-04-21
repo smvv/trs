@@ -13,6 +13,10 @@ def compare_possibilities(a, b):
     (pa, da), (pb, db) = a, b
     ha, hb = pa.handler, pb.handler
 
+    # Equal handlers means equal precedences
+    if ha == hb:
+        return 0
+
     # Check if A and B have a precedence relative to eachother
     if (ha, hb) in RELATIVE:
         return -1
