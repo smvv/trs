@@ -114,7 +114,3 @@ Division of 0 by 1 reduces to 0.
 
  - Parser:
    + add unit tests for operator associativity (derivatives/integrals).
-
- - Add sum rule for integrals.
-
- - [x^3/3 + c]_2^4  ->  [x^3/3]_2^4  # Remove all 'constant' variables before substitution
