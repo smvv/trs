@@ -6,7 +6,8 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         factor_out_constant, match_division_integral, division_integral, \
         extend_division_integral, match_function_integral, \
         logarithm_integral, sinus_integral, cosinus_integral, \
-        match_sum_rule_integral, sum_rule_integral
+        match_sum_rule_integral, sum_rule_integral, \
+        match_remove_indef_constant, remove_indef_constant
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -179,3 +180,19 @@ class TestRulesIntegrals(RulesTestCase):
                          tree('int 3x dx + int 2x + 4x dx'))
         self.assertEqual(sum_rule_integral(root, (Scope(root[0]), h)),
                          tree('int 4x dx + int 2x + 3x dx'))
+
+    def test_match_remove_indef_constant(self):
+        Fx, a, b = root = tree('[2x + c]_a^b')
+        self.assertEqualPos(match_remove_indef_constant(root),
+                [P(root, remove_indef_constant, (Scope(Fx), Fx[1]))])
+
+        Fx, a, b = root = tree('[2x + x]_a^b')
+        self.assertEqualPos(match_remove_indef_constant(root), [])
+
+        Fx, a, b = root = tree('[2x]_a^b')
+        self.assertEqualPos(match_remove_indef_constant(root), [])
+
+    def test_remove_indef_constant(self):
+        root, e = tree('[2x + c]_a^b, [2x]_a^b')
+        Fx = root[0]
+        self.assertEqual(remove_indef_constant(root, (Scope(Fx), Fx[1])), e)

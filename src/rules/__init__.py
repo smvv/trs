@@ -26,7 +26,7 @@ from .logarithmic import match_constant_logarithm, \
 from .integrals import match_solve_indef, match_constant_integral, \
         match_integrate_variable_power, match_factor_out_constant, \
         match_division_integral, match_function_integral, \
-        match_sum_rule_integral
+        match_sum_rule_integral, match_remove_indef_constant
 from .lineq import match_move_term
 from .absolute import match_factor_out_abs_term
 
@@ -62,7 +62,7 @@ RULES = {
         OP_INT: [match_integrate_variable_power, match_constant_integral,
                  match_factor_out_constant, match_division_integral,
                  match_function_integral, match_sum_rule_integral],
-        OP_INT_INDEF: [match_solve_indef],
+        OP_INT_INDEF: [match_remove_indef_constant, match_solve_indef],
         OP_EQ: [match_move_term],
         OP_ABS: [match_factor_out_abs_term],
         }

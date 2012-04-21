@@ -319,7 +319,6 @@ def match_sum_rule_integral(node):
     if not node[0].is_op(OP_ADD):
         return []
 
-    p = []
     scope = Scope(node[0])
 
     if len(scope) == 2:
@@ -341,3 +340,35 @@ def sum_rule_integral(root, args):
 
 
 MESSAGES[sum_rule_integral] = _('Apply the sum rule to {0}.')
+
+
+def match_remove_indef_constant(node):
+    """
+    [f(x) + c]_a^b  ->  [f(x)]_a^b
+    """
+    assert node.is_op(OP_INT_INDEF)
+
+    if not node[0].is_op(OP_ADD):
+        return []
+
+    scope = Scope(node[0])
+    x = find_variable(node[0])
+    constants = [n for n in scope if not n.contains(x)]
+
+    return [P(node, remove_indef_constant, (scope, c)) for c in constants]
+
+
+def remove_indef_constant(root, args):
+    """
+    [f(x) + c]_a^b  ->  [f(x)]_a^b
+    """
+    scope, c = args
+    scope.remove(c)
+    Fx = scope.as_nary_node()
+    a, b = root[1:]
+
+    return indef(Fx, a, b)
+
+
+MESSAGES[remove_indef_constant] = \
+        _('Remove constant {2} from indefinite integral.')
