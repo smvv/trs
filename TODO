@@ -114,3 +114,9 @@ Division of 0 by 1 reduces to 0.
 
  - Parser:
    + add unit tests for operator associativity (derivatives/integrals).
+
+ - Modules:
+   + Equations with substitution
+   + Sqrt
+   + Sort
+   + Gonio
