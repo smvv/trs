@@ -319,7 +319,7 @@ class Parser(BisonParser):
             i += 1
 
             if i > 100:
-                lines.append('Too many rewrite steps, aborting...')
+                print 'Too many rewrite steps, aborting...'
                 break
 
         if not verbose or not i:
