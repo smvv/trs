@@ -1,7 +1,7 @@
 from .factors import expand_double, expand_single
 from .sort import move_constant
 from .numerics import multiply_one, multiply_zero, reduce_fraction_constants, \
-        raise_numerics, remove_zero
+        raise_numerics, remove_zero, multiply_numerics
 from .logarithmic import factor_in_exponent_multiplicant, \
         factor_out_exponent, raised_base, factor_out_exponent_important
 from .derivatives import chain_rule
@@ -10,6 +10,7 @@ from .negation import double_negation, negated_factor, negated_nominator, \
 from .fractions import multiply_with_fraction
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
+from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
 
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
@@ -48,6 +49,13 @@ RELATIVE = [
         # int x dx  ->  int x ^ 1 dx  # do not remove power of one that has
         #                             # deliberately been inserted
         (integrate_variable_root, remove_power_of_one),
+
+        # When simplifying square roots, bring numeric quadrants out of the
+        # root first
+        (extract_sqrt_mult_priority, multiply_numerics),
+
+        # sqrt(2 ^ 2)  ->  2  # not sqrt 4
+        (quadrant_sqrt, raise_numerics),
         ]
 
 
