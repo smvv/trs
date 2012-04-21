@@ -1,8 +1,8 @@
 from itertools import combinations
 
 from .utils import greatest_common_divisor
-from ..node import ExpressionLeaf as Leaf, Scope, negate, OP_ADD, OP_DIV, \
-        OP_MUL, OP_POW
+from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_DIV, OP_MUL, \
+        OP_POW
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
