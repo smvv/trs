@@ -1,6 +1,6 @@
 from itertools import combinations
 
-from .utils import greatest_common_divisor
+from .utils import greatest_common_divisor, is_numeric_node
 from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_DIV, OP_MUL, \
         OP_POW
 from ..possibilities import Possibility as P, MESSAGES
@@ -195,7 +195,7 @@ def match_multiply_numerics(node):
 
     p = []
     scope = Scope(node)
-    numerics = filter(lambda n: n.is_numeric(), scope)
+    numerics = filter(is_numeric_node, scope)
 
     for n in numerics:
         if n.negated:

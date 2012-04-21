@@ -1,4 +1,4 @@
-from src.rules.derivatives import der, get_derivation_variable, \
+from src.rules.derivatives import get_derivation_variable, \
         match_zero_derivative, match_one_derivative, one_derivative, \
         zero_derivative, match_variable_power, variable_root, \
         variable_exponent, match_const_deriv_multiplication, \
@@ -6,7 +6,7 @@ from src.rules.derivatives import der, get_derivation_variable, \
         logarithmic, match_goniometric, sinus, cosinus, tangens, \
         match_sum_product_rule, sum_rule, product_rule, match_quotient_rule, \
         quotient_rule, power_rule
-from src.node import Scope, sin, cos, ln
+from src.node import Scope, sin, cos, ln, der
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
