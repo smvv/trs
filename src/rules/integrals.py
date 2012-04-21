@@ -8,13 +8,15 @@ from ..translate import _
 def choose_constant(integral):
     """
     Choose a constant to be added to the antiderivative.
+    Start at 'c', then alphabetically from 'a' until an variable is encountered
+    that is not occupied in the integral already.
     """
-    # TODO: comments
     occupied = find_variables(integral)
     c = 'c'
     i = 96
 
     while c in occupied:
+        # Skip 'c'
         i += 2 if i == 98 else 1
         c = chr(i)
 
