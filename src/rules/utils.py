@@ -135,6 +135,47 @@ def divides(m, n):
     return not divmod(n, m)[1]
 
 
+def dividers(n):
+    """
+    Find all integers that divide n, except for 1.
+    """
+    def m_dividers(m):
+        result, rest = divmod(n, m)
+
+        if not rest:
+            return [m, result] if m != result else [m]
+
+    below_sqrt = filter(None, map(m_dividers, xrange(2, int(n ** .5) + 1)))
+    div = reduce(lambda a, b: a + b, below_sqrt, [])
+    div.sort()
+
+    return div
+
+
+def is_prime(n):
+    """
+    Check if n is a prime.
+    """
+    if n == 2:
+        return True
+
+    if n < 2 or not n & 1:
+        return False
+
+    for i in xrange(3, int(n ** .5) + 1, 2):
+        if not divmod(n, i)[1]:
+            return False
+
+    return True
+
+
+def prime_dividers(n):
+    """
+    Find all primes that divide n.
+    """
+    return filter(is_prime, dividers(n))
+
+
 def is_numeric_node(node):
     """
     Check if a node is numeric.

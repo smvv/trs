@@ -1,7 +1,7 @@
 from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
         find_variables, first_sorted_variable, find_variable, substitute, \
-        divides, evals_to_numeric
+        divides, dividers, is_prime, prime_dividers, evals_to_numeric
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -65,6 +65,32 @@ class TestRulesUtils(RulesTestCase):
         self.assertTrue(divides(7, 21))
         self.assertFalse(divides(4, 2))
         self.assertFalse(divides(2, 3))
+
+    def test_dividers(self):
+        self.assertEqual(dividers(1), [])
+        self.assertEqual(dividers(2), [])
+        self.assertEqual(dividers(4), [2])
+        self.assertEqual(dividers(6), [2, 3])
+        self.assertEqual(dividers(10), [2, 5])
+        self.assertEqual(dividers(21), [3, 7])
+        self.assertEqual(dividers(20), [2, 4, 5, 10])
+        self.assertEqual(dividers(1000000), [2, 4, 5, 8, 10, 16, 20, 25, 32,
+            40, 50, 64, 80, 100, 125, 160, 200, 250, 320, 400, 500, 625, 800,
+            1000, 1250, 1600, 2000, 2500, 3125, 4000, 5000, 6250, 8000, 10000,
+            12500, 15625, 20000, 25000, 31250, 40000, 50000, 62500, 100000,
+            125000, 200000, 250000, 500000])
+
+    def test_is_prime(self):
+        self.assertFalse(is_prime(1))
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+        self.assertFalse(is_prime(6))
+        self.assertTrue(is_prime(19))
+        self.assertTrue(is_prime(43))
+
+    def test_prime_dividers(self):
+        self.assertEqual(prime_dividers(6), [2, 3])
+        self.assertEqual(prime_dividers(20), [2, 5])
 
     def test_evals_to_numeric(self):
         self.assertTrue(evals_to_numeric(tree('1')))
