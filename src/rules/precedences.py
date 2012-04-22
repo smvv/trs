@@ -1,12 +1,12 @@
 from .factors import expand_double, expand_single
 from .sort import move_constant
 from .numerics import multiply_one, multiply_zero, reduce_fraction_constants, \
-        raise_numerics, remove_zero, multiply_numerics
+        raise_numerics, remove_zero, multiply_numerics, add_numerics
 from .logarithmic import factor_in_exponent_multiplicant, \
         factor_out_exponent, raised_base, factor_out_exponent_important
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
-        negated_denominator, negated_zero
+        negated_denominator, negated_zero, negated_factor
 from .fractions import multiply_with_fraction
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
@@ -76,4 +76,7 @@ IMPLICIT_RULES = [
         negated_zero,
         remove_zero,
         remove_power_of_one,
+        negated_factor,
+        multiply_numerics,
+        add_numerics,
         ]
