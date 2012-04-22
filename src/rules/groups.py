@@ -79,5 +79,4 @@ def combine_groups(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[combine_groups] = \
-        _('Group "{3}" is multiplied by {2} and {5}, combine them.')
+MESSAGES[combine_groups] = _('Combine occurences of {3}.')
