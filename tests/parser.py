@@ -110,7 +110,9 @@ def apply_expressions(base_class, expressions, fail=True, silent=False,
     for exp, times, out in expressions:
         res = None
         try:
-            res = parser.run([exp] + list('@' * times))
+            parser.run([exp])
+            parser.parser.rewrite(check_implicit=False)
+            res = parser.parser.root_node
             assert res == out
         except:  # pragma: nocover
             if not silent:
