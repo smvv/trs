@@ -292,9 +292,16 @@ class Parser(BisonParser):
             self.find_possibilities()
 
             while self.possibilities:
-                sugg = self.possibilities[0]
+                # Find the first implicit possibliity in the list
+                # FIXME: Is it smart to apply a rule that is not a hint?
+                sugg = None
 
-                if sugg.handler not in IMPLICIT_RULES:
+                for pos in self.possibilities:
+                    if pos.handler in IMPLICIT_RULES:
+                        sugg = pos
+                        break
+
+                if not sugg:
                     break
 
                 if self.verbose:
