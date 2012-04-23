@@ -44,6 +44,7 @@ body {
     height: 388px;
     overflow-y: visible;
     font: 16px/24px Verdana, Arial, sans;
+    outline: 0;
 }
 
 .box {
