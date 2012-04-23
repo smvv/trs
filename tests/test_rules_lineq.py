@@ -1,6 +1,5 @@
 from src.rules.lineq import match_move_term, swap_sides, subtract_term, \
         divide_term, multiply_term, split_absolute_equation
-from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 

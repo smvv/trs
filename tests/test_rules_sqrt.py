@@ -1,7 +1,7 @@
 from src.rules.sqrt import is_eliminateable_sqrt, match_reduce_sqrt, \
         quadrant_sqrt, constant_sqrt, split_dividers, \
         extract_sqrt_multiplicant, extract_sqrt_mult_priority
-from src.node import Scope, sqrt
+from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 

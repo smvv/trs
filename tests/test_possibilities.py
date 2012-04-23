@@ -1,7 +1,6 @@
 import unittest
 
 from src.possibilities import MESSAGES, Possibility as P
-from src.rules.numerics import add_numerics
 from tests.rulestestcase import tree
 
 from src.parser import Parser

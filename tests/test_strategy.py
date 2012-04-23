@@ -1,4 +1,4 @@
-from src.rules.factors import match_expand, expand_double, expand_single
+from src.rules.factors import expand_double, expand_single
 from src.node import Scope
 from src.possibilities import Possibility as P
 from src.strategy import find_possibilities

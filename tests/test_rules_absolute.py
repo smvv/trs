@@ -1,7 +1,7 @@
 from src.rules.absolute import match_factor_out_abs_term, \
         remove_absolute_negation, factor_out_abs_sqrt, absolute_numeric, \
         factor_out_abs_term, factor_out_abs_exponent
-from src.node import ExpressionLeaf as L, Scope
+from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
