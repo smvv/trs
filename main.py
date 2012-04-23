@@ -12,6 +12,7 @@ import os
 
 from src.backend.backend import app
 
+
 def init_readline():
     try:
         import readline
