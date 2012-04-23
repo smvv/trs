@@ -108,13 +108,14 @@
             })(math_lines, real_lines));
         }
 
-        setInterval(function() {
+        window.update_math = function() {
             if (trigger_update) {
                 trigger_update = false;
-                //update_math(input_box.getValue());
                 update_math(input_textarea.val());
             }
-        }, 100);
+        };
+
+        setInterval(window.update_math, 100);
     });
 
     var loader = $('#loader');
@@ -127,23 +128,96 @@
         loader.hide();
     };
 
+    window.append_hint = function(hint) {
+        $('#math div').last().filter('.hint').remove();
+
+        var elem = $('<div class=hint/>');
+        elem.text(hint);
+        $('#math').append(elem);
+    };
+
+    window.append_input = function(input) {
+        input_textarea.val(input_textarea.val() + '\n' + input);
+    };
+
+    window.answer_input = function() {
+        show_loader();
+
+        // TODO: disable input box and enable it when this ajax request is done
+        // (on failure and success).
+        $.post('/answer', {data: input_textarea.val()}, function(response) {
+            if (!response)
+                return;
+
+            if ('steps' in response) {
+                for(i = 0; i < response.steps.length; i++) {
+                    cur = response.steps[i];
+
+                    if ('step' in cur)
+                        window.append_input(cur.step);
+
+                    if('hint' in cur)
+                        window.append_hint(cur.hint);
+
+                    trigger_update = true;
+                    window.update_math();
+                }
+            }
+
+            if('hint' in response)
+                window.append_hint(response.hint);
+
+            input_textarea.focus();
+
+            hide_loader();
+        }, 'json').error(function(e) {
+            console.log('error:', e);
+
+            hide_loader();
+        });
+    };
+
     window.hint_input = function() {
         show_loader();
 
         // TODO: disable input box and enable it when this ajax request is done
         // (on failure and success).
-        //$.post('/hint', {data: input_box.getValue()}, function(response) {
         $.post('/hint', {data: input_textarea.val()}, function(response) {
+            if (!response)
+                return;
+
+            window.append_hint(response.hint);
+
+            input_textarea.focus();
+
+            hide_loader();
+        }, 'json').error(function(e) {
+            console.log('error:', e);
+
+            hide_loader();
+        });
+    };
+
+    window.step_input = function() {
+        show_loader();
+
+        // TODO: disable input box and enable it when this ajax request is done
+        // (on failure and success).
+        $.post('/step', {data: input_textarea.val()}, function(response) {
             if (!response)
                 return;
 
             console.log(response);
 
-            $('#math div').last().filter('.hint').remove();
+            if ('step' in response) {
+                window.append_input(response.step);
+                trigger_update = true;
+            }
 
-            var elem = $('<div class=hint/>');
-            elem.text(response.hint);
-            $('#math').append(elem);
+            if('hint' in response)
+                window.append_hint(response.hint);
+
+            input_textarea.focus();
 
             hide_loader();
         }, 'json').error(function(e) {
@@ -158,15 +232,12 @@
 
         // TODO: disable input box and enable it when this ajax request is done
         // (on failure and success).
-        //$.post('/validate', {data: input_box.getValue()}, function(response) {
         $.post('/validate', {data: input_textarea.val()}, function(response) {
             if (!response)
                 return;
 
             var math_container = $('#math'),
                 math_lines = math_container.find('div.box');
-
-            console.log(response.validated);
 
             var i = 0;
 
