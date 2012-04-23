@@ -7,7 +7,7 @@ from .logarithmic import factor_in_exponent_multiplicant, \
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero, negated_factor
-from .fractions import multiply_with_fraction
+from .fractions import multiply_with_fraction, extract_fraction_terms
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
@@ -56,6 +56,9 @@ RELATIVE = [
 
         # sqrt(2 ^ 2)  ->  2  # not sqrt 4
         (quadrant_sqrt, raise_numerics),
+
+        #
+        (extract_fraction_terms, multiply_numerics),
         ]
 
 

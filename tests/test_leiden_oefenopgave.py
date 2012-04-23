@@ -173,8 +173,8 @@ class TestLeidenOefenopgave(TestCase):
         self.assertRewrite([
             '(7/3)(3/5)',
             '(7 * 3) / (3 * 5)',
-            '21 / (3 * 5)',
-            '21 / 15',
+            '3 / 3 * 7 / 5',
+            '1 * 7 / 5',
             '7 / 5',
         ])
 
