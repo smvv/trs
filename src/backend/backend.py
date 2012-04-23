@@ -37,11 +37,13 @@ class Step(object):
                 response = parser.run([last_line])
 
                 if response:
-                    response = response.rewrite(include_step=True,
+                    response = parser.rewrite(include_step=True,
                             check_implicit=True)
 
                     if response:
-                        return json.dumps({'step': str(response)})
+                        hint, step = response
+                        return json.dumps({'step': str(step),
+                                           'hint': str(hint)})
 
             return json.dumps({'hint': 'No further reduction is possible.'})
         except Exception as e:
@@ -60,12 +62,15 @@ class Answer(object):
                 response = parser.run([last_line])
 
                 if response:
-                    steps = response.rewrite_all(include_step=True)
+                    steps = parser.rewrite_all(include_steps=True)
 
                     if steps:
-                        hints, steps = zip(*steps)
-                        return json.dumps({'hints': map(str, hints),
-                                           'steps': map(str, steps)})
+                        out = []
+
+                        for h, s in steps:
+                            out.append(dict(hint=str(h), step=str(s)))
+
+                        return json.dumps({'steps': out})
 
             return json.dumps({'hint': 'No further reduction is possible.'})
         except Exception as e:
