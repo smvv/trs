@@ -110,6 +110,11 @@ class TestNode(RulesTestCase):
         root, a, b, cd = tree('a * b * -cd, a, b, -cd')
         self.assertEqual(get_scope(root), [a, b, cd])
 
+    def test_get_scope_index(self):
+        self.assertEqual(self.scope.index(self.a), 0)
+        self.assertEqual(self.scope.index(self.b), 1)
+        self.assertEqual(self.scope.index(self.cd), 2)
+
     def test_equals_node_leaf(self):
         a, b = plus = tree('a + b')
 

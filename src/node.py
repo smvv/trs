@@ -572,6 +572,9 @@ class Scope(object):
     def __repr__(self):
         return '<Scope of "%s">' % repr(self.node)
 
+    def index(self, node):
+        return self.nodes.index(node)
+
     def remove(self, node, **kwargs):
         try:
             i = self.nodes.index(node)
