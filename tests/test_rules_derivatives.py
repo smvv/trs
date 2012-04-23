@@ -110,7 +110,7 @@ class TestRulesDerivatives(RulesTestCase):
             "x ^ x * (1ln(x) + x[ln(x)]')",
             "x ^ x * (ln(x) + x[ln(x)]')",
             "x ^ x * (ln(x) + x * 1 / x)",
-            "x ^ x * (ln(x) + (1x) / x)",
+            "x ^ x * (ln(x) + (x * 1) / x)",
             "x ^ x * (ln(x) + x / x)",
             "x ^ x * (ln(x) + 1)",
             "x ^ x * ln(x) + x ^ x * 1",

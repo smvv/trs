@@ -217,12 +217,17 @@ MESSAGES[multiply_fractions] = _('Multiply fractions {2} and {3}.')
 
 def multiply_with_fraction(root, args):
     """
-    a / b * c and a, c in Z or a == 1  ->  ac / b
+    a / b * c and (eval(c) in Z or eval(a / b) not in Z)  ->  (ac) / b
     """
     scope, ab, c = args
     a, b = ab
 
-    scope.replace(ab, (a * c / b).negate(ab.negated))
+    if scope.index(ab) - scope.index(c) < 0:
+        replacement = a * c / b
+    else:
+        replacement = c * a / b
+
+    scope.replace(ab, replacement.negate(ab.negated))
     scope.remove(c)
 
     return scope.as_nary_node()

@@ -60,8 +60,6 @@ Division of 0 by 1 reduces to 0.
 
  - Parser: 'apia' -> 'aa'
 
- - 'x(1 / x)'  ->  '(x * 1) / x'  (currently no left/right check: '1x / x')
-
  - Unit tests for strategy.
 
  - MESSAGES needs to be expanded.
