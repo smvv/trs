@@ -12,6 +12,8 @@ urls = (
     '/math\.py/answer', 'Answer',
 )
 
+app = web.application(urls, globals(), autoreload=True)
+
 
 def get_last_line():
     data = web.input(data='').data
@@ -139,5 +141,4 @@ class validate(object):
 
 
 if __name__ == "__main__":
-    app = web.application(urls, globals(), autoreload=True)
     app.run()
