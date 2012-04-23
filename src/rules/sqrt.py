@@ -1,6 +1,6 @@
 import math
 
-from .utils import greatest_common_divisor, dividers, is_prime
+from .utils import dividers, is_prime
 from ..node import ExpressionLeaf as Leaf, Scope, OP_SQRT, OP_MUL, sqrt
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _

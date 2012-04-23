@@ -6,7 +6,7 @@ from .logarithmic import factor_in_exponent_multiplicant, \
         factor_out_exponent, raised_base, factor_out_exponent_important
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
-        negated_denominator, negated_zero, negated_factor
+        negated_denominator, negated_zero
 from .fractions import multiply_with_fraction, extract_fraction_terms
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
