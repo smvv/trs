@@ -47,13 +47,6 @@ smvv@multivac ~/work/trs $ printf "0/1\n??" | ./main.py
 Division of 0 by 1 reduces to 0.
 Division of 0 by 1 reduces to 0.
 
- - Fractions constant rewrite rules.
-
- - >>> (sin x) ^ 2 + (cos x) ^ 2
-   sin(x) ^ 2 + cos(x) ^ 2
-   >>> sin(x) ^ 2 + cos(x) ^ 2
-   sin(x ^ 2) + cos(x ^ 2)
-
  - ExpressionNode.equals() werkend maken voor alle cases (negatie).
 
  - validation: preorder traversal implementatie vergelijken met andere
