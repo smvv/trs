@@ -294,8 +294,9 @@ class Parser(BisonParser):
             while self.possibilities:
                 # Find the first implicit possibliity in the list
                 # FIXME: Is it smart to apply a rule that is not a hint?
-                # ANSWER: Yes, but there must be an extra list that prevents
-                # deliberately generated implicit rules from being applied
+                # ANSWER: Yes, but there must be something like an extra list
+                # that prevents deliberately generated implicit rules from
+                # being applied
                 #sugg = self.possibilities[0]
 
                 #if sugg.handler not in IMPLICIT_RULES:

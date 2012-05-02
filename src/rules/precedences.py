@@ -12,6 +12,7 @@ from .fractions import multiply_with_fraction, extract_fraction_terms, \
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
+from .lineq import substitute_variable, swap_sides
 
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
@@ -39,7 +40,7 @@ LOW = [
 # higher priority than B. This list ignores occurences in the HIGH or LOW lists
 # above
 RELATIVE = [
-        # Precedences needed for 'power rule'
+        # Precedences needed for 'power rule' (derivative of an exponentiation)
         (chain_rule, raised_base),
         (raised_base, factor_out_exponent),
 
@@ -58,11 +59,15 @@ RELATIVE = [
         # root first
         (extract_sqrt_mult_priority, multiply_numerics),
 
-        # sqrt(2 ^ 2)  ->  2  # not sqrt 4
+        # sqrt(2 ^ 2)  ->  2  # rather than sqrt(4)
         (quadrant_sqrt, raise_numerics),
 
-        #
+        # Prevent cycles that are caused by multiplication reductions when
+        # splitting up fractions
         (extract_fraction_terms, multiply_numerics),
+
+        # Prevent useless swapping when solving multiple equations
+        (substitute_variable, swap_sides),
         ]
 
 
@@ -84,6 +89,5 @@ IMPLICIT_RULES = [
         remove_zero,
         remove_power_of_one,
         negated_factor,
-        multiply_numerics,
         add_numerics,
         ]

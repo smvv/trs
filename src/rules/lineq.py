@@ -1,6 +1,8 @@
-from .utils import find_variable, evals_to_numeric
+from itertools import permutations
+
+from .utils import find_variable, evals_to_numeric, substitute
 from ..node import ExpressionLeaf as L, Scope, OP_EQ, OP_ADD, OP_MUL, OP_DIV, \
-        eq, OP_ABS
+        eq, OP_ABS, OP_AND
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -148,3 +150,47 @@ def split_absolute_equation(root, args):
 
 MESSAGES[split_absolute_equation] = _('Split absolute equation {0} into a ' \
                                       'negative and a positive equation.')
+
+
+def match_multiple_equations(node):
+    """
+    Multiple equations can be solved using substitution and/or elimination.
+
+    Substitution rule:
+    x = a ^^ f(x) = g(x)  ->  x = a ^^ f(a) = g(a)  # Substitute x with a
+    Substitution example:
+    x = ay + b ^^ cx + dy = e  ->  x = ay + b ^^ c(ay + b) + dy = e
+                             # =>*  x = eval(a * eval((e - bc) / (ca + b)) + b)
+                             #      ^^ y = eval((e - bc) / (ca + b))
+    """
+    assert node.is_op(OP_AND)
+
+    scope = Scope(node)
+    equations = filter(lambda exp: exp.is_op(OP_EQ), scope)
+    p = []
+
+    if len(equations) < 2:
+        return p
+
+    for eq0, eq1 in permutations(equations, 2):
+        x, subs = eq0
+
+        # Substitution rule
+        if x.is_variable() and eq1.contains(x):
+            p.append(P(node, substitute_variable, (scope, x, subs, eq1)))
+
+    return p
+
+
+def substitute_variable(root, args):
+    """
+    Substitution rule:
+    x = a ^^ f(x) = g(x)  ->  x = a ^^ f(a) = g(a)  # Substitute x with a
+    """
+    scope, x, subs, eq = args
+    scope.replace(eq, substitute(eq, x, subs))
+
+    return scope.as_nary_node()
+
+
+MESSAGES[substitute_variable] = _('Substitute {2} with {3} in {4}.')

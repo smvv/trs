@@ -1,5 +1,7 @@
 from src.rules.lineq import match_move_term, swap_sides, subtract_term, \
-        divide_term, multiply_term, split_absolute_equation
+        divide_term, multiply_term, split_absolute_equation, \
+        match_multiple_equations, substitute_variable
+from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
@@ -107,3 +109,15 @@ class TestRulesLineq(RulesTestCase):
             'x = -a * 1',
             'x = -a',
         ])
+
+    def test_match_multiple_equations(self):
+        eq0, eq1 = root = tree('x = 2 ^^ ay + x = 3')
+        x = eq0[0]
+        self.assertEqualPos(match_multiple_equations(root),
+                [P(root, substitute_variable, (Scope(root), x, 2, eq1))])
+
+    def test_substitute_variable(self):
+        root, expect = tree('x = 2 ^^ ay + x = 3, x = 2 ^^ ay + 2 = 3')
+        (x, l2), eq = root
+        self.assertEqual(substitute_variable(root, ((Scope(root), x, l2, eq))),
+                         expect)
