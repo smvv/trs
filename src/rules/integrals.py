@@ -67,7 +67,12 @@ def solve_indef(root, args):
     return substitute(Fx, x, b) - substitute(Fx, x, a)
 
 
-MESSAGES[solve_indef] = _('Solve indefinite integral {0} using substitution.')
+def solve_indef_msg(root, args):
+    return _('Solve indefinite integral {0} using substitution ' \
+             'of %s with {0[2]} and {0[1]}.' % find_variable(root[0]))
+
+
+MESSAGES[solve_indef] = solve_indef_msg
 
 
 def match_integrate_variable_power(node):
@@ -100,8 +105,8 @@ def integrate_variable_root(root, args):
     return solve_integral(root, L(1) / (n + 1) * x ** (n + 1))
 
 
-MESSAGES[integrate_variable_root] = \
-        _('Apply standard integral int(x ^ n) = x ^ (n + 1) / (n + 1) + c.')
+MESSAGES[integrate_variable_root] = _('Apply standard integral ' \
+        'int(x ^ n) = 1 / (n + 1) * x ^ (n + 1) + c.')
 
 
 def integrate_variable_exponent(root, args):
