@@ -58,6 +58,8 @@ class TestRulesUtils(RulesTestCase):
         self.assertEqual(substitute(tree('x2'), x, a), tree('a2'))
         self.assertEqual(substitute(tree('y + x + 1'), x, a),
                          tree('y + a + 1'))
+        self.assertEqual(substitute(tree('1 - 2x'), x, a),
+                         tree('1 - 2a'))
 
     def test_divides(self):
         self.assertTrue(divides(3, 3))

@@ -125,7 +125,7 @@ def substitute(f, x, replacement):
 
     children = map(lambda c: substitute(c, x, replacement), f)
 
-    return N(f.op, *children)
+    return N(f.op, *children, negated=f.negated)
 
 
 def divides(m, n):

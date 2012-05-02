@@ -32,7 +32,7 @@ OP_AND = 9
 OP_OR = 10
 
 # Binary operators that are considered n-ary
-NARY_OPERATORS = [OP_ADD, OP_SUB, OP_MUL]
+NARY_OPERATORS = [OP_ADD, OP_SUB, OP_MUL, OP_AND, OP_OR]
 
 # N-ary (functions)
 OP_INT = 11
@@ -139,9 +139,6 @@ def to_expression(obj):
 
 
 class ExpressionBase(object):
-    def __init__(self, *args, **kwargs):
-        self.negated = 0
-
     def __lt__(self, other):
         """
         Comparison between this expression{node,leaf} and another
