@@ -1,8 +1,8 @@
-from itertools import permutations
+from itertools import permutations, combinations
 
 from .utils import find_variable, evals_to_numeric, substitute
 from ..node import ExpressionLeaf as L, Scope, OP_EQ, OP_ADD, OP_MUL, OP_DIV, \
-        eq, OP_ABS, OP_AND
+        eq, OP_ABS, OP_AND, OP_OR
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -194,3 +194,34 @@ def substitute_variable(root, args):
 
 
 MESSAGES[substitute_variable] = _('Substitute {2} with {3} in {4}.')
+
+
+def match_double_case(node):
+    """
+    a ^^ a  ->  a
+    a vv a  ->  a
+    """
+    assert node.is_op(OP_AND, OP_OR)
+
+    scope = Scope(node)
+    p = []
+
+    for a, b in combinations(scope, 2):
+        if a == b:
+            p.append(P(node, double_case, (scope, a, b)))
+
+    return p
+
+
+def double_case(root, args):
+    """
+    a ^^ a  ->  a
+    a vv a  ->  a
+    """
+    scope, a, b = args
+    scope.remove(b)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[double_case] = _('Remove double occurence of {2}.')

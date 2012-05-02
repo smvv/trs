@@ -1,6 +1,6 @@
 from ..node import OP_ADD, OP_MUL, OP_DIV, OP_POW, OP_NEG, OP_SIN, OP_COS, \
         OP_TAN, OP_DER, OP_LOG, OP_INT, OP_INT_INDEF, OP_EQ, OP_ABS, OP_SQRT, \
-        OP_AND
+        OP_AND, OP_OR
 from .groups import match_combine_groups
 from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
@@ -28,7 +28,7 @@ from .integrals import match_solve_indef, match_constant_integral, \
         match_integrate_variable_power, match_factor_out_constant, \
         match_division_integral, match_function_integral, \
         match_sum_rule_integral, match_remove_indef_constant
-from .lineq import match_move_term, match_multiple_equations
+from .lineq import match_move_term, match_multiple_equations, match_double_case
 from .absolute import match_factor_out_abs_term
 from .sqrt import match_reduce_sqrt
 
@@ -68,5 +68,6 @@ RULES = {
         OP_EQ: [match_move_term],
         OP_ABS: [match_factor_out_abs_term],
         OP_SQRT: [match_reduce_sqrt],
-        OP_AND: [match_multiple_equations],
+        OP_AND: [match_multiple_equations, match_double_case],
+        OP_OR: [match_double_case],
         }

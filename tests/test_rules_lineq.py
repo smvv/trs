@@ -1,6 +1,7 @@
 from src.rules.lineq import match_move_term, swap_sides, subtract_term, \
         divide_term, multiply_term, split_absolute_equation, \
-        match_multiple_equations, substitute_variable
+        match_multiple_equations, substitute_variable, match_double_case, \
+        double_case
 from src.node import Scope
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -116,8 +117,26 @@ class TestRulesLineq(RulesTestCase):
         self.assertEqualPos(match_multiple_equations(root),
                 [P(root, substitute_variable, (Scope(root), x, 2, eq1))])
 
+        root = tree('x + y = 2 ^^ ay + x = 3')
+        self.assertEqualPos(match_multiple_equations(root), [])
+
+        root = tree('x + y ^^ ay + x = 3')
+        self.assertEqualPos(match_multiple_equations(root), [])
+
     def test_substitute_variable(self):
         root, expect = tree('x = 2 ^^ ay + x = 3, x = 2 ^^ ay + 2 = 3')
         (x, l2), eq = root
         self.assertEqual(substitute_variable(root, ((Scope(root), x, l2, eq))),
                          expect)
+
+    def test_match_double_case(self):
+        a, b = root = tree('x = 2 vv x = 2')
+        self.assertEqualPos(match_double_case(root),
+                [P(root, double_case, (Scope(root), a, b))])
+
+        root = tree('x = 2 vv x = -2')
+        self.assertEqualPos(match_double_case(root), [])
+
+    def test_double_case(self):
+        a, b = root = tree('x = 2 vv x = 2, x = 2')
+        self.assertEqual(double_case(root, (Scope(root), a, b)), a)
