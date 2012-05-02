@@ -98,7 +98,7 @@ def subtract_term(root, args):
     return eq(left - term, right - term)
 
 
-def subtract_term_msg(root, args):
+def subtract_term_msg(root, args):  # pragma: nocover
     term = args[0]
 
     if term.negated == 1:

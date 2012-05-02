@@ -67,7 +67,7 @@ def solve_indef(root, args):
     return substitute(Fx, x, b) - substitute(Fx, x, a)
 
 
-def solve_indef_msg(root, args):
+def solve_indef_msg(root, args):  # pragma: nocover
     return _('Solve indefinite integral {0} using substitution ' \
              'of %s with {0[2]} and {0[1]}.' % find_variable(root[0]))
 
