@@ -43,7 +43,7 @@ def division_by_one(root, args):
     """
     a / 1  ->  a
     """
-    return args[0]
+    return args[0].negate(root.negated)
 
 
 MESSAGES[division_by_one] = _('Division by 1 yields the nominator.')
@@ -53,7 +53,7 @@ def division_of_zero(root, args):
     """
     0 / a  ->  0
     """
-    return L(0)
+    return L(0, negated=root.negated)
 
 
 MESSAGES[division_of_zero] = _('Division of 0 by {1} reduces to 0.')
@@ -63,7 +63,7 @@ def division_by_self(root, args):
     """
     a / a  ->  1
     """
-    return L(1)
+    return L(1, negated=root.negated)
 
 
 MESSAGES[division_by_self] = _('Division of {1} by itself reduces to 1.')
