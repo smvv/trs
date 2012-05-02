@@ -98,7 +98,16 @@ def subtract_term(root, args):
     return eq(left - term, right - term)
 
 
-MESSAGES[subtract_term] = _('Subtract {1} from both sides of the equation.')
+def subtract_term_msg(root, args):
+    term = args[0]
+
+    if term.negated == 1:
+        return _('Add %s to both sides of the equation.' % +term)
+
+    return _('Subtract {1} from both sides of the equation.')
+
+
+MESSAGES[subtract_term] = subtract_term_msg
 
 
 def divide_term(root, args):

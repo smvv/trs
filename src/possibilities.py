@@ -16,7 +16,12 @@ class Possibility(object):
 
     def __str__(self):
         if self.handler in MESSAGES:
-            return MESSAGES[self.handler].format(self.root, *self.args)
+            msg = MESSAGES[self.handler]
+
+            if callable(msg):
+                msg = msg(self.root, self.args)
+
+            return msg.format(self.root, *self.args)
 
         return repr(self)
 
