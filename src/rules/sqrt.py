@@ -7,6 +7,10 @@ from ..translate import _
 
 
 def is_eliminateable_sqrt(n):
+    """
+    Check if the square root of n can be evaluated so that the square root
+    disappears (is eliminated).
+    """
     if isinstance(n, int):
         return n > 3 and int(math.sqrt(n)) ** 2 == n
 
@@ -99,7 +103,7 @@ MESSAGES[split_dividers] = _('Write {0[0]} as {1} * {2} to so that {1} can ' \
 
 def extract_sqrt_multiplicant(root, args):
     """
-    sqrt(ab)     ->  sqrt(a)sqrt(b)
+    sqrt(ab)  ->  sqrt(a)sqrt(b)
     """
     scope, a = args
     scope.remove(a)
