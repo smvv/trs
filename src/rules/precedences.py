@@ -7,7 +7,8 @@ from .logarithmic import factor_in_exponent_multiplicant, \
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
-from .fractions import multiply_with_fraction, extract_fraction_terms
+from .fractions import multiply_with_fraction, extract_fraction_terms, \
+        add_nominators
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
@@ -18,6 +19,9 @@ from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
 # means lower priority
 HIGH = [
         raised_base,
+
+        # 4 / 4 + 1 / 4 -> 5 / 4 instead of 1 + 1/4
+        add_nominators,
         ]
 
 
@@ -32,7 +36,7 @@ LOW = [
 
 
 # Fucntion precedences relative to eachother. Tuple (A, B) means that A has a
-# higer priority than B. This list ignores occurences in the HIGH or LOW lists
+# higher priority than B. This list ignores occurences in the HIGH or LOW lists
 # above
 RELATIVE = [
         # Precedences needed for 'power rule'
