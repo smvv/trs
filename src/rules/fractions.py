@@ -74,7 +74,7 @@ def match_add_fractions(node):
     a / b + c / b and a, c in Z        ->  (a + c) / b
     a / b + c / d and a, b, c, d in Z  ->  a' / e + c' / e  # e = lcm(b, d)
                                                             # | e = b * d
-    a / b + c and a, b, c in Z         ->  a / b + b / b * c # =>* (a + bc) / b
+    a / b + c and a, b, c in Z         ->  a / b + (bc) / b # =>* (a + bc) / b
     """
     assert node.is_op(OP_ADD)
 
@@ -164,11 +164,11 @@ MESSAGES[equalize_denominators] = \
 
 def constant_to_fraction(root, args):
     """
-    a / b + c and a, b, c in Z  ->  a / b + b / b * c  # =>* (a + bc) / b
+    a / b + c and a, b, c in Z  ->  a / b + (bc) / b  # =>* (a + bc) / b
     """
     scope, ab, c = args
     b = ab[1]
-    scope.replace(c, b / b * c)
+    scope.replace(c, b * c / b)
 
     return scope.as_nary_node()
 

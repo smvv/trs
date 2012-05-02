@@ -140,7 +140,7 @@ class TestRulesFractions(RulesTestCase):
                               (a + -c) / -b)
 
     def test_constant_to_fraction(self):
-        root, e = tree('2 / 3 + 1, 2 / 3 + 3 / 3 * 1')
+        root, e = tree('2 / 3 + 1, 2 / 3 + (3 * 1) / 3')
         l23, l1 = root
         self.assertEqual(constant_to_fraction(root, (Scope(root), l23, l1)), e)
 
