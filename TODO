@@ -72,3 +72,8 @@ Division of 0 by 1 reduces to 0.
    + Equations with substitution
    + Sort
    + Gonio
+
+ - Add parentheses to integral bounds where needed:
+   int_(-1)^2 ... dx
+   or, fix parser error using the following notation:
+   int_-1^2 ... dx
