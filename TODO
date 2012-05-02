@@ -77,3 +77,7 @@ Division of 0 by 1 reduces to 0.
    int_(-1)^2 ... dx
    or, fix parser error using the following notation:
    int_-1^2 ... dx
+
+ - Frontend: implicit rules are applied after expicit ones, but are still
+   printed separately. This yields multiple successive occurences of the same
+   expression.
