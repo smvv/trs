@@ -31,6 +31,9 @@ OP_SUBSCRIPT = 8
 OP_AND = 9
 OP_OR = 10
 
+# Binary operators that are considered n-ary
+NARY_OPERATORS = [OP_ADD, OP_SUB, OP_MUL]
+
 # N-ary (functions)
 OP_INT = 11
 OP_INT_INDEF = 12
@@ -200,7 +203,7 @@ class ExpressionBase(object):
         return exponent == None or self[1] == exponent
 
     def is_nary(self):
-        return not self.is_leaf and self.op in [OP_ADD, OP_SUB, OP_MUL]
+        return not self.is_leaf and self.op in NARY_OPERATORS
 
     def is_identifier(self, identifier=None):
         return self.type == TYPE_IDENTIFIER \
@@ -457,7 +460,7 @@ class ExpressionNode(Node, ExpressionBase):
         if not isinstance(other, ExpressionNode) or other.op != self.op:
             return False
 
-        if self.op in (OP_ADD, OP_MUL):
+        if self.op in NARY_OPERATORS:
             s0 = Scope(self)
             s1 = set(Scope(other))
 

@@ -1,4 +1,4 @@
-from node import OP_NEG
+from node import OP_NEG, NARY_OPERATORS
 from rules import RULES
 from rules.precedences import HIGH, LOW, RELATIVE
 
@@ -70,7 +70,8 @@ def depth_possibilities(node, depth=0, parent_op=None):
         # Add operator-specific handlers. Prevent duplicate possibilities in
         # n-ary nodes by only executing the handlers on the outermost node of
         # related nodes with the same operator
-        if node.op != parent_op and node.op in RULES:
+        if node.op in RULES and (node.op != parent_op \
+                                 or node.op not in NARY_OPERATORS):
             handlers += RULES[node.op]
 
     # Add negation handlers after operator-specific handlers to obtain an
