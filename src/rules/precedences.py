@@ -8,7 +8,7 @@ from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
 from .factors import expand_double, expand_single
-from .fractions import multiply_with_fraction, extract_fraction_terms, \
+from .fractions import multiply_with_fraction, divide_fraction_by_term, \
         add_nominators
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
@@ -68,7 +68,7 @@ RELATIVE = [
 
         # Prevent cycles that are caused by multiplication reductions when
         # splitting up fractions
-        (extract_fraction_terms, multiply_numerics),
+        (divide_fraction_by_term, multiply_numerics),
 
         # Prevent useless swapping when solving multiple equations
         (substitute_variable, swap_sides),

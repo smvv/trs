@@ -288,7 +288,7 @@ MESSAGES[divide_by_fraction] = \
         _('Move {3} to nominator of fraction {1} / {2}.')
 
 
-def is_power_combination(pair):
+def is_power_combination(a, b):
     """
     Check if two nodes are powers that can be combined in a fraction, for
     example:
@@ -297,8 +297,6 @@ def is_power_combination(pair):
     a^2 and a^2
     a^2 and a
     """
-    a, b = pair
-
     if a.is_power():
         a = a[0]
 
@@ -358,8 +356,15 @@ def match_extract_fraction_terms(node):
         return p
 
     # a ^ b * c / (a ^ d * e)
-    for n, d in filter(is_power_combination, product(n_scope, d_scope)):
-        p.append(P(node, extract_fraction_terms, (n_scope, d_scope, n, d)))
+    for n, d in product(n_scope, d_scope):
+        if n == d:
+            handler = divide_fraction_by_term
+        elif is_power_combination(n, d):
+            handler = extract_fraction_terms
+        else:
+            continue
+
+        p.append(P(node, handler, (n_scope, d_scope, n, d)))
 
     return p
 
@@ -379,9 +384,6 @@ MESSAGES[extract_nominator_term] = \
 
 def extract_fraction_terms(root, args):
     """
-    ab / a                   ->  a / a * (b / 1)
-    a / (ba)                 ->  a / a * (1 / b)
-    a * c / (ae)             ->  a / a * (c / e)
     a ^ b * c / (a ^ d * e)  ->  a ^ b / a ^ d * (c / e)
     """
     n_scope, d_scope, n, d = args
@@ -392,6 +394,27 @@ def extract_fraction_terms(root, args):
 
 
 MESSAGES[extract_fraction_terms] = _('Extract {3} / {4} from fraction {0}.')
+
+
+def divide_fraction_by_term(root, args):
+    """
+    ab / a                   ->  b
+    a / (ba)                 ->  1 / b
+    a * c / (ae)             ->  c / e
+    """
+    n_scope, d_scope, n, d = args
+
+    nom = remove_from_mult_scope(n_scope, n)
+    d_scope.remove(d)
+
+    if not len(d_scope):
+        return negate(nom, root.negated)
+
+    return negate(nom / d_scope.as_nary_node(), root.negated)
+
+
+MESSAGES[divide_fraction_by_term] = \
+        _('Divide nominator and denominator od {0} by {2}.')
 
 
 def match_division_in_denominator(node):
