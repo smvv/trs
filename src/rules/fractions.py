@@ -268,7 +268,7 @@ def divide_fraction(root, args):
     """
     (a, b), c = root
 
-    return (a / (b * c)).negate(root.negated)
+    return negate(a / (b * c), root.negated)
 
 
 MESSAGES[divide_fraction] = _('Move {3} to denominator of fraction {1} / {2}.')
@@ -281,7 +281,7 @@ def divide_by_fraction(root, args):
     a, bc = root
     b, c = bc
 
-    return (a * c / b).negate(root.negated + bc.negated)
+    return negate(a * c / b, root.negated + bc.negated)
 
 
 MESSAGES[divide_by_fraction] = \
@@ -370,7 +370,7 @@ def extract_nominator_term(root, args):
     """
     a, c = args
 
-    return a / root[1] * c
+    return negate(a / root[1] * c, root.negated)
 
 
 MESSAGES[extract_nominator_term] = \
@@ -385,9 +385,39 @@ def extract_fraction_terms(root, args):
     a ^ b * c / (a ^ d * e)  ->  a ^ b / a ^ d * (c / e)
     """
     n_scope, d_scope, n, d = args
+    div = n / d * (remove_from_mult_scope(n_scope, n) \
+                   / remove_from_mult_scope(d_scope, d))
 
-    return n / d * (remove_from_mult_scope(n_scope, n) \
-                    / remove_from_mult_scope(d_scope, d))
+    return negate(div, root.negated)
 
 
 MESSAGES[extract_fraction_terms] = _('Extract {3} / {4} from fraction {0}.')
+
+
+def match_division_in_denominator(node):
+    """
+    a / (b / c + d)  ->  (ca) / (c(b / c + d))
+    """
+    assert node.is_op(OP_DIV)
+
+    denom = node[1]
+
+    if not denom.is_op(OP_ADD):
+        return []
+
+    return [P(node, multiply_with_term, (n[1],))
+            for n in Scope(denom) if n.is_op(OP_DIV)]
+
+
+def multiply_with_term(root, args):
+    """
+    a / (b / c + d)  ->  (ca) / (c(b / c + d))
+    """
+    c = args[0]
+    nom, denom = root
+
+    return negate(c * nom / (c * denom), root.negated)
+
+
+MESSAGES[multiply_with_term] = \
+        _('Multiply nominator and denominator of {0} with {1}.')

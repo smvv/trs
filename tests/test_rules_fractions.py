@@ -3,7 +3,8 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         equalize_denominators, add_nominators, match_multiply_fractions, \
         multiply_fractions, multiply_with_fraction, match_divide_fractions, \
         divide_fraction, divide_by_fraction, match_extract_fraction_terms, \
-        constant_to_fraction, extract_nominator_term, extract_fraction_terms
+        constant_to_fraction, extract_nominator_term, extract_fraction_terms, \
+        match_division_in_denominator, multiply_with_term
 from src.node import ExpressionNode as N, Scope, OP_MUL
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -283,4 +284,36 @@ class TestRulesFractions(RulesTestCase):
             'a ^ 1 * 4 / 5',
             'a * 4 / 5',
             # FIXME: '4 / 5 * a',
+        ])
+
+    def test_match_division_in_denominator(self):
+        a, ((b, c), d) = root = tree('a / (b / c + d)')
+        self.assertEqualPos(match_division_in_denominator(root),
+                [P(root, multiply_with_term, (c,))])
+
+        a, ((d, (b, c)), e) = root = tree('a / (d + b / c + e)')
+        self.assertEqualPos(match_division_in_denominator(root),
+                [P(root, multiply_with_term, (c,))])
+
+    def test_multiply_with_term_chain(self):
+        self.assertRewrite([
+            '1 / (1 / b - 1 / a)',
+            '(b * 1) / (b(1 / b - 1 / a))',
+            'b / (b(1 / b - 1 / a))',
+            'b / (b * 1 / b + b(-1 / a))',
+            'b / ((b * 1) / b + b(-1 / a))',
+            'b / (b / b + b(-1 / a))',
+            'b / (1 + b(-1 / a))',
+            'b / (1 - b * 1 / a)',
+            'b / (1 - (b * 1) / a)',
+            'b / (1 - b / a)',
+            '(ab) / (a(1 - b / a))',
+            '(ab) / (a * 1 + a(-b / a))',
+            '(ab) / (a + a(-b / a))',
+            '(ab) / (a - ab / a)',
+            '(ab) / (a - (ab) / a)',
+            '(ab) / (a - a / a * b / 1)',
+            '(ab) / (a - 1b / 1)',
+            '(ab) / (a - 1b)',
+            '(ab) / (a - b)',
         ])
