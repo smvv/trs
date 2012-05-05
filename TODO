@@ -81,3 +81,33 @@ Division of 0 by 1 reduces to 0.
  - Frontend: implicit rules are applied after expicit ones, but are still
    printed separately. This yields multiple successive occurences of the same
    expression.
+
+ - Base hint selection on the desired final expression.
+   To generate a hint for expression list A, ..., B:
+   1. Create a possibility tree for A.
+   2. Validate all expressions up to B:
+      set root node = A
+
+      for each expression C in <A, B] do:
+          if final answer of C is not equal to final answer of A:
+              validation failes at c
+
+          find C in the possibility tree, traversing from the root node
+
+          if not found:
+              validation continues, but generate an efficiency warning at C
+              # FIXME: validation fails at C?
+
+          set root node = C
+    3. Generate a hint:
+      # root node should now be equal to B, so lookup of B is unnecessary
+      set N = empty dictionary
+
+      for each possibility of the current root P node do:
+          evaluate P(B) until the final expression of A is reached
+          set N[P] = the number of explicit possibilities that have been applied in the evaluation
+
+      the hint is that P for which the value of N[P] the smallest
+
+ - Optimization: put possibility tree in hashmap: {'expression': [(handler, args, 'applied_expression')], ...}
+   This hashmap can be used to speedup the calculation of possbility trees.
