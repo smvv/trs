@@ -362,7 +362,7 @@ def match_extract_fraction_terms(node):
         elif is_power_combination(n, d):
             handler = extract_fraction_terms
         else:
-            continue
+            continue  # pragma: nocover
 
         p.append(P(node, handler, (n_scope, d_scope, n, d)))
 
