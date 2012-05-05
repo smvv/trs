@@ -251,13 +251,13 @@ class ExpressionBase(object):
 
     def negate(self, n=1):
         """Negate the node n times."""
-        return negate(self, self.negated + n)
+        return negate(self, self.negated + n, clone=True)
 
     def contains(self, node, include_self=True):
         """
         Check if a node equal to the specified one exists within this node.
         """
-        if include_self and negate(self, 0) == node:
+        if include_self and self.equals(node, ignore_negation=True):
             return True
 
         if not self.is_leaf:
@@ -620,14 +620,19 @@ def get_scope(node):
     return scope
 
 
-def negate(node, n=1):
-    """Negate the given node n times."""
+def negate(node, n=1, clone=False):
+    """
+    Negate the given node n times. If clone is set to true, return a new node
+    so that the original node is not altered.
+    """
     assert n >= 0
 
-    new_node = node.clone()
-    new_node.negated = n
+    if clone:
+        node = node.clone()
 
-    return new_node
+    node.negated = n
+
+    return node
 
 
 def infinity():

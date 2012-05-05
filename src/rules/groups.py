@@ -59,8 +59,8 @@ def match_combine_groups(node):
             # Move negations to constants
             c0 = c0.negate(g0.negated)
             c1 = c1.negate(g1.negated)
-            g0 = negate(g0, 0)
-            g1 = negate(g1, 0)
+            g0 = negate(g0, 0, clone=True)
+            g1 = negate(g1, 0, clone=True)
 
             p.append(P(node, combine_groups, (scope, c0, g0, n0, c1, g1, n1)))
 

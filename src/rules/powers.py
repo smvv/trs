@@ -24,7 +24,7 @@ def match_add_exponents(node):
         # Order powers by their roots, e.g. a^p and a^q are put in the same
         # list because of the mutual 'a'
         if n.is_identifier():
-            s = negate(n, 0)
+            s = negate(n, 0, clone=True)
             exponent = L(1)
         elif n.is_op(OP_POW):
             s, exponent = n
