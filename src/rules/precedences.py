@@ -7,12 +7,13 @@ from .logarithmic import factor_in_exponent_multiplicant, \
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
+from .factors import expand_double, expand_single
 from .fractions import multiply_with_fraction, extract_fraction_terms, \
         add_nominators
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
-from .lineq import substitute_variable, swap_sides
+from .lineq import substitute_variable, swap_sides, divide_term, multiply_term
 
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
@@ -32,6 +33,9 @@ HIGH = [
 LOW = [
         factor_in_exponent_multiplicant,
         reduce_fraction_constants,
+
+        # Sorting expression terms has a low priority because it is assumed to
+        # be handled by the user
         move_constant,
         ]
 
@@ -68,6 +72,10 @@ RELATIVE = [
 
         # Prevent useless swapping when solving multiple equations
         (substitute_variable, swap_sides),
+
+        # When solving of an equation with constants, expanding an equation has
+        # a lower priority
+        (divide_term, multiply_term, swap_sides, expand_double, expand_single),
         ]
 
 

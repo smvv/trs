@@ -18,11 +18,9 @@ def compare_possibilities(a, b):
         return 0
 
     # Check if A and B have a precedence relative to eachother
-    if (ha, hb) in RELATIVE:
-        return -1
-
-    if (hb, ha) in RELATIVE:
-        return 1
+    for rel in RELATIVE:
+        if ha in rel and hb in rel:
+            return cmp(rel.index(ha), rel.index(hb))
 
     # If A has a high priority, it might be moved to the start of the list
     if ha in HIGH:
