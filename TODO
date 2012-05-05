@@ -86,24 +86,24 @@ Division of 0 by 1 reduces to 0.
    To generate a hint for expression list A, ..., B:
    1. Create a possibility tree for A.
    2. Validate all expressions up to B:
-      set root node = A
+      set ROOT = A
 
       for each expression C in <A, B] do:
           if final answer of C is not equal to final answer of A:
               validation failes at c
 
-          find C in the possibility tree, traversing from the root node
+          find C in the possibility tree, traversing from ROOT
 
           if not found:
               validation continues, but generate an efficiency warning at C
               # FIXME: validation fails at C?
 
-          set root node = C
+          set ROOT = C
     3. Generate a hint:
-      # root node should now be equal to B, so lookup of B is unnecessary
+      # ROOT should now be equal to B, so lookup of B is unnecessary
       set N = empty dictionary
 
-      for each possibility of the current root P node do:
+      for each possibility of ROOT P node do:
           evaluate P(B) until the final expression of A is reached
           set N[P] = the number of explicit possibilities that have been applied in the evaluation
 
