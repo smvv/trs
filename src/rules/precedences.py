@@ -1,5 +1,5 @@
 from .factors import expand_double, expand_single
-from .sort import move_constant
+from .sort import swap_factors
 from .numerics import multiply_one, multiply_zero, reduce_fraction_constants, \
         raise_numerics, remove_zero, multiply_numerics, add_numerics
 from .logarithmic import factor_in_exponent_multiplicant, \
@@ -36,7 +36,7 @@ LOW = [
 
         # Sorting expression terms has a low priority because it is assumed to
         # be handled by the user
-        move_constant,
+        swap_factors,
         ]
 
 

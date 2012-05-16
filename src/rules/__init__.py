@@ -14,7 +14,7 @@ from .fractions import match_constant_division, match_add_fractions, \
         match_extract_fraction_terms, match_division_in_denominator
 from .negation import match_negated_factor, match_negate_polynome, \
         match_negated_division
-from .sort import match_sort_multiplicants
+from .sort import match_sort_polynome, match_sort_molinome
 from .goniometry import match_add_quadrants, match_negated_parameter, \
         match_half_pi_subtraction, match_standard_radian
 from .derivatives import match_zero_derivative, \
@@ -39,8 +39,8 @@ RULES = {
                  match_add_logarithms],
         OP_MUL: [match_multiply_numerics, match_expand, match_add_exponents,
                  match_multiply_zero, match_negated_factor,
-                 match_sort_multiplicants, match_multiply_fractions,
-                 match_factor_in_multiplicant],
+                 match_multiply_fractions, match_factor_in_multiplicant,
+                 match_sort_molinome],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
                  match_constant_division, match_divide_fractions,
                  match_negated_division, match_extract_fraction_terms,
