@@ -194,3 +194,14 @@ def evals_to_numeric(node):
 
     return node.op in (OP_ADD, OP_MUL, OP_DIV, OP_POW, OP_SQRT) \
            and all(map(evals_to_numeric, node))
+
+
+def iter_pairs(list_iterable):
+    """
+    Iterate over a list iterable in left-right pairs.
+    """
+    if len(list_iterable) < 2:
+        raise StopIteration
+
+    for i, left in enumerate(list_iterable[:-1]):
+        yield left, list_iterable[i + 1]

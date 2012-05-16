@@ -1,7 +1,8 @@
 from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
         find_variables, first_sorted_variable, find_variable, substitute, \
-        divides, dividers, is_prime, prime_dividers, evals_to_numeric
+        divides, dividers, is_prime, prime_dividers, evals_to_numeric, \
+        iter_pairs
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -103,3 +104,9 @@ class TestRulesUtils(RulesTestCase):
         self.assertFalse(evals_to_numeric(tree('int 1')))
         self.assertFalse(evals_to_numeric(tree('int a')))
         self.assertTrue(evals_to_numeric(tree('sqrt 1')))
+
+    def test_iter_pairs(self):
+        self.assertEqual(list(iter_pairs([1])), [])
+        self.assertEqual(list(iter_pairs([1, 2])), [(1, 2)])
+        self.assertEqual(list(iter_pairs([1, 2, 3])), [(1, 2), (2, 3)])
+        self.assertEqual(list(iter_pairs([1, 2, 3, 4])), [(1, 2), (2, 3), (3, 4)])
