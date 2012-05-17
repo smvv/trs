@@ -98,4 +98,5 @@ IMPLICIT_RULES = [
         remove_power_of_one,
         negated_factor,
         add_numerics,
+        swap_factors,
         ]
