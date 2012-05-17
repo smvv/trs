@@ -34,24 +34,25 @@ class TestRulesFactors(RulesTestCase):
                  P(root, expand_single, (Scope(root), ab, e))])
 
     def test_expand_single(self):
-        a, b, c, d = tree('a,b,c,d')
-        bc = b + c
-
-        root = a * bc
+        root, expect = tree('a(b + c), ab + ac')
+        a, bc = root
         self.assertEqualNodes(expand_single(root, (Scope(root), a, bc)),
-                              a * b + a * c)
+                              expect)
 
-        root = a * bc * d
+        root, expect = tree('a(b+c)d, a(bd + cd)')
+        (a, bc), d = root
         self.assertEqualNodes(expand_single(root, (Scope(root), bc, d)),
-                              a * (b * d + c * d))
+                              expect)
 
     def test_expand_double(self):
         (a, b), (c, d) = ab, cd = tree('a + b,c + d')
 
-        root = ab * cd
+        root, expect = tree('(a + b)(c + d), ac + ad + bc + bd')
+        ab, cd = root
         self.assertEqualNodes(expand_double(root, (Scope(root), ab, cd)),
-                              a * c + a * d + b * c + b * d)
+                              expect)
 
-        root = a * ab * b * cd * c
+        root, expect = tree('a(a + b)b(c + d)c, a(ac + ad + bc + bd)bc')
+        (((a, ab), b), cd), c = root
         self.assertEqualNodes(expand_double(root, (Scope(root), ab, cd)),
-                              a * (a * c + a * d + b * c + b * d) * b * c)
+                              expect)

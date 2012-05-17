@@ -556,6 +556,9 @@ class Scope(object):
         self.node = node
         self.nodes = get_scope(node)
 
+        for i, n in enumerate(self.nodes):
+            n.scope_index = i
+
     def __getitem__(self, key):
         return self.nodes[key]
 
@@ -576,17 +579,22 @@ class Scope(object):
         return '<Scope of "%s">' % repr(self.node)
 
     def index(self, node):
-        return self.nodes.index(node)
+        return node.scope_index
 
-    def remove(self, node, **kwargs):
+    def remove(self, node, replacement=None):
         try:
-            i = self.nodes.index(node)
+            i = node.scope_index
 
-            if 'replacement' in kwargs:
-                self[i] = kwargs['replacement']
+            if replacement:
+                self[i] = replacement
+                replacement.scope_index = i
             else:
                 del self.nodes[i]
-        except ValueError:
+
+                # Update remaining scope indices
+                for n in self[max(i, 1):]:
+                    n.scope_index -= 1
+        except AttributeError:
             raise ValueError('Node "%s" is not in the scope of "%s".'
                              % (node, self.node))
 
