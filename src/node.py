@@ -412,11 +412,11 @@ class ExpressionNode(Node, ExpressionBase):
         if self.is_power():
             return (ExpressionLeaf(1), self[0], self[1])
 
-        # rule: -r -> (1, r, 1)
-        # rule: --r -> (1, r, 1)
-        # rule: ---r -> (1, r, 1)
-        if self.negated:
-            return (ExpressionLeaf(1), self, ExpressionLeaf(1))
+        # rule: -r -> (1, -r, 1)
+        # rule: --r -> (1, --r, 1)
+        # rule: ---r -> (1, ---r, 1)
+        #if self.negated:
+        #    return (ExpressionLeaf(1), self, ExpressionLeaf(1))
 
         if self.op != OP_MUL:
             return
