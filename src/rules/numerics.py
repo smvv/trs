@@ -2,7 +2,7 @@ from itertools import combinations
 
 from .utils import greatest_common_divisor, is_numeric_node
 from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_DIV, OP_MUL, \
-        OP_POW
+        OP_POW, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -61,7 +61,7 @@ def add_numerics(root, args):
     value = c0.actual_value() + c1.actual_value()
 
     # Replace the left node with the new expression
-    scope.replace(c0, Leaf(abs(value)).negate(int(value < 0)))
+    scope.replace(c0, Leaf(abs(value), negated=int(value < 0)))
 
     # Remove the right node
     scope.remove(c1)
@@ -141,7 +141,7 @@ def divide_numerics(root, args):
     """
     n, d = root
 
-    return Leaf(n.value / d.value).negate(root.negated)
+    return Leaf(n.value / d.value, negated=root.negated)
 
 
 MESSAGES[divide_numerics] = _('Constant division {0} reduces to a number.')
@@ -248,7 +248,7 @@ def multiply_numerics(root, args):
     scope, c0, c1 = args
 
     # Replace the left node with the new expression
-    substitution = Leaf(c0.value * c1.value).negate(c0.negated + c1.negated)
+    substitution = Leaf(c0.value * c1.value, negated=c0.negated + c1.negated)
     scope.replace(c0, substitution)
 
     # Remove the right node
@@ -284,7 +284,7 @@ def raise_numerics(root, args):
     """
     r, e = args
 
-    return Leaf(r.value ** e.value).negate(r.negated * e.value)
+    return Leaf(r.value ** e.value, negated=r.negated * e.value)
 
 
 MESSAGES[raise_numerics] = _('Raise constant {1} with {2}.')

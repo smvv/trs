@@ -222,12 +222,12 @@ def multiply_with_fraction(root, args):
     scope, ab, c = args
     a, b = ab
 
-    if scope.index(ab) - scope.index(c) < 0:
-        replacement = a * c / b
+    if scope.index(ab) < scope.index(c):
+        nominator = a * c
     else:
-        replacement = c * a / b
+        nominator = c * a
 
-    scope.replace(ab, replacement.negate(ab.negated))
+    scope.replace(ab, negate(nominator / b, ab.negated))
     scope.remove(c)
 
     return scope.as_nary_node()
@@ -246,7 +246,7 @@ def match_divide_fractions(node):
     a / (b / c)      ->  ac / b
 
     Note that:
-    a / b / (c / d)  ->*  ad / bd  # chain test!
+    a / b / (c / d)  =>  ad / bd
     """
     assert node.is_op(OP_DIV)
 
@@ -347,7 +347,12 @@ def match_extract_fraction_terms(node):
     # ac / b
     for n in ifilterfalse(evals_to_numeric, n_scope):
         a_scope = mult_scope(nominator)
-        a = remove_from_mult_scope(a_scope, n)
+
+        #a = remove_from_mult_scope(a_scope, n)
+        if len(a_scope) == 1:
+            a = L(1)
+        else:
+            a = a_scope.all_except(n)
 
         if evals_to_numeric(a / denominator):
             p.append(P(node, extract_nominator_term, (a, n)))

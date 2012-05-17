@@ -205,3 +205,7 @@ def iter_pairs(list_iterable):
 
     for i, left in enumerate(list_iterable[:-1]):
         yield left, list_iterable[i + 1]
+
+
+def range_except(start, end, exception):
+    return range(start, exception) + range(exception + 1, end)

@@ -2,7 +2,7 @@ from src.rules import utils
 from src.rules.utils import least_common_multiple, is_fraction, partition, \
         find_variables, first_sorted_variable, find_variable, substitute, \
         divides, dividers, is_prime, prime_dividers, evals_to_numeric, \
-        iter_pairs
+        iter_pairs, range_except
 from tests.rulestestcase import tree, RulesTestCase
 
 
@@ -110,3 +110,8 @@ class TestRulesUtils(RulesTestCase):
         self.assertEqual(list(iter_pairs([1, 2])), [(1, 2)])
         self.assertEqual(list(iter_pairs([1, 2, 3])), [(1, 2), (2, 3)])
         self.assertEqual(list(iter_pairs([1, 2, 3, 4])), [(1, 2), (2, 3), (3, 4)])
+
+    def test_range_except(self):
+        self.assertEqual(range_except(0, 5, 2), [0, 1, 3, 4])
+        self.assertEqual(range_except(0, 4, 0), [1, 2, 3])
+        self.assertEqual(range_except(0, 3, 3), [0, 1, 2])

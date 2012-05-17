@@ -592,7 +592,7 @@ class Scope(object):
                 del self.nodes[i]
 
                 # Update remaining scope indices
-                for n in self[max(i, 1):]:
+                for n in self.nodes[i:]:
                     n.scope_index -= 1
         except AttributeError:
             raise ValueError('Node "%s" is not in the scope of "%s".'
@@ -603,6 +603,14 @@ class Scope(object):
 
     def as_nary_node(self):
         return nary_node(self.node.op, self.nodes).negate(self.node.negated)
+        #return negate(nary_node(self.node.op, self.nodes), self.node.negated)
+
+    def all_except(self, node):
+        before = range(0, node.scope_index)
+        after = range(node.scope_index + 1, len(self))
+        nodes = [self[i] for i in before + after]
+
+        return nary_node(self.node.op, nodes).negate(self.node.negated)
 
 
 def nary_node(operator, scope):
