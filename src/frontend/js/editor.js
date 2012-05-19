@@ -2,36 +2,18 @@
     var QUEUE = MathJax.Hub.queue;  // shorthand for the queue
     var math = null; // the element jax for the math output
 
-    // Hide and show the box (so it doesn't flicker as much)
-    //var hide_box = function () {box.style.visibility = 'hidden'}
-    //var show_box = function () {box.style.visibility = 'visible'}
     var trigger_update = true;
-
-    //// Initialise codemirror environment
-    //var input_textarea = document.getElementById('MathInput'),
-    //    input_box = CodeMirror.fromTextArea(input_textarea, {
-    //        value: '',
-    //        mode:  'r',
-    //        matchBrackets: true,
-    //        onChange: function(f) { trigger_update = true; }
-    //    });
-
     var input_textarea = $('#MathInput');
 
     input_textarea.change(function(){ trigger_update = true; })
         .keyup(function(){ trigger_update = true; });
 
     $('#input').click(function(){
-        //input_box.focus();
         input_textarea.focus();
     });
 
     // Get the element jax when MathJax has produced it.
     QUEUE.Push(function() {
-        //math = MathJax.Hub.getAllJax('MathOutput')[0];
-        //box = document.getElementById('box');
-        //show_box();
-
         // The onchange event handler that typesets the math entered
         // by the user.  Hide the box, then typeset, then show it again
         // so we don't see a flash as the math is cleared and replaced.
