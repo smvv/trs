@@ -262,7 +262,7 @@ class Parser(BisonParser):
         hint = self.give_hint()
 
         if hint:
-            print hint
+            print str(hint).replace('`', '')
         else:
             print 'No further reduction is possible.'
 

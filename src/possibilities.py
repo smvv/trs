@@ -1,4 +1,5 @@
 from node import TYPE_OPERATOR
+import re
 
 
 # Each rule will append its hint message to the following dictionary. The
@@ -17,6 +18,9 @@ class Possibility(object):
     def __str__(self):
         if self.handler in MESSAGES:
             msg = MESSAGES[self.handler]
+
+            # Surround math notation with backticks
+            msg = re.sub('({[^ ]+)', r'`\1`', msg)
 
             if callable(msg):
                 msg = msg(self.root, self.args)

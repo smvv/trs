@@ -77,6 +77,10 @@ body {
     line-height: 20px;
 }
 
+#math .hint .MathJax {
+    color: #000;
+}
+
 #control-buttons {
     height: 21px;
     left: 2%;

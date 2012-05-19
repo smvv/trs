@@ -134,6 +134,7 @@
         var elem = $('<div class=hint/>');
         elem.text(hint);
         $('#math').append(elem);
+        QUEUE.Push(['Typeset', MathJax.Hub, elem[0]]);
     };
 
     window.append_input = function(input) {
