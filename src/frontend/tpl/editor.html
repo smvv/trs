@@ -3,27 +3,28 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
         <title>Mathematical term rewriting frontend</title>
-        <script type="text/javascript" src="../../../build/external/jquery/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/build/external/jquery/jquery.min.js"></script>
         <script type="text/javascript"
-            src="../../../external/mathjax/MathJax.js?config=AM_HTMLorMML-full"></script>
-        <link rel="stylesheet" href="../../../external/codemirror2/lib/codemirror.css">
-        <link rel="stylesheet" href="../../../src/frontend/css/editor.css">
-        <script src="../../../external/codemirror2/lib/codemirror.js"></script>
-        <script src="../../../external/codemirror2/mode/r/r.js"></script>
+            src="/static/external/mathjax/MathJax.js?config=AM_HTMLorMML-full"></script>
+        <link rel="stylesheet" href="/static/external/codemirror2/lib/codemirror.css">
+        <link rel="stylesheet" href="/static/frontend/css/editor.css">
+        <script src="/static/external/codemirror2/lib/codemirror.js"></script>
+        <script src="/static/external/codemirror2/mode/r/r.js"></script>
     </head>
     <body>
+        <div id="control-buttons"><button onclick=window.clear_input()>clear</button><div class="separator"></div><button onclick=window.hint_input()>hint</button><button onclick=window.validate_input()>validate</button><div id="loader"></div></div>
+
         <div id="input" class="panel">
+            <div class="label">Input view</div>
             <div class="box">
-            <textarea id="MathInput"></textarea>
+                <textarea id="MathInput"></textarea>
             </div>
         </div>
 
         <div id="math" class="panel">
-            <div class="box" id="box" style="visibility:hidden">
-                <div id="MathOutput">``</div>
-            </div>
+            <div class="label">Math view</div>
         </div>
 
-        <script type="text/javascript" src="../../../src/frontend/js/editor.js"></script>
+        <script type="text/javascript" src="/static/frontend/js/editor.js"></script>
     </body>
 </html>

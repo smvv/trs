@@ -9,9 +9,22 @@ def validate(exp, result):
     Validate that exp =>* result.
     """
     parser = ParserWrapper(Parser)
+
     exp = parser.run([exp])
     result = parser.run([result])
 
+    # Compare the simplified expressions first, in order to avoid the
+    # computational intensive traversal of the possibilities tree.
+    parser.set_root_node(exp)
+    a = parser.rewrite_all()
+
+    parser.set_root_node(result)
+    b = parser.rewrite_all()
+
+    if not a or not a.equals(b):
+        return False
+
+    # TODO: make sure cycles are avoided / eliminated using cycle detection.
     def traverse_preorder(node, result):
         if node.equals(result):
             return True

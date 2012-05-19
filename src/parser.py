@@ -28,6 +28,10 @@ import Queue
 import re
 
 
+# Rewriting an expression is stopped after this number of steps is passed.
+MAXIMUM_REWRITE_STEPS = 100
+
+
 # Check for n-ary operator in child nodes
 def combine(op, op_type, *nodes):
     # At least return the operator.
@@ -255,13 +259,18 @@ class Parser(BisonParser):
         self.possibilities = find_possibilities(self.root_node)
 
     def display_hint(self):
+        hint = self.give_hint()
+
+        if hint:
+            print hint
+        else:
+            print 'No further reduction is possible.'
+
+    def give_hint(self):
         self.find_possibilities()
 
-        if self.interactive:
-            if self.possibilities:
-                print self.possibilities[0]
-            else:
-                print 'No further reduction is possible.'
+        if self.possibilities:
+            return self.possibilities[0]
 
     def display_possibilities(self):
         self.find_possibilities()
@@ -269,7 +278,8 @@ class Parser(BisonParser):
         for i, p in enumerate(self.possibilities):
             print '%d %s' % (i, p)
 
-    def rewrite(self, index=0, verbose=False, check_implicit=True):
+    def rewrite(self, index=0, include_step=False, verbose=False,
+            check_implicit=True):
         self.find_possibilities()
 
         if not self.possibilities:
@@ -326,19 +336,32 @@ class Parser(BisonParser):
         if verbose and not self.verbose:
             print self.root_node
 
+        if include_step:
+            return suggestion, self.root_node
+
         return self.root_node
 
-    def rewrite_all(self, verbose=False):
-        i = 0
+    def rewrite_all(self, include_steps=False, check_implicit=True,
+            verbose=False):
+        steps = []
 
-        while self.rewrite(verbose=verbose):
-            i += 1
+        for i in range(MAXIMUM_REWRITE_STEPS):
+            obj = self.rewrite(verbose=verbose, check_implicit=check_implicit,
+                include_step=include_steps)
 
-            if i > 100:
-                print 'Too many rewrite steps, aborting...'
+            if not obj:
                 break
 
+            if include_steps:
+                steps.append(obj)
+
+        if i > MAXIMUM_REWRITE_STEPS:
+            print 'Too many rewrite steps, aborting...'
+
         if not verbose or not i:
+            if include_steps:
+                return steps
+
             return self.root_node
 
     #def hook_run(self, filename, retval):

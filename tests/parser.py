@@ -21,6 +21,12 @@ class ParserWrapper(object):
 
         self.parser = base_class(file=self, read=self.read, **kwargs)
 
+    def __getattr__(self, name):
+        if name in self.__dict__:
+            return getattr(self, name)
+
+        return getattr(self.parser, name)
+
     def readline(self, nbytes=False):
         return self.read(nbytes)
 
