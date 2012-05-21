@@ -28,7 +28,7 @@ class TestPossibilities(unittest.TestCase):
     def test___str__(self):
         self.assertEqual(str(self.p0),
                 '<Possibility root="1 + 2" handler=dummy_handler args=(1, 2)>')
-        self.assertEqual(str(self.p1), 'foo 1 + 2 bar')
+        self.assertEqual(str(self.p1), 'foo `1` + `2` bar')
 
     def test___repr__(self):
         self.assertEqual(repr(self.p0),

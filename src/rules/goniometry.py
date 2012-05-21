@@ -44,7 +44,7 @@ def add_quadrants(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[add_quadrants] = _('Add the sinus and cosinus quadrants to 1.')
+MESSAGES[add_quadrants] = _('Add the sinus and cosinus quadrants to `1`.')
 
 
 def factor_out_quadrant_negation(root, args):
@@ -59,7 +59,7 @@ def factor_out_quadrant_negation(root, args):
 
 
 MESSAGES[factor_out_quadrant_negation] = _('Factor out the negations of {2} ' \
-        'and {3} to be able to reduce the quadrant addition to 1.')
+        'and {3} to be able to reduce the quadrant addition to `1`.')
 
 
 def match_negated_parameter(node):

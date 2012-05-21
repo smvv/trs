@@ -46,7 +46,7 @@ def division_by_one(root, args):
     return args[0].negate(root.negated)
 
 
-MESSAGES[division_by_one] = _('Division by 1 yields the nominator.')
+MESSAGES[division_by_one] = _('Division by `1` yields the nominator.')
 
 
 def division_of_zero(root, args):
@@ -56,7 +56,7 @@ def division_of_zero(root, args):
     return L(0, negated=root.negated)
 
 
-MESSAGES[division_of_zero] = _('Division of 0 by {1} reduces to 0.')
+MESSAGES[division_of_zero] = _('Division of `0` by {1} reduces to `0`.')
 
 
 def division_by_self(root, args):
@@ -66,7 +66,7 @@ def division_by_self(root, args):
     return L(1, negated=root.negated)
 
 
-MESSAGES[division_by_self] = _('Division of {1} by itself reduces to 1.')
+MESSAGES[division_by_self] = _('Division of {1} by itself reduces to `1`.')
 
 
 def match_add_fractions(node):
@@ -159,7 +159,7 @@ def equalize_denominators(root, args):
 
 
 MESSAGES[equalize_denominators] = \
-        _('Equalize the denominators of divisions' ' {2} and {3} to {4}.')
+        _('Equalize the denominators of divisions {2} and {3} to {4}.')
 
 
 def constant_to_fraction(root, args):
@@ -271,7 +271,8 @@ def divide_fraction(root, args):
     return negate(a / (b * c), root.negated)
 
 
-MESSAGES[divide_fraction] = _('Move {3} to denominator of fraction {1} / {2}.')
+MESSAGES[divide_fraction] = \
+        _('Move {3} to denominator of fraction `{1} / {2}`.')
 
 
 def divide_by_fraction(root, args):
@@ -285,7 +286,7 @@ def divide_by_fraction(root, args):
 
 
 MESSAGES[divide_by_fraction] = \
-        _('Move {3} to nominator of fraction {1} / {2}.')
+        _('Move {3} to nominator of fraction `{1} / {2}`.')
 
 
 def is_power_combination(a, b):
@@ -398,7 +399,7 @@ def extract_fraction_terms(root, args):
     return negate(div, root.negated)
 
 
-MESSAGES[extract_fraction_terms] = _('Extract {3} / {4} from fraction {0}.')
+MESSAGES[extract_fraction_terms] = _('Extract `{3} / {4}` from fraction {0}.')
 
 
 def divide_fraction_by_term(root, args):

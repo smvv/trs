@@ -69,7 +69,7 @@ def solve_indef(root, args):
 
 def solve_indef_msg(root, args):  # pragma: nocover
     return _('Solve indefinite integral {0} using substitution ' \
-             'of %s with {0[2]} and {0[1]}.' % find_variable(root[0]))
+             'of `%s` with {0[2]} and {0[1]}.' % find_variable(root[0]))
 
 
 MESSAGES[solve_indef] = solve_indef_msg
@@ -106,7 +106,7 @@ def integrate_variable_root(root, args):
 
 
 MESSAGES[integrate_variable_root] = _('Apply standard integral ' \
-        'int(x ^ n) = 1 / (n + 1) * x ^ (n + 1) + c.')
+        '`int(x ^ n) = 1 / (n + 1) * x ^ (n + 1) + c`.')
 
 
 def integrate_variable_exponent(root, args):
@@ -119,7 +119,7 @@ def integrate_variable_exponent(root, args):
 
 
 MESSAGES[integrate_variable_exponent] = \
-        _('Apply standard integral int(g ^ x) = g ^ x / ln(g) + c.')
+        _('Apply standard integral `int(g ^ x) = g ^ x / ln(g) + c`.')
 
 
 def match_constant_integral(node):
@@ -147,8 +147,8 @@ def single_variable_integral(root, args):
     return integral(root[0] ** 1, *root[1:])
 
 
-MESSAGES[single_variable_integral] = _('Rewrite {0[0]} to {0[0]} ^ 1 and ' \
-        'apply the standard integral for {0[0]} ^ n.')
+MESSAGES[single_variable_integral] = _('Rewrite {0[0]} to `{0[0]} ^ 1` and ' \
+        'apply the standard integral for `{0[0]} ^ n`.')
 
 
 def constant_integral(root, args):
@@ -197,7 +197,7 @@ def split_negation_to_constant(root, args):
 
 
 MESSAGES[split_negation_to_constant] = _('Write the negation of {0[0]} as an' \
-        ' explicit -1 and bring it outside of the integral.')
+        ' explicit `-1` and bring it outside of the integral.')
 
 
 def factor_out_constant(root, args):
@@ -239,7 +239,7 @@ def division_integral(root, args):
 
 
 MESSAGES[division_integral] = \
-        _('1 / {0[1]} has the standard anti-derivative ln|{0[1]}| + c.')
+        _('`1 / {0[1]}` has the standard anti-derivative `ln|{0[1]}| + c`.')
 
 
 def extend_division_integral(root, args):
@@ -252,7 +252,7 @@ def extend_division_integral(root, args):
 
 
 MESSAGES[extend_division_integral] = _('Bring nominator {0[0][0]} out of the' \
-        ' fraction to obtain a standard 1 / {0[0][1]} integral.')
+        ' fraction to obtain a standard `1 / {0[0][1]}` integral.')
 
 
 def match_function_integral(node):
@@ -289,8 +289,8 @@ def logarithm_integral(root, args):
     return solve_integral(root, (x * ln(x) - x) / ln(g))
 
 
-MESSAGES[logarithm_integral] = _('log_g(x) has the standard anti-derivative ' \
-        '(xln(x) - x) / log_g(x) + c.')
+MESSAGES[logarithm_integral] = _('`log_g(x)` has the standard ' \
+        'anti-derivative `(xln(x) - x) / log_g(x) + c`.')
 
 
 def sinus_integral(root, args):
@@ -301,7 +301,7 @@ def sinus_integral(root, args):
 
 
 MESSAGES[sinus_integral] = \
-        _('{0[0]} has the standard anti-derivative -cos({0[0][0]}) + c.')
+        _('{0[0]} has the standard anti-derivative `-cos({0[0][0]}) + c`.')
 
 
 def cosinus_integral(root, args):
@@ -312,7 +312,7 @@ def cosinus_integral(root, args):
 
 
 MESSAGES[cosinus_integral] = \
-        _('{0[0]} has the standard anti-derivative sin({0[0][0]}) + c.')
+        _('{0[0]} has the standard anti-derivative `sin({0[0][0]}) + c`.')
 
 
 def match_sum_rule_integral(node):

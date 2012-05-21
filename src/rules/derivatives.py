@@ -295,7 +295,7 @@ def sinus(root, args):
     return cos(root[0][0])
 
 
-MESSAGES[sinus] = _('Apply standard derivative d/dx sin(x) = cos(x).')
+MESSAGES[sinus] = _('Apply standard derivative `d/dx sin(x)` is `cos(x)`.')
 
 
 def cosinus(root, args):
@@ -305,7 +305,7 @@ def cosinus(root, args):
     return -sin(root[0][0])
 
 
-MESSAGES[cosinus] = _('Apply standard derivative d/dx cos(x) = -sin(x).')
+MESSAGES[cosinus] = _('Apply standard derivative `d/dx cos(x)` is `-sin(x)`.')
 
 
 def tangens(root, args):
