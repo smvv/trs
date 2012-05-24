@@ -21,8 +21,18 @@
             var parts = tex.split('\n');
 
             var math_container = $('#math'),
-                math_lines = math_container.find('div.box script'),
-                mathjax_instances = MathJax.Hub.getAllJax('math');
+                math_lines = math_container.find('div.box script');
+
+            // Select all mathjax instances which are inside a div.box element
+            var mathjax_instances = [];
+            var all_instances = MathJax.Hub.getAllJax('math');
+
+            for (var i = 0; i < all_instances.length; i++) {
+                var elem = all_instances[i];
+
+                if ($('#' + elem.inputID).parent().hasClass('box'))
+                    mathjax_instances.push(elem);
+            }
 
             var real_lines = 0,
                 updated_line = -1;
@@ -31,9 +41,8 @@
                 if (!parts[p])
                     continue;
 
-                // TODO: Mark updated line as "pending" (e.g. remove "wrong"
-                // and "good" class names from element).
-
+                // Check if we want to update an existing line or append the
+                // line.
                 if (real_lines < math_lines.length) {
                     var elem = mathjax_instances[real_lines];
 
@@ -62,32 +71,33 @@
                 real_lines++;
             }
 
-            // Remove old hints, given that at least one line is updated.
-            // Iterate over the DOM nodes until the updated line is found,
-            // and remove all following hint nodes.
-            var line_count = 0, i = 0, elems = $('#math div');
+            QUEUE.Push(function() {
+                // Remove out-dated mathematical lines.
+                for (var p = real_lines; p < math_lines.length; p++)
+                    $(math_lines[p].parentNode).remove();
 
-            if(updated_line == -1)
-                updated_line = real_lines + 1;
+                // Remove old hints, given that at least one line is updated.
+                // Iterate over the DOM nodes until the updated line is found,
+                // and remove all following hint nodes.  Note that if there is
+                // no line updated, all hints not directly following the last
+                // line are removed.
+                var elems = $('#math div');
 
-            for(; i < elems.length; i++) {
-                var elem = $(elems[i]);
+                if(updated_line == -1)
+                    updated_line = real_lines;
 
-                if (line_count == updated_line) {
-                    if (elem.hasClass('hint'))
-                        elem.remove();
-                } else if (elem.hasClass('box')) {
-                    line_count++;
+                for(var i = 0, lines = 0, hints = 0; i < elems.length; i++) {
+                    var elem = $(elems[i]);
+
+                    if (lines > updated_line || hints >= updated_line) {
+                        if (elem.hasClass('hint'))
+                            elem.remove();
+                    } else if (elem.hasClass('hint'))
+                        hints++;
+                    else if (elem.hasClass('box'))
+                        lines++;
                 }
-            }
-
-            QUEUE.Push((function(math_lines, real_lines) {
-                return function() {
-                    for (var p = real_lines; p < math_lines.length; p++) {
-                        $(math_lines[p].parentNode).remove();
-                    }
-                };
-            })(math_lines, real_lines));
+            });
         }
 
         window.update_math = function() {
@@ -189,8 +199,6 @@
         $.post('/step', {data: input_textarea.val()}, function(response) {
             if (!response)
                 return;
-
-            console.log(response);
 
             if ('step' in response) {
                 window.append_input(response.step);
