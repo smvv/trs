@@ -115,6 +115,8 @@ class Parser(BisonParser):
         self.reset()
 
     def reset(self):
+        super(Parser, self).reset()
+
         self.read_buffer = ''
         self.read_queue = Queue.Queue()
 
@@ -686,6 +688,13 @@ class Parser(BisonParser):
     }
 
     int yycolumn = 0;
+
+    void reset_flex_buffer(void) {
+        yycolumn = 0;
+        yylineno = 0;
+        YY_FLUSH_BUFFER;
+        BEGIN(0);
+    }
 
     #define YY_USER_ACTION \
             yylloc.first_line = yylloc.last_line = yylineno; \
