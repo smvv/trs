@@ -19,15 +19,15 @@ class Possibility(object):
         if self.handler in MESSAGES:
             msg = MESSAGES[self.handler]
 
+            if callable(msg):
+                msg = msg(self.root, self.args)
+
             # Surround math notation with backticks. If there are any backticks
             # already, do not add additional backticks. The add_backticks
             # lambda is necessary otherwise because \1 and \2 are not matched
             # both at the same time.
             add_backticks = lambda x: '`%s`' % ''.join(x.groups(''))
             msg = re.sub('`([^`]*)`|\(?({[^. ]+)', add_backticks, msg)
-
-            if callable(msg):
-                msg = msg(self.root, self.args)
 
             return msg.format(self.root, *self.args)
 
