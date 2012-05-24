@@ -337,7 +337,9 @@ class Parser(BisonParser):
             print self.root_node
 
         if include_step:
-            return suggestion, self.root_node
+            # Make sure that the node is cloned, otherwise the next rewrite
+            # attempt will modify the root node (since it's mutable).
+            return suggestion, self.root_node.clone()
 
         return self.root_node
 
