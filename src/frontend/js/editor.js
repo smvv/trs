@@ -5,6 +5,10 @@
     var trigger_update = true;
     var input_textarea = $('#MathInput');
 
+    // Set the requested query as input value if a query string is given.
+    if (location.search.substr(0, 3) == '?q=')
+        input_textarea.val(decodeURIComponent(location.search.substr(3)));
+
     input_textarea.change(function(){ trigger_update = true; })
         .keyup(function(){ trigger_update = true; });
 
