@@ -10,7 +10,7 @@ import argparse
 import sys
 import os
 
-from src.backend.backend import app
+from src.backend.backend import app, start_server
 
 
 def init_readline():
@@ -65,8 +65,7 @@ def main():
     args = get_args()
 
     if args.backend:
-        sys.argv[1] = str(args.port)
-        return app.run()
+        return start_server(app, args.port)
 
     interactive = args.interactive and not args.batch
 

@@ -1,22 +1,20 @@
-import web
-import json
+from tornado.web import RequestHandler, Application
 
 from src.parser import Parser
 from tests.parser import ParserWrapper
 from src.validation import validate as validate_expression
 
-urls = (
-    '/math\.py/validate', 'validate',
-    '/math\.py/hint', 'hint',
-    '/math\.py/step', 'Step',
-    '/math\.py/answer', 'Answer',
-)
-
-app = web.application(urls, globals(), autoreload=True)
+# Log debug information
+from logging import getLogger, DEBUG
+getLogger().setLevel(DEBUG)
 
 
-def get_last_line():
-    data = web.input(data='').data
+DEFAULT_PORT = 8888
+ROUTER_DEBUG_MODE = True
+
+
+def get_last_line(handler):
+    data = handler.get_argument('data')
     lines = map(str, data.split('\n'))
 
     # Get the last none empty line.
@@ -27,12 +25,10 @@ def get_last_line():
             return last_line
 
 
-class Step(object):
-    def POST(self):
-        web.header('Content-Type', 'application/json')
-
+class Step(RequestHandler):
+    def post(self):
         try:
-            last_line = get_last_line()
+            last_line = get_last_line(self)
 
             if last_line:
                 parser = ParserWrapper(Parser)
@@ -44,20 +40,18 @@ class Step(object):
 
                     if response:
                         hint, step = response
-                        return json.dumps({'step': str(step),
-                                           'hint': str(hint)})
+                        self.write({'step': str(step), 'hint': str(hint)})
+                        return
 
-            return json.dumps({'hint': 'No further reduction is possible.'})
+            self.write({'hint': 'No further reduction is possible.'})
         except Exception as e:
-            return json.dumps({'error': str(e)})
+            self.write({'error': str(e)})
 
 
-class Answer(object):
-    def POST(self):
-        web.header('Content-Type', 'application/json')
-
+class Answer(RequestHandler):
+    def post(self):
         try:
-            last_line = get_last_line()
+            last_line = get_last_line(self)
 
             if last_line:
                 parser = ParserWrapper(Parser)
@@ -72,19 +66,18 @@ class Answer(object):
                         for h, s in steps:
                             out.append(dict(hint=str(h), step=str(s)))
 
-                        return json.dumps({'steps': out})
+                        self.write({'steps': out})
+                        return
 
-            return json.dumps({'hint': 'No further reduction is possible.'})
+            self.write({'hint': 'No further reduction is possible.'})
         except Exception as e:
-            return json.dumps({'error': str(e)})
+            self.write({'error': str(e)})
 
 
-class hint(object):
-    def POST(self):
-        web.header('Content-Type', 'application/json')
-
+class Hint(RequestHandler):
+    def post(self):
         try:
-            last_line = get_last_line()
+            last_line = get_last_line(self)
 
             if last_line:
                 parser = ParserWrapper(Parser)
@@ -92,18 +85,17 @@ class hint(object):
                 response = parser.parser.give_hint()
 
                 if response:
-                    return json.dumps({'hint': str(response)})
+                    self.write({'hint': str(response)})
+                    return
 
-            return json.dumps({'hint': 'No further reduction is possible.'})
+            self.write({'hint': 'No further reduction is possible.'})
         except Exception as e:
-            return json.dumps({'error': str(e)})
+            self.write({'error': str(e)})
 
 
-class validate(object):
-    def POST(self):
-        web.header('Content-Type', 'application/json')
-
-        data = web.input(data='').data
+class Validate(RequestHandler):
+    def post(self):
+        data = self.get_argument('data')
         lines = map(str, data.split('\n'))
 
         i = 0
@@ -134,11 +126,33 @@ class validate(object):
 
                 last_line = line
 
-            return json.dumps({'validated': i - skipped})
+            self.write({'validated': i - skipped})
         except Exception as e:
             i -= 1
-            return json.dumps({'error': str(e), 'validated': i - skipped})
+            self.write({'error': str(e), 'validated': i - skipped})
 
 
-if __name__ == "__main__":
-    app.run()
+urls = [
+    ('/math\.py/validate', Validate),
+    ('/math\.py/hint', Hint),
+    ('/math\.py/step', Step),
+    ('/math\.py/answer', Answer),
+]
+
+app = Application(urls, debug=ROUTER_DEBUG_MODE)
+
+
+def start_server(app, port):
+    from tornado.ioloop import IOLoop
+    from tornado.options import enable_pretty_logging
+
+    enable_pretty_logging()
+
+    app.listen(port)
+    IOLoop.instance().start()
+
+
+if __name__ == '__main__':
+    import sys
+
+    start_server(app, int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PORT)
