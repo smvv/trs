@@ -29,7 +29,7 @@ import re
 
 
 # Rewriting an expression is stopped after this number of steps is passed.
-MAXIMUM_REWRITE_STEPS = 100
+MAXIMUM_REWRITE_STEPS = 30
 
 
 # Check for n-ary operator in child nodes
