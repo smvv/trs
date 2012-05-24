@@ -58,7 +58,7 @@ def base_equals_raised(root, args):
     return L(1).negate(root.negated)
 
 
-MESSAGES[base_equals_raised] = _('Logarithm {0} reduces to 1.')
+MESSAGES[base_equals_raised] = _('Logarithm {0} reduces to `1`.')
 
 
 def divide_same_base(root, args):
@@ -70,7 +70,7 @@ def divide_same_base(root, args):
     return log(raised) / log(base)
 
 
-MESSAGES[divide_same_base] = _('Apply log_b(a) = log(a) / log(b) on {0}.')
+MESSAGES[divide_same_base] = _('Apply `log_b(a) = log(a) / log(b)` on {0}.')
 
 
 def match_add_logarithms(node):
@@ -127,7 +127,7 @@ def add_logarithms(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[add_logarithms] = _('Apply log(a) + log(b) = log(ab).')
+MESSAGES[add_logarithms] = _('Apply `log(a) + log(b) = log(ab)`.')
         #_('Combine logarithms with the same base: {2} and {3}.')
 
 
@@ -144,7 +144,7 @@ def expand_negations(root, args):
 
 
 MESSAGES[expand_negations] = \
-        _('Apply -log(a) - log(b) = -(log(a) + log(b)).')
+        _('Apply `-log(a) - log(b) = -(log(a) + log(b))`.')
 
 
 def subtract_logarithms(root, args):
@@ -161,7 +161,7 @@ def subtract_logarithms(root, args):
     return scope.as_nary_node()
 
 
-MESSAGES[subtract_logarithms] = _('Apply log(a) - log(b) = log(a / b).')
+MESSAGES[subtract_logarithms] = _('Apply `log(a) - log(b) = log(a / b)`.')
 
 
 def match_raised_base(node):
@@ -212,7 +212,7 @@ def raised_base(root, args):
     return args[0]
 
 
-MESSAGES[raised_base] = _('Apply g ^ log_g(a) = a on {0}.')
+MESSAGES[raised_base] = _('Apply `g ^ (log_(g)(a)) = a` on {0}.')
 
 
 def match_factor_out_exponent(node):

@@ -293,7 +293,7 @@ def remove_power_of_zero(root, args):
     return L(1)
 
 
-MESSAGES[remove_power_of_zero] = _('Power of zero {0} rewrites to 1.')
+MESSAGES[remove_power_of_zero] = _('Power of zero {0} rewrites to `1`.')
 
 
 def remove_power_of_one(root, args):

@@ -2,7 +2,7 @@ from itertools import combinations
 
 from .utils import greatest_common_divisor, is_numeric_node
 from ..node import ExpressionLeaf as Leaf, Scope, OP_ADD, OP_DIV, OP_MUL, \
-        OP_POW, negate
+        OP_POW
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 

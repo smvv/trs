@@ -7,7 +7,6 @@ from .logarithmic import factor_in_exponent_multiplicant, \
 from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
-from .factors import expand_double, expand_single
 from .fractions import multiply_with_fraction, divide_fraction_by_term, \
         add_nominators
 from .integrals import factor_out_constant, integrate_variable_root
