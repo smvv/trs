@@ -16,7 +16,7 @@ from tests.rulestestcase import RulesTestCase, tree
 class TestRulesIntegrals(RulesTestCase):
 
     def test_choose_constant(self):
-        a, b, c = tree('a, b, c')
+        a, b, c = tree('A, B, C')
         self.assertEqual(choose_constant(tree('int x ^ n')), c)
         self.assertEqual(choose_constant(tree('int x ^ c')), a)
         self.assertEqual(choose_constant(tree('int a ^ c da')), b)
@@ -26,16 +26,16 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqualPos(match_solve_indef(root), [P(root, solve_indef)])
 
     def test_solve_integral(self):
-        root, F, Fc = tree('int x ^ 2 dx, 1 / 3 x ^ 3, 1 / 3 x ^ 3 + c')
+        root, F, Fc = tree('int x ^ 2 dx, 1 / 3 x ^ 3, 1 / 3 x ^ 3 + C')
         self.assertEqual(solve_integral(root, F), Fc)
         x2, x, a, b = root = tree('int_a^b x ^ 2 dx')
         self.assertEqual(solve_integral(root, F), indef(Fc, a, b))
 
     def test_solve_integral_skip_indef(self):
-        root, x, c, l1 = tree('int_a^b y ^ x dy, x, c, 1')
+        root, x, C, l1 = tree('int_a^b y ^ x dy, x, C, 1')
         F = tree('1 / (x + 1)y ^ (x + 1)')
         y, a, b = root[1:4]
-        Fx = lambda y: l1 / (x + 1) * y ** (x + 1) + c
+        Fx = lambda y: l1 / (x + 1) * y ** (x + 1) + C
         self.assertEqual(solve_integral(root, F), Fx(b) - Fx(a))
 
     def test_solve_indef(self):
@@ -59,11 +59,11 @@ class TestRulesIntegrals(RulesTestCase):
                     [P(root, integrate_variable_exponent)])
 
     def test_integrate_variable_root(self):
-        root, expect = tree('int x ^ n, 1 / (n + 1) * x ^ (n + 1) + c')
+        root, expect = tree('int x ^ n, 1 / (n + 1) * x ^ (n + 1) + C')
         self.assertEqual(integrate_variable_root(root, ()), expect)
 
     def test_integrate_variable_exponent(self):
-        root, expect = tree('int g ^ x, g ^ x / ln(g) + c')
+        root, expect = tree('int g ^ x, g ^ x / ln(g) + C')
         self.assertEqual(integrate_variable_exponent(root, ()), expect)
 
     def test_match_constant_integral(self):
@@ -84,10 +84,10 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqual(single_variable_integral(root, ()), expect)
 
     def test_constant_integral(self):
-        root, expect = tree('int 2, 2x + c')
+        root, expect = tree('int 2, 2x + C')
         self.assertEqual(constant_integral(root, ()), expect)
 
-        root, expect = tree('int_0^4 2, [2x + c]_0^4')
+        root, expect = tree('int_0^4 2, [2x + C]_0^4')
         self.assertEqual(constant_integral(root, ()), expect)
 
     def test_match_factor_out_constant(self):
@@ -116,7 +116,7 @@ class TestRulesIntegrals(RulesTestCase):
                 [P(root1, extend_division_integral)])
 
     def test_division_integral(self):
-        root, expect = tree('int 1 / x dx, ln|x| + c')
+        root, expect = tree('int 1 / x dx, ln|x| + C')
         self.assertEqual(division_integral(root, ()), expect)
 
     def test_extend_division_integral(self):
@@ -128,9 +128,9 @@ class TestRulesIntegrals(RulesTestCase):
             'int a / x',
             'int a * 1 / x dx',
             'aint 1 / x dx',
-            'a(ln|x| + c)',
-            'aln|x| + ac',
-            # FIXME: 'aln|x| + c',  # ac -> c
+            'a(ln|x| + C)',
+            'aln|x| + aC',
+            # FIXME: 'aln|x| + C',  # ac -> C
         ])
 
     def test_match_function_integral(self):
@@ -150,15 +150,15 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqualPos(match_function_integral(root), [])
 
     def test_logarithm_integral(self):
-        root, expect = tree('int ln x, (xlnx - x) / ln e + c')
+        root, expect = tree('int ln x, (xlnx - x) / ln e + C')
         self.assertEqual(logarithm_integral(root, ()), expect)
 
     def test_sinus_integral(self):
-        root, expect = tree('int sin x, -cos x + c')
+        root, expect = tree('int sin x, -cos x + C')
         self.assertEqual(sinus_integral(root, ()), expect)
 
     def test_cosinus_integral(self):
-        root, expect = tree('int cos x, sin x + c')
+        root, expect = tree('int cos x, sin x + C')
         self.assertEqual(cosinus_integral(root, ()), expect)
 
     def test_match_sum_rule_integral(self):
@@ -182,7 +182,7 @@ class TestRulesIntegrals(RulesTestCase):
                          tree('int 4x dx + int 2x + 3x dx'))
 
     def test_match_remove_indef_constant(self):
-        Fx, a, b = root = tree('[2x + c]_a^b')
+        Fx, a, b = root = tree('[2x + C]_a^b')
         self.assertEqualPos(match_remove_indef_constant(root),
                 [P(root, remove_indef_constant, (Scope(Fx), Fx[1]))])
 
@@ -193,6 +193,6 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqualPos(match_remove_indef_constant(root), [])
 
     def test_remove_indef_constant(self):
-        root, e = tree('[2x + c]_a^b, [2x]_a^b')
+        root, e = tree('[2x + C]_a^b, [2x]_a^b')
         Fx = root[0]
         self.assertEqual(remove_indef_constant(root, (Scope(Fx), Fx[1])), e)
