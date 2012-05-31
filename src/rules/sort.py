@@ -26,6 +26,10 @@ def get_power_prop(node):
             return root.value, exp
 
 
+def is_upper(character):
+    return 'A' <= character <= 'Z'
+
+
 def swap_mono((left, right)):
     """
     Check if a pair of left and right multiplication factors in a monomial
@@ -45,6 +49,9 @@ def swap_mono((left, right)):
         if left_var == right_var:
             # Same variable, compare exponents
             return left_exp > right_exp
+
+        if is_upper(left_var) != is_upper(right_var):
+            return is_upper(left_var) < is_upper(right_var)
 
         # Compare variable names alphabetically
         return left_var > right_var
@@ -98,6 +105,9 @@ def swap_poly((left, right)):
     if left_var == right_var:
         # Same variable, compare exponents
         return left_exp < right_exp
+
+    if is_upper(left_var) != is_upper(right_var):
+        return is_upper(left_var) > is_upper(right_var)
 
     # Compare variable names alphabetically
     return left_var > right_var

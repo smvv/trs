@@ -21,7 +21,7 @@ def choose_constant(integral):
         i += 2 if i == 98 else 1
         c = chr(i)
 
-    return L(c)
+    return L(c.upper())
 
 
 def solve_integral(integral, F):
