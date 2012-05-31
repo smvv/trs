@@ -212,7 +212,8 @@ class Parser(BisonParser):
         i = 0
 
         while i < len(data):
-            data = data[:i] + re.sub(pattern, preprocess_data, data[i:])
+            data = data[:i] + re.sub(pattern, preprocess_data, data[i:],
+                                     flags=re.IGNORECASE)
             i += 1
 
         # Replace escape sequences with original keywords.
