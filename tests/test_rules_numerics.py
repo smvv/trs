@@ -155,10 +155,16 @@ class TestRulesNumerics(RulesTestCase):
 
     def test_raise_numerics(self):
         l1, l2 = root = tree('2 ^ 3')
-        self.assertEqualNodes(raise_numerics(root, (l1, l2)), L(8))
+        self.assertEqualNodes(raise_numerics(root, (l1, l2, 0)), L(8))
 
         l1_neg, l2 = root = tree('(-2) ^ 2')
-        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2)), --L(4))
+        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2, 0)), --L(4))
 
         l1_neg, l2 = root = tree('(-2) ^ 3')
-        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2)), ---L(8))
+        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2, 0)), ---L(8))
+
+        l1_neg, l2 = root = tree('-((-2) ^ 3)')
+        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2, 1)), ----L(8))
+
+        l1_neg, l2 = root = tree('-(2 ^ 3)')
+        self.assertEqualNodes(raise_numerics(root, (l1_neg, l2, 1)), -L(8))

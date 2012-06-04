@@ -271,7 +271,7 @@ def match_raise_numerics(node):
     r, e = node
 
     if r.is_numeric() and e.is_numeric() and not e.negated:
-        return [P(node, raise_numerics, (r, e))]
+        return [P(node, raise_numerics, (r, e, node.negated))]
 
     return []
 
@@ -282,9 +282,9 @@ def raise_numerics(root, args):
     (-2) ^ 3  ->  -8
     (-2) ^ 2  ->  4
     """
-    r, e = args
+    r, e, negated = args
 
-    return Leaf(r.value ** e.value, negated=r.negated * e.value)
+    return Leaf(r.value ** e.value, negated=r.negated * e.value + negated)
 
 
 MESSAGES[raise_numerics] = _('Raise constant {1} with {2}.')
