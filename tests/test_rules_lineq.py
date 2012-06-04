@@ -1,3 +1,17 @@
+# This file is part of TRS (http://math.kompiler.org)
+#
+# TRS is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Affero General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# TRS is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from src.rules.lineq import match_move_term, swap_sides, subtract_term, \
         divide_term, multiply_term, split_absolute_equation, \
         match_multiple_equations, substitute_variable, match_double_case, \
