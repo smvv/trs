@@ -27,7 +27,7 @@ class Possibility(object):
             # lambda is necessary otherwise because \1 and \2 are not matched
             # both at the same time.
             add_backticks = lambda x: '`%s`' % ''.join(x.groups(''))
-            msg = re.sub('`([^`]*)`|\(?({[^. ]+)', add_backticks, msg)
+            msg = re.sub('`([^`]*)`|(\(?{[^. ]+)', add_backticks, msg)
 
             return msg.format(self.root, *self.args)
 
