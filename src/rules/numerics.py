@@ -165,25 +165,6 @@ MESSAGES[reduce_fraction_constants] = \
         _('Divide the nominator and denominator of fraction {0} by {1}.')
 
 
-def match_multiply_zero(node):
-    """
-    a * 0    ->  0
-    0 * a    ->  0
-    -0 * a   ->  -0
-    0 * -a   ->  -0
-    -0 * -a  ->  0
-    """
-    assert node.is_op(OP_MUL)
-
-    left, right = node
-
-    if (left.is_leaf and left.value == 0) \
-            or (right.is_leaf and right.value == 0):
-        return [P(node, multiply_zero, (left.negated + right.negated,))]
-
-    return []
-
-
 def match_multiply_numerics(node):
     """
     3 * 2      ->  6

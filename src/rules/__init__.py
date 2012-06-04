@@ -8,7 +8,7 @@ from .powers import match_add_exponents, match_subtract_exponents, \
         match_raised_fraction, match_remove_negative_exponent, \
         match_exponent_to_root, match_extend_exponent, match_constant_exponent
 from .numerics import match_add_numerics, match_divide_numerics, \
-        match_multiply_numerics, match_multiply_zero, match_raise_numerics
+        match_multiply_numerics, match_raise_numerics
 from .fractions import match_constant_division, match_add_fractions, \
         match_multiply_fractions, match_divide_fractions, \
         match_extract_fraction_terms, match_division_in_denominator
@@ -38,9 +38,8 @@ RULES = {
                  match_combine_groups, match_add_quadrants,
                  match_add_logarithms, match_sort_polynome],
         OP_MUL: [match_multiply_numerics, match_expand, match_add_exponents,
-                 match_multiply_zero, match_negated_factor,
-                 match_multiply_fractions, match_factor_in_multiplicant,
-                 match_sort_monomial],
+                 match_negated_factor, match_multiply_fractions,
+                 match_factor_in_multiplicant, match_sort_monomial],
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
                  match_constant_division, match_divide_fractions,
                  match_negated_division, match_extract_fraction_terms,
