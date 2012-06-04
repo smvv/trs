@@ -193,7 +193,7 @@ def variable_root(root, args):
 
 
 MESSAGES[variable_root] = \
-        _('Apply standard derivative d/dx x ^ n = n * x ^ (n - 1) on {0}.')
+        _('Apply standard derivative `d/dx x ^ n = n * x ^ (n - 1)` on {0}.')
 
 
 def variable_exponent(root, args):
@@ -212,7 +212,7 @@ def variable_exponent(root, args):
 
 
 MESSAGES[variable_exponent] = \
-        _('Apply standard derivative d/dx g ^ x = g ^ x * ln g.')
+        _('Apply standard derivative `d/dx g ^ x = g ^ x * ln g`.')
 
 
 def match_logarithmic(node):
@@ -253,7 +253,7 @@ def logarithmic(root, args):
 
 
 MESSAGES[logarithmic] = \
-        _('Apply standard derivative d/dx log(x, g) = 1 / (x * ln(g)).')
+        _('Apply standard derivative `d/dx log(x, g) = 1 / (x * ln(g))`.')
 
 
 def match_goniometric(node):
