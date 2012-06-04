@@ -176,8 +176,15 @@ class TestLeidenOefenopgave(TestCase):
             '7 / 5',
         ])
 
-    #def test_4_4(self):
-    #    self.assertRewrite(['(3/4) / (5/6)', '9 / 10'])
+    def test_4_4(self):
+        self.assertRewrite([
+            '(3/4) / (5/6)',
+            '3 / (4 * 5 / 6)',
+            '3 / ((4 * 5) / 6)',
+            '3 / (20 / 6)',
+            '(3 * 6) / 20',
+            '18 / 20',
+            '9 / 10'])
 
     def test_4_5(self):
         self.assertRewrite([
@@ -187,7 +194,18 @@ class TestLeidenOefenopgave(TestCase):
         ])
 
     #def test_4_6(self):
-    #    self.assertRewrite(['(3/x^2) / (x/7)', '21 / x^3'])
+    #    self.assertRewrite([
+    #        '(3 / x^2) / (x / 7)',
+    #        '3 / x ^ 2 / (1 / 7 * x)',
+    #        '3 / (x ^ 2 * 1 / 7 * x)',
+    #        '3 / (x ^ (2 + 1)1 / 7)',
+    #        '3 / (x ^ 3 * 1 / 7)',
+    #        '3 / (1 / 7 * x ^ 3)',
+    #        '21 / x^3',
+    #    ])
 
     #def test_4_7(self):
-    #    self.assertRewrite(['1/x + 2/(x+1)', '(3x + 1) / (x * (x + 1))'])
+    #    self.assertRewrite([
+    #        '1 / x + 2 / (x + 1)',
+    #        '(3x + 1) / (x * (x + 1))',
+    #    ])
