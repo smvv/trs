@@ -382,6 +382,11 @@ class Parser(BisonParser):
 
             return self.root_node
 
+    def rewrite_and_count_all(self, check_implicit=True, verbose=False):
+        steps = self.rewrite_all(include_steps=True,
+                check_implicit=check_implicit, verbose=verbose)
+        return self.root_node, len(steps)
+
     #def hook_run(self, filename, retval):
     #    return retval
 

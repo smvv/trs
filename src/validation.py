@@ -18,45 +18,43 @@ from strategy import find_possibilities
 from tests.parser import ParserWrapper
 
 
-def validate(exp, result):
+VALIDATE_FAILURE = 0
+VALIDATE_NOPROGRESS = 1
+VALIDATE_SUCCESS = 2
+VALIDATE_ERROR = 3
+
+
+def validate(a, b):
     """
-    Validate that exp =>* result.
+    Validate that a =>* b.
     """
     parser = ParserWrapper(Parser)
 
-    exp = parser.run([exp])
-    result = parser.run([result])
+    # Parse both expressions
+    a = parser.run([a])
+    b = parser.run([b])
 
-    # Compare the simplified expressions first, in order to avoid the
-    # computational intensive traversal of the possibilities tree.
-    parser.set_root_node(exp)
-    a = parser.rewrite_all()
+    # Evaluate a and b, counting the number of steps
+    parser.set_root_node(a)
+    A, a_steps = parser.rewrite_and_count_all()
 
     if not a:
-        return False
+        return VALIDATE_ERROR
 
-    parser.set_root_node(result)
-    b = parser.rewrite_all()
+    parser.set_root_node(b)
+    B, b_steps = parser.rewrite_and_count_all()
 
-    if not a.equals(b):
-        return False
+    if not B:
+        return VALIDATE_ERROR
 
-    # TODO: make sure cycles are avoided / eliminated using cycle detection.
-    def traverse_preorder(node, result):
-        #print 'node:', node, 'result:', result
-        if node.equals(result):
-            return True
+    # Evaluations must be equal
+    if not A.equals(B):
+        return VALIDATE_FAILURE
 
-        for p in find_possibilities(node):
-            # Clone the root node because it will be used in multiple
-            # substitutions
-            temp = node.clone()
-            child = apply_suggestion(node, p)
-            node = temp
+    # If evaluation of b took more staps than evaluation of a, the step from a
+    # to b was probably useless or even bad
+    if b_steps >= a_steps:
+        return VALIDATE_NOPROGRESS
 
-            if traverse_preorder(child, result):
-                return True
-
-        return False
-
-    return traverse_preorder(exp, result)
+    # Evaluations match and b is evaluated quicker than a => success
+    return VALIDATE_SUCCESS
