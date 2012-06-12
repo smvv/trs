@@ -340,9 +340,21 @@ class ExpressionNode(Node, ExpressionBase):
         # Add bounds
         if len(self) > 2:
             lbnd, ubnd = self[2:]
-            lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
-            ubnd = str(ExpressionNode(OP_POW, ubnd))
-            op += lbnd + ubnd
+
+            # FIXME: temporary fix: add parentheses around negated bounds to
+            # prevent a syntax error (solving the syntax error is better, but
+            # harder)
+            if lbnd.negated:
+                lbnds = '%s(%s)' % (OP_VALUE_MAP[OP_SUBSCRIPT], lbnd)
+            else:
+                lbnds = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
+
+            if ubnd.negated:
+                ubnds = '%s(%s)' % (OP_VALUE_MAP[OP_POW], ubnd)
+            else:
+                ubnds = str(ExpressionNode(OP_POW, ubnd))
+
+            op += lbnds + ubnds
 
         # int x ^ 2      ->  int x ^ 2 dx
         # int x + 1      ->  int (x + 1) dx
