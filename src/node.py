@@ -339,35 +339,36 @@ class ExpressionNode(Node, ExpressionBase):
 
         # Add bounds
         if len(self) > 2:
-            lbnd, ubnd = self[2:]
-
-            # FIXME: temporary fix: add parentheses around negated bounds to
-            # prevent a syntax error (solving the syntax error is better, but
-            # harder)
-            if lbnd.negated:
-                lbnds = '%s(%s)' % (OP_VALUE_MAP[OP_SUBSCRIPT], lbnd)
-            else:
-                lbnds = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
-
-            if ubnd.negated:
-                ubnds = '%s(%s)' % (OP_VALUE_MAP[OP_POW], ubnd)
-            else:
-                ubnds = str(ExpressionNode(OP_POW, ubnd))
-
-            op += lbnds + ubnds
+            op += self.construct_bounds(*self[2:])
 
         # int x ^ 2      ->  int x ^ 2 dx
         # int x + 1      ->  int (x + 1) dx
         # int_a^b x ^ 2  ->  int_a^b x ^ 2 dx
         return op + ' ' + operand
 
+    def construct_bounds(self, lbnd, ubnd):
+        # FIXME: temporary fix: add parentheses around negated bounds to
+        # prevent a syntax error (solving the syntax error is better, but
+        # harder)
+        if lbnd.negated:
+            lbnds = '%s(%s)' % (OP_VALUE_MAP[OP_SUBSCRIPT], lbnd)
+        else:
+            lbnds = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
+
+        if ubnd.negated:
+            ubnds = '%s(%s)' % (OP_VALUE_MAP[OP_POW], ubnd)
+        else:
+            ubnds = str(ExpressionNode(OP_POW, ubnd))
+
+        return lbnds + ubnds
+
     def construct_indef_integral(self, children):
         # [x ^ 2]_a^b
         F, lbnd, ubnd = self
-        lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
-        ubnd = str(ExpressionNode(OP_POW, ubnd))
+        #lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
+        #ubnd = str(ExpressionNode(OP_POW, ubnd))
 
-        return '[%s]%s%s' % (F, lbnd, ubnd)
+        return '[%s]%s' % (F, self.construct_bounds(lbnd, ubnd))
 
     def construct_function(self, children):
         if self.op == OP_ABS:
