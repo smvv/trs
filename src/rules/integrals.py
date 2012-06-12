@@ -15,7 +15,7 @@
 from .utils import find_variables, substitute, find_variable
 from ..node import ExpressionLeaf as L, OP_INT, OP_INT_INDEF, OP_MUL, OP_DIV, \
         OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, indef, \
-        absolute, OP_ADD
+        absolute, OP_ADD, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -188,7 +188,7 @@ def match_factor_out_constant(node):
     fx, x = node[:2]
 
     if fx.negated:
-        return [P(node, split_negation_to_constant)]
+        return [P(node, factor_out_integral_negation)]
 
     if not fx.is_op(OP_MUL):
         return []
@@ -203,15 +203,15 @@ def match_factor_out_constant(node):
     return p
 
 
-def split_negation_to_constant(root, args):
+def factor_out_integral_negation(root, args):
     """
     int -f(x) dx  ->  int -1 * f(x) dx  # =>*  -int f(x) dx
     """
-    return integral(-L(1) * root[0].reduce_negation(), *root[1:])
+    return -integral(root[0].reduce_negation(), *root[1:])
 
 
-MESSAGES[split_negation_to_constant] = _('Write the negation of {0[0]} as an' \
-        ' explicit `-1` and bring it outside of the integral.')
+MESSAGES[factor_out_integral_negation] = \
+        _('Bring the negation of {0[0]} outside of the integral.')
 
 
 def factor_out_constant(root, args):
@@ -221,7 +221,7 @@ def factor_out_constant(root, args):
     scope, c = args
     scope.remove(c)
 
-    return c * integral(scope.as_nary_node(), *root[1:])
+    return negate(c * integral(scope.as_nary_node(), *root[1:]), root.negated)
 
 
 MESSAGES[factor_out_constant] = _('Factor out {2} from integral {0}.')
@@ -351,11 +351,11 @@ def sum_rule_integral(root, args):
     int f(x) + g(x) dx  ->  int f(x) dx + int g(x) dx
     """
     scope, f = args
-    x = root[1]
+    args = root[1:]
     scope.remove(f)
-    addition = integral(f, x) + integral(scope.as_nary_node(), x)
+    addition = integral(f, *args) + integral(scope.as_nary_node(), *args)
 
-    return addition.negate(root.negated)
+    return negate(addition, root.negated)
 
 
 MESSAGES[sum_rule_integral] = _('Apply the sum rule to {0}.')

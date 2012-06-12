@@ -16,7 +16,7 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         match_solve_indef, solve_indef, match_integrate_variable_power, \
         integrate_variable_root, integrate_variable_exponent, \
         match_constant_integral, constant_integral, single_variable_integral, \
-        match_factor_out_constant, split_negation_to_constant, \
+        match_factor_out_constant, factor_out_integral_negation, \
         factor_out_constant, match_division_integral, division_integral, \
         extend_division_integral, match_function_integral, \
         logarithm_integral, sinus_integral, cosinus_integral, \
@@ -111,11 +111,11 @@ class TestRulesIntegrals(RulesTestCase):
 
         root = tree('int -x2 dx')
         self.assertEqualPos(match_factor_out_constant(root),
-                [P(root, split_negation_to_constant)])
+                [P(root, factor_out_integral_negation)])
 
-    def test_split_negation_to_constant(self):
-        root, expect = tree('int -x ^ 2 dx, int (-1)x ^ 2 dx')
-        self.assertEqual(split_negation_to_constant(root, ()), expect)
+    def test_factor_out_integral_negation(self):
+        root, expect = tree('int -x ^ 2 dx, -int x ^ 2 dx')
+        self.assertEqual(factor_out_integral_negation(root, ()), expect)
 
     def test_factor_out_constant(self):
         root, expect = tree('int cx dx, c int x dx')

@@ -19,7 +19,7 @@ from .groups import match_combine_groups
 from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
         match_multiply_exponents, match_duplicate_exponent, \
-        match_raised_fraction, match_remove_negative_exponent, \
+        match_raised_fraction, match_remove_negative_child, \
         match_exponent_to_root, match_extend_exponent, match_constant_exponent
 from .numerics import match_add_numerics, match_divide_numerics, \
         match_multiply_numerics, match_raise_numerics
@@ -59,7 +59,7 @@ RULES = {
                  match_negated_division, match_extract_fraction_terms,
                  match_division_in_denominator],
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
-                 match_raised_fraction, match_remove_negative_exponent,
+                 match_raised_fraction, match_remove_negative_child,
                  match_exponent_to_root, match_extend_exponent,
                  match_constant_exponent, match_raise_numerics,
                  match_raised_base],

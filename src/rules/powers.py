@@ -204,30 +204,45 @@ MESSAGES[raised_fraction] = _('Apply the exponent {2} to the nominator and'
         ' denominator of fraction {1}.')
 
 
-def match_remove_negative_exponent(node):
+def match_remove_negative_child(node):
     """
-    a ^ -p  ->  1 / a ^ p
+    a ^ -p                           ->  1 / a ^ p
+    (-a) ^ p and p is an odd number  ->  -a ^ p
     """
     assert node.is_op(OP_POW)
 
     a, p = node
+    pos = []
 
     if p.negated:
-        return [P(node, remove_negative_exponent, (a, p))]
+        pos.append(P(node, remove_negative_exponent))
 
-    return []
+    if a.negated and p.is_int() and p.value & 1:
+        pos.append(P(node, remove_negative_root))
+
+    return pos
 
 
 def remove_negative_exponent(root, args):
     """
-    a^-p  ->  1 / a^p
+    a ^ -p  ->  1 / a ^ p
     """
-    a, p = args
-
+    a, p = root
     return L(1) / a ** p.reduce_negation()
 
 
 MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
+
+
+def remove_negative_root(root, args):
+    """
+    (-a) ^ p and p is an odd number  ->  -a ^ p
+    """
+    a, p = root
+    return -(a.reduce_negation() ** p)
+
+
+MESSAGES[remove_negative_root] = _('Remove negative exponent {2}.')
 
 
 def match_exponent_to_root(node):

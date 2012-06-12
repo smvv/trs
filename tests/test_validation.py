@@ -40,3 +40,7 @@ class TestValidation(TestCase):
 
     #def test_advanced_failure(self):
     #    self.assertFalse(validate('(x-1)^3+(x-1)^3', '4a+4b'))
+
+    def test_sphere_volume(self):
+        self.assertTrue(validate('int_(-r)^(r) pi * (r^2 - x^2) dx',
+                                 '4 / 3 * pi * r ^ 3'))

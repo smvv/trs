@@ -17,8 +17,8 @@ from src.rules.powers import match_add_exponents, add_exponents, \
         match_multiply_exponents, multiply_exponents, \
         match_duplicate_exponent, duplicate_exponent, \
         match_raised_fraction, raised_fraction, \
-        match_remove_negative_exponent, remove_negative_exponent, \
-        match_exponent_to_root, exponent_to_root, \
+        match_remove_negative_child, remove_negative_exponent, \
+        remove_negative_root, match_exponent_to_root, exponent_to_root, \
         match_constant_exponent, remove_power_of_zero, remove_power_of_one
 from src.node import Scope, ExpressionNode as N
 from src.possibilities import Possibility as P
@@ -122,13 +122,22 @@ class TestRulesPowers(RulesTestCase):
 
         self.assertEqual(raised_fraction(root, (ab, p)), a ** p / b ** p)
 
-    def test_match_remove_negative_exponent(self):
-        a, p = tree('a,p')
-        root = a ** -p
+    def test_match_remove_negative_child(self):
+        root = tree('a ^ -p')
+        self.assertEqualPos(match_remove_negative_child(root),
+                [P(root, remove_negative_exponent)])
 
-        possibilities = match_remove_negative_exponent(root)
-        self.assertEqualPos(possibilities,
-                [P(root, remove_negative_exponent, (a, -p))])
+        root = tree('(-a) ^ 3')
+        self.assertEqualPos(match_remove_negative_child(root),
+                [P(root, remove_negative_root)])
+
+        root = tree('(-a) ^ 2')
+        self.assertEqualPos(match_remove_negative_child(root), [])
+
+        root = tree('(-a) ^ -3')
+        self.assertEqualPos(match_remove_negative_child(root),
+                [P(root, remove_negative_exponent),
+                 P(root, remove_negative_root)])
 
     def test_match_exponent_to_root(self):
         a, n, m, l1 = tree('a,n,m,1')
@@ -178,9 +187,15 @@ class TestRulesPowers(RulesTestCase):
     def test_remove_negative_exponent(self):
         a, p, l1 = tree('a,-p,1')
         root = a ** p
-
-        self.assertEqualNodes(remove_negative_exponent(root, (a, p)),
+        self.assertEqualNodes(remove_negative_exponent(root, ()),
                               l1 / a ** +p)
+
+    def test_remove_negative_root(self):
+        root, expect = tree('(-a) ^ 3, -a ^ 3')
+        self.assertEqualNodes(remove_negative_root(root, ()), expect)
+
+        root, expect = tree('(-a) ^ -3, -a ^ -3')
+        self.assertEqualNodes(remove_negative_root(root, ()), expect)
 
     def test_exponent_to_root(self):
         a, n, m, l1 = tree('a,n,m,1')
