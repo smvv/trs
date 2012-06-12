@@ -231,7 +231,8 @@ def remove_negative_exponent(root, args):
     return L(1) / a ** p.reduce_negation()
 
 
-MESSAGES[remove_negative_exponent] = _('Remove negative exponent {2}.')
+MESSAGES[remove_negative_exponent] = \
+        _('Replace negative exponent {0[1]} with a division by one.')
 
 
 def remove_negative_root(root, args):
@@ -242,7 +243,8 @@ def remove_negative_root(root, args):
     return -(a.reduce_negation() ** p)
 
 
-MESSAGES[remove_negative_root] = _('Remove negative exponent {2}.')
+MESSAGES[remove_negative_root] = _('{0[1]} is an odd number, so apply the ' \
+        'negation of {0[0]} to the power itself.')
 
 
 def match_exponent_to_root(node):
