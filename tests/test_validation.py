@@ -44,3 +44,7 @@ class TestValidation(TestCase):
     def test_sphere_volume(self):
         self.assertTrue(validate('int_(-r)^(r) pi * (r^2 - x^2) dx',
                                  '4 / 3 * pi * r ^ 3'))
+
+    #def test_sphere_volume_alternative(self):
+    #    self.assertTrue(validate('int_(-r)^(r) pi * (r^2 - x^2) dx',
+    #                             '4 * pi * r ^ 3 / 3'))
