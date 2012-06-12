@@ -32,21 +32,27 @@ def validate(exp, result):
     parser.set_root_node(exp)
     a = parser.rewrite_all()
 
+    if not a:
+        return False
+
     parser.set_root_node(result)
     b = parser.rewrite_all()
 
-    if not a or not a.equals(b):
+    if not a.equals(b):
         return False
 
     # TODO: make sure cycles are avoided / eliminated using cycle detection.
     def traverse_preorder(node, result):
+        #print 'node:', node, 'result:', result
         if node.equals(result):
             return True
 
         for p in find_possibilities(node):
             # Clone the root node because it will be used in multiple
             # substitutions
-            child = apply_suggestion(node.clone(), p)
+            temp = node.clone()
+            child = apply_suggestion(node, p)
+            node = temp
 
             if traverse_preorder(child, result):
                 return True

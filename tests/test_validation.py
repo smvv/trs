@@ -31,6 +31,10 @@ class TestValidation(TestCase):
     def test_intermediate_failure(self):
         self.assertFalse(validate('3a + a + b + 2b', '4a + 4b'))
 
+    #def test_success(self):
+    #    self.assertTrue(validate('x^2 + x - 2x^2 + 3x + 1',
+    #                             'x^2 + 4x - 2x^2 + 1'))
+
     #def test_indefinite_integral(self):
     #    self.assertTrue(validate('int_2^4 x^2', '4^3/3 - 2^3/3'))
 
