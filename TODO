@@ -104,4 +104,12 @@ Division of 0 by 1 reduces to 0.
  - Optimization: put possibility tree in hashmap: {'expression': [(handler, args, 'applied_expression')], ...}
    This hashmap can be used to speedup the calculation of possbility trees.
 
-Fix: int -cf(x) dx (caused infinite loop)
+- Fix: int -cf(x) dx (caused infinite loop)
+
+- Idea for validation that is not really working ATM:
+  When validation that a => b:
+  Apply reductions to a to obtain A, this costs N steps.
+  Apply reductions to b to obtain B, this costs M steps.
+  if A != B, validation fails (return status 0)
+  else if M >= N, the uses has done a useless or bad step (return status 1)
+  otherwise (if M < N), the user has reduced the expression correctly (return status 0)
