@@ -17,6 +17,9 @@ from tornado.web import RequestHandler, Application
 from src.parser import Parser
 from tests.parser import ParserWrapper
 from src.validation import validate as validate_expression
+import sys
+import traceback
+
 
 # Log debug information
 from logging import getLogger, DEBUG
@@ -39,6 +42,11 @@ def get_last_line(handler):
             return last_line
 
 
+def format_exception(e):
+    tb = sys.exc_info()[2]
+    return {'error': str(e), 'traceback': traceback.format_tb(tb)}
+
+
 class Step(RequestHandler):
     def post(self):
         try:
@@ -59,7 +67,7 @@ class Step(RequestHandler):
 
             self.write({'hint': 'No further reduction is possible.'})
         except Exception as e:
-            self.write({'error': str(e)})
+            self.write(format_exception(e))
 
 
 class Answer(RequestHandler):
@@ -85,7 +93,7 @@ class Answer(RequestHandler):
 
             self.write({'hint': 'No further reduction is possible.'})
         except Exception as e:
-            self.write({'error': str(e)})
+            self.write(format_exception(e))
 
 
 class Hint(RequestHandler):
@@ -104,7 +112,7 @@ class Hint(RequestHandler):
 
             self.write({'hint': 'No further reduction is possible.'})
         except Exception as e:
-            self.write({'error': str(e)})
+            self.write(format_exception(e))
 
 
 class Validate(RequestHandler):
@@ -143,7 +151,7 @@ class Validate(RequestHandler):
             self.write({'validated': i - skipped})
         except Exception as e:
             i -= 1
-            self.write({'error': str(e), 'validated': i - skipped})
+            self.write(format_exception(e) + {'validated': i - skipped})
 
 
 urls = [
