@@ -35,6 +35,8 @@ def validate(a, b):
     b = parser.run([b])
 
     # Evaluate a and b, counting the number of steps
+    # TODO: Optimization: if b is encountered while evaluating a, return
+    # VALIDATION_SUCCESS
     parser.set_root_node(a)
     A, a_steps = parser.rewrite_and_count_all()
 
