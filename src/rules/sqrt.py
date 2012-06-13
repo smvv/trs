@@ -88,7 +88,7 @@ def quadrant_sqrt(root, args):
 
 
 MESSAGES[quadrant_sqrt] = \
-        _('The square root of a quadrant reduces to the raised root.')
+        _('The root of a  reduces to the raised root.')
 
 
 def constant_sqrt(root, args):

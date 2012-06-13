@@ -140,17 +140,13 @@ class TestRulesPowers(RulesTestCase):
                  P(root, remove_negative_root)])
 
     def test_match_exponent_to_root(self):
-        a, n, m, l1 = tree('a,n,m,1')
+        root = tree('a ^ (1 / 2)')
+        self.assertEqualPos(match_exponent_to_root(root),
+                [P(root, exponent_to_root)])
 
-        root = a ** (n / m)
-        possibilities = match_exponent_to_root(root)
-        self.assertEqualPos(possibilities,
-                [P(root, exponent_to_root, (a, n, m))])
-
-        root = a ** (l1 / m)
-        possibilities = match_exponent_to_root(root)
-        self.assertEqualPos(possibilities,
-                [P(root, exponent_to_root, (a, 1, m))])
+        root = tree('a ^ (n / 2)')
+        self.assertEqualPos(match_exponent_to_root(root),
+                [P(root, exponent_to_root)])
 
     def test_add_exponents(self):
         a, p, q = tree('a,p,q')
@@ -198,14 +194,11 @@ class TestRulesPowers(RulesTestCase):
         self.assertEqualNodes(remove_negative_root(root, ()), expect)
 
     def test_exponent_to_root(self):
-        a, n, m, l1 = tree('a,n,m,1')
-        root = a ** (n / m)
+        root, expect = tree('a ^ (1 / 2), sqrt(a)')
+        self.assertEqualNodes(exponent_to_root(root, ()), expect)
 
-        self.assertEqualNodes(exponent_to_root(root, (a, n, m)),
-                              N('sqrt', a ** n, m))
-
-        self.assertEqualNodes(exponent_to_root(root, (a, l1, m)),
-                              N('sqrt', a, m))
+        root, expect = tree('a ^ (n / 2), sqrt(a ^ n)')
+        self.assertEqualNodes(exponent_to_root(root, ()), expect)
 
     def test_match_constant_exponent(self):
         a0, a1, a2 = tree('a ^ 0, a ^ 1, a ^ 2')

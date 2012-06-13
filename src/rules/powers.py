@@ -249,27 +249,31 @@ MESSAGES[remove_negative_root] = _('{0[1]} is an odd number, so apply the ' \
 
 def match_exponent_to_root(node):
     """
-    a^(1 / m)  ->  sqrt(a, m)
-    a^(n / m)  ->  sqrt(a^n, m)
+    a^(1 / 2)  ->  sqrt(a)
+    a^(n / 2)  ->  sqrt(a^n)
     """
     assert node.is_op(OP_POW)
 
     left, right = node
 
-    if right.is_op(OP_DIV):
-        return [P(node, exponent_to_root, (left,) + tuple(right))]
+    if right.is_op(OP_DIV) and right[1] == 2:
+        return [P(node, exponent_to_root)]
 
     return []
 
 
 def exponent_to_root(root, args):
     """
-    a^(1 / m)  ->  sqrt(a, m)
-    a^(n / m)  ->  sqrt(a^n, m)
+    a^(1 / 2)  ->  sqrt(a)
+    a^(n / 2)  ->  sqrt(a^n)
     """
-    a, n, m = args
+    a, (n, _) = root
 
-    return N(OP_SQRT, a if n == 1 else a ** n, m)
+    return N(OP_SQRT, a if n == 1 else a ** n)
+
+
+MESSAGES[exponent_to_root] = \
+        _('Rewrite power with exponent {0[1]} to a square root.')
 
 
 def match_extend_exponent(node):
