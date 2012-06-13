@@ -72,8 +72,10 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('2(a + b)'), tree('2 * (a + b)'))
         self.assertEqual(tree('(a + b)2'), tree('(a + b) * 2'))
 
-        self.assertEqual(tree('(a)(b)'), tree('(a) * (b)'))
-        self.assertEqual(tree('(a)[b]\''), tree('(a) * [b]\''))
+        self.assertEqual(tree('(a)(b)'), tree('a * b'))
+        self.assertEqual(tree('(a)[b]'), tree('a * b'))
+        self.assertEqual(tree('[a](b)'), tree('a * b'))
+        self.assertEqual(tree('[a][b]'), tree('a * b'))
 
         # FIXME: self.assertEqual(tree('(a)|b|'), tree('(a) * |b|'))
         # FIXME: self.assertEqual(tree('|a|(b)'), tree('|a| * (b)'))
@@ -94,11 +96,20 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x ** 2)))
         self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x) ** 2))
 
-    def test_bracket_derivative(self):
+    def test_brackets(self):
+        self.assertEqual(*tree('[x], x'))
+        self.assertEqual(*tree('[x], (x)'))
+        self.assertEqual(*tree('[x ^ 2], x ^ 2'))
+        self.assertEqual(*tree('[x ^ 2](x), x ^ 2 * x'))
+
+    def test_derivative(self):
         x = tree('x')
 
         self.assertEqual(tree('[x]\''), der(x))
+        self.assertEqual(tree('x\''), der(x))
         self.assertEqual(tree('[x]\'\''), der(der(x)))
+        self.assertEqual(tree('(x)\'\''), der(der(x)))
+        self.assertEqual(tree('x\'\''), der(der(x)))
 
     def test_delta_derivative(self):
         exp, x, d = tree('x ^ 2, x, d')

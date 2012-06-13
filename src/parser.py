@@ -110,6 +110,7 @@ class Parser(BisonParser):
         ('left', ('MINUS', 'PLUS', 'NEG')),
         ('left', ('INTEGRAL', 'DERIVATIVE')),
         ('left', ('TIMES', )),
+        ('left', ('PRIME', )),
         ('left', ('DIVIDE', )),
         ('right', ('FUNCTION', )),
         ('right', ('POW', )),
@@ -466,6 +467,7 @@ class Parser(BisonParser):
         exp : NUMBER
             | IDENTIFIER
             | LPAREN exp RPAREN
+            | LBRACKET exp RBRACKET
             | unary
             | binary
             | nary
@@ -480,10 +482,10 @@ class Parser(BisonParser):
         if option == 1:  # rule: IDENTIFIER
             return Leaf(values[0])
 
-        if option == 2:  # rule: LPAREN exp RPAREN
+        if option in (2, 3):  # rule: LPAREN exp RPAREN | LBRACKET exp RBRACKET
             return values[1]
 
-        if 3 <= option <= 5:  # rule: unary | binary | nary
+        if 4 <= option <= 6:  # rule: unary | binary | nary
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -495,7 +497,7 @@ class Parser(BisonParser):
               | FUNCTION_LPAREN exp RPAREN
               | FUNCTION exp
               | DERIVATIVE exp
-              | bracket_derivative
+              | exp PRIME
               | INTEGRAL exp
               | integral_bounds TIMES exp %prec INTEGRAL
               | LBRACKET exp RBRACKET lbnd ubnd
@@ -535,8 +537,8 @@ class Parser(BisonParser):
             # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
             return Node(OP_DER, values[1], Leaf(values[0][-2]))
 
-        if option == 4:  # rule: bracket_derivative
-            return values[0]
+        if option == 4:  # rule: exp PRIME
+            return Node(OP_DER, values[0])
 
         if option == 5:  # rule: INTEGRAL exp
             fx, x = find_integration_variable(values[1])
@@ -595,21 +597,6 @@ class Parser(BisonParser):
 
         if option == 0:  # rule: exp POW exp
             return values[0], values[2]
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_bracket_derivative(self, target, option, names, values):
-        """
-        bracket_derivative : LBRACKET exp RBRACKET PRIME
-                           | bracket_derivative PRIME
-        """
-
-        if option == 0:  # rule: LBRACKET exp RBRACKET PRIME
-            return Node(OP_DER, values[1])
-
-        if option == 1:  # rule: bracket_derivative PRIME
-            return Node(OP_DER, values[0])
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
