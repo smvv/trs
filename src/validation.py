@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
-from parser import Parser
+from parser import Parser, MAXIMUM_REWRITE_STEPS
 from possibilities import apply_suggestion
 from strategy import find_possibilities
 from tests.parser import ParserWrapper
@@ -26,7 +26,7 @@ VALIDATE_ERROR = 3
 
 def validate(a, b):
     """
-    Validate that a =>* b.
+    Validate that a => b.
     """
     parser = ParserWrapper(Parser)
 
@@ -34,13 +34,29 @@ def validate(a, b):
     a = parser.run([a])
     b = parser.run([b])
 
-    # Evaluate a and b, counting the number of steps
-    # TODO: Optimization: if b is encountered while evaluating a, return
-    # VALIDATION_SUCCESS
-    parser.set_root_node(a)
-    A, a_steps = parser.rewrite_and_count_all()
+    if a.equals(b):
+        return VALIDATION_NOPROGRESS
 
-    if not a:
+    # Evaluate a and b, counting the number of steps
+    # Optimization: if b is encountered while evaluating a, return
+    parser.set_root_node(a)
+    A = a
+    a_steps = 0
+
+    for i in xrange(MAXIMUM_REWRITE_STEPS):
+        obj = parser.rewrite()
+
+        if not obj:
+            break
+
+        # If b is some reduction of a, it will be detected here
+        if obj.equals(b):
+            return VALIDATE_SUCCESS
+
+        A = obj
+        a_steps += 1
+
+    if not A:
         return VALIDATE_ERROR
 
     parser.set_root_node(b)

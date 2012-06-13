@@ -17,7 +17,8 @@ import doctest
 
 from src.node import ExpressionNode
 from src.parser import Parser
-from src.validation import validate
+from src.validation import validate, VALIDATE_SUCCESS, \
+        VALIDATE_FAILURE, VALIDATE_NOPROGRESS
 from tests.parser import ParserWrapper
 
 
@@ -92,6 +93,14 @@ class RulesTestCase(unittest.TestCase):
 
             raise
 
-    def assertValidate(self, exp, result):
-        self.assertTrue(validate(exp, result),
-                        'Validation failed: %s  !=>  %s')
+    def assertValidateSuccess(self, a, b):
+        self.assertEqual(validate(a, b), VALIDATE_SUCCESS,
+                         'Validation failed: %s !=> %s' % (a, b))
+
+    def assertValidateFailure(self, a, b):
+        self.assertEqual(validate(a, b), VALIDATE_FAILURE,
+                         'Validation dit not fail: %s => %s' % (a, b))
+
+    def assertValidateNoprogress(self, a, b):
+        self.assertEqual(validate(a, b), VALIDATE_NOPROGRESS, 'Validation '
+                'did detect progress or failed for %s => %s' % (a, b))
