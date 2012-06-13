@@ -102,6 +102,9 @@ class TestParser(RulesTestCase):
         self.assertEqual(*tree('[x ^ 2], x ^ 2'))
         self.assertEqual(*tree('[x ^ 2](x), x ^ 2 * x'))
 
+        self.assertEqual(*tree('{x}, x'))
+        self.assertEqual(*tree('{x ^ 2}, x ^ 2'))
+
     def test_derivative(self):
         x = tree('x')
 

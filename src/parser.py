@@ -96,8 +96,9 @@ class Parser(BisonParser):
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
               'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
-              'RBRACKET', 'PIPE', 'PRIME', 'DERIVATIVE'] \
-             + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
+              'RBRACKET', 'LCBRACKET', 'RCBRACKET', 'PIPE', 'PRIME',
+              'DERIVATIVE'] \
+              + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
     # precedences
@@ -468,6 +469,7 @@ class Parser(BisonParser):
             | IDENTIFIER
             | LPAREN exp RPAREN
             | LBRACKET exp RBRACKET
+            | LCBRACKET exp RCBRACKET
             | unary
             | binary
             | nary
@@ -482,10 +484,11 @@ class Parser(BisonParser):
         if option == 1:  # rule: IDENTIFIER
             return Leaf(values[0])
 
-        if option in (2, 3):  # rule: LPAREN exp RPAREN | LBRACKET exp RBRACKET
+        if 2 <= option <= 4:  # rule: LPAREN exp RPAREN | LBRACKET exp RBRACKET
+                              #       | LCBRACKET exp RCBRACKET
             return values[1]
 
-        if 4 <= option <= 6:  # rule: unary | binary | nary
+        if 5 <= option <= 7:  # rule: unary | binary | nary
             return values[0]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -714,6 +717,8 @@ class Parser(BisonParser):
     ")"       { returntoken(RPAREN); }
     "["       { returntoken(LBRACKET); }
     "]"       { returntoken(RBRACKET); }
+    "{"       { returntoken(LCBRACKET); }
+    "}"       { returntoken(RCBRACKET); }
     "'"       { returntoken(PRIME); }
     "|"       { returntoken(PIPE); }
     log_([0-9]+|[a-zA-Z])"*(" { returntoken(FUNCTION_LPAREN); }
