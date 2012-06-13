@@ -18,3 +18,5 @@
 
 - Fix: int -cf(x) dx (caused infinite loop)
   Solution: remove baby steps that rewrites f(x) to f(x) ^ 1
+
+- Add backslash notation for special LaTeX symbols notation such as \pi?
