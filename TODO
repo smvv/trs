@@ -19,3 +19,4 @@
 - Change integral representation in parser so that _ and ^ bounds are printed correctly by line printer.
 
 - Rewrite unit tests to use improved line printer syntax.
+- Add notation "1 1/3" for 'int with fraction' leafs, and rules to rewrite them to fractions and back.
