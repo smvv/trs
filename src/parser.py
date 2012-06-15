@@ -267,7 +267,7 @@ class Parser(BisonParser):
             raise RuntimeError('No expression')
 
         if self.possibilities is not None:
-            if self.verbose:
+            if self.verbose:  # pragma: nocover
                 print 'Expression has not changed, not updating possibilities'
             return
 
@@ -302,14 +302,14 @@ class Parser(BisonParser):
 
         suggestion = self.possibilities[index]
 
-        if self.verbose:
+        if self.verbose:  # pragma: nocover
             print 'EXPLICIT:', suggestion
-        elif verbose:
+        elif verbose:  # pragma: nocover
             print suggestion
 
         self.set_root_node(apply_suggestion(self.root_node, suggestion))
 
-        if self.verbose:
+        if self.verbose:  # pragma: nocover
             print '         ', self.root_node
 
         # Only apply any remaining implicit hints if the suggestion itself is
@@ -338,17 +338,17 @@ class Parser(BisonParser):
                 if not sugg:
                     break
 
-                if self.verbose:
+                if self.verbose:  # pragma: nocover
                     print 'IMPLICIT:', sugg
 
                 self.set_root_node(apply_suggestion(self.root_node, sugg))
 
-                if self.verbose:
+                if self.verbose:  # pragma: nocover
                     print '         ', self.root_node
 
                 self.find_possibilities()
 
-        if verbose and not self.verbose:
+        if verbose and not self.verbose:  # pragma: nocover
             print self.root_node
 
         if include_step:
