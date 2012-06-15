@@ -44,3 +44,7 @@
   (4x) / (2x ^ 2 - 2y ^ 2)  ->  (2x) / (x ^ 2 - y ^ 2)
 
 - Add notation "1 1/3" for 'int with fraction' leafs, and rules to rewrite them to fractions and back.
+
+- frontend: replace 'dx' with '(dx)' with regex before sending to parser
+
+- "sin^2 x" is supported by parser, but not yet by line printer.
