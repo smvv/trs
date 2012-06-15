@@ -16,7 +16,6 @@
 import os.path
 import sys
 import copy
-import re
 
 sys.path.insert(0, os.path.realpath('external'))
 

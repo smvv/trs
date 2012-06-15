@@ -26,14 +26,13 @@ sys.path.insert(0, PYBISON_BUILD)
 sys.path.insert(1, EXTERNAL_MODS)
 
 from pybison import BisonParser, BisonSyntaxError
-from graph_drawing.graph import generate_graph
 from graph_drawing.line import pred
 
 from node import ExpressionNode as Node, \
         ExpressionLeaf as Leaf, OP_MAP, OP_DXDER, TOKEN_MAP, TYPE_OPERATOR, \
         OP_COMMA, OP_MUL, OP_POW, OP_LOG, OP_ADD, Scope, E, OP_ABS, \
-        DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
-        OP_INT_INDEF, INFINITY, OP_PRIME, OP_DIV
+        DEFAULT_LOGARITHM_BASE, SPECIAL_TOKENS, OP_INT, OP_INT_INDEF, \
+        INFINITY, OP_PRIME, OP_DIV
 from rules.utils import find_variable
 from rules.precedences import IMPLICIT_RULES
 from strategy import find_possibilities
