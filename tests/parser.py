@@ -16,11 +16,10 @@ import sys
 
 from external.graph_drawing.graph import generate_graph
 from external.graph_drawing.line import generate_line
-from src.node import negation_to_node
 
 
 def create_graph(node):
-    return generate_graph(negation_to_node(node))
+    return node.graph() if node else None
 
 
 class ParserWrapper(object):

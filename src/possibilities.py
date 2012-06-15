@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
-from node import TYPE_OPERATOR
+from node import TYPE_OPERATOR, OP_MUL, Scope
 import re
 
 
@@ -80,6 +80,20 @@ def find_parent_node(root, child):
             node = node[0]
 
 
+def flatten_mult(node):
+    if node.is_leaf:
+        return node
+
+    if node.is_op(OP_MUL):
+        scope = Scope(node)
+        scope.nodes = map(flatten_mult, scope)
+        return scope.as_nary_node()
+
+    node.nodes = map(flatten_mult, node)
+
+    return node
+
+
 def apply_suggestion(root, suggestion):
     # TODO: clone the root node before modifying. After deep copying the root
     # node, the subtree_map cannot be used since the hash() of each node in the
@@ -100,6 +114,7 @@ def apply_suggestion(root, suggestion):
 
     if parent_node:
         parent_node.substitute(suggestion.root, subtree)
-        return root
+    else:
+        root = subtree
 
-    return subtree
+    return flatten_mult(root)

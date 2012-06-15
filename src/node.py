@@ -21,7 +21,7 @@ import re
 sys.path.insert(0, os.path.realpath('external'))
 
 from graph_drawing.graph import generate_graph
-from graph_drawing.line import generate_line
+from graph_drawing.line import generate_line, preprocess_node
 from graph_drawing.node import Node, Leaf
 
 
@@ -70,6 +70,16 @@ OP_REWRITE_ALL = 24
 OP_REWRITE_ALL_VERBOSE = 25
 OP_REWRITE = 26
 
+# Different types of derivative
+OP_PRIME = 27
+OP_DXDER = 28
+
+OP_PARENS = 29
+OP_BRACKETS = 30
+OP_CBRACKETS = 31
+
+UNARY_FUNCTIONS = [OP_INT, OP_DXDER, OP_LOG]
+
 # Special identifiers
 PI = 'pi'
 E = 'e'
@@ -102,7 +112,7 @@ OP_MAP = {
         'tan': OP_TAN,
         'sqrt': OP_SQRT,
         'int': OP_INT,
-        'der': OP_DER,
+        '\'': OP_PRIME,
         'solve': OP_SOLVE,
         'log': OP_LOG,
         '=': OP_EQ,
@@ -114,9 +124,13 @@ OP_MAP = {
         }
 
 OP_VALUE_MAP = dict([(v, k) for k, v in OP_MAP.iteritems()])
-OP_MAP['ln'] = OP_LOG
 OP_VALUE_MAP[OP_INT_INDEF] = 'indef'
-OP_VALUE_MAP[OP_ABS] = 'abs'
+OP_VALUE_MAP[OP_ABS] = '||'
+OP_VALUE_MAP[OP_DXDER] = 'd/d'
+OP_VALUE_MAP[OP_PARENS] = '()'
+OP_VALUE_MAP[OP_BRACKETS] = '[]'
+OP_VALUE_MAP[OP_CBRACKETS] = '{}'
+OP_MAP['ln'] = OP_LOG
 
 TOKEN_MAP = {
         OP_COMMA: 'COMMA',
@@ -133,9 +147,10 @@ TOKEN_MAP = {
         OP_COS: 'FUNCTION',
         OP_TAN: 'FUNCTION',
         OP_INT: 'INTEGRAL',
-        OP_DER: 'FUNCTION',
+        OP_DXDER: 'DERIVATIVE',
+        OP_PRIME: 'PRIME',
         OP_SOLVE: 'FUNCTION',
-        OP_LOG: 'FUNCTION',
+        OP_LOG: 'LOGARITHM',
         OP_EQ: 'EQ',
         OP_POSSIBILITIES: 'POSSIBILITIES',
         OP_HINT: 'HINT',
@@ -150,6 +165,11 @@ def to_expression(obj):
         return obj.clone()
 
     return ExpressionLeaf(obj)
+
+
+def bounds_str(f, a, b):
+    left = str(ExpressionNode(OP_SUBSCRIPT, f, a, no_spacing=True))
+    return left + str(ExpressionNode(OP_POW, Leaf(1), b, no_spacing=True))[1:]
 
 
 class ExpressionBase(object):
@@ -208,7 +228,8 @@ class ExpressionBase(object):
         return copy.deepcopy(self)
 
     def is_op(self, *ops):
-        return not self.is_leaf and self.op in ops
+        return not self.is_leaf and (self.op in ops or
+                (self.op in (OP_DXDER, OP_PRIME) and OP_DER in ops))
 
     def is_power(self, exponent=None):
         if self.is_leaf or self.op != OP_POW:
@@ -266,9 +287,9 @@ class ExpressionBase(object):
 
         return self.negate(-n)
 
-    def negate(self, n=1):
+    def negate(self, n=1, clone=True):
         """Negate the node n times."""
-        return negate(self, self.negated + n, clone=True)
+        return negate(self, self.negated + n, clone=clone)
 
     def contains(self, node, include_self=True):
         """
@@ -290,6 +311,7 @@ class ExpressionNode(Node, ExpressionBase):
         super(ExpressionNode, self).__init__(*args, **kwargs)
         self.type = TYPE_OPERATOR
         op = args[0]
+        self.parens = False
 
         if isinstance(op, str):
             self.value = op
@@ -297,38 +319,6 @@ class ExpressionNode(Node, ExpressionBase):
         else:
             self.value = OP_VALUE_MAP[op]
             self.op = op
-
-    def construct_derivative(self, children):
-        f = children[0]
-
-        if len(children) < 2:
-            # der(der(x ^ 2))  ->  [x ^ 2]''
-            if self[0].is_op(OP_DER) and len(self[0]) < 2:
-                return f + '\''
-
-            # der(x ^ 2)  ->  [x ^ 2]'
-            return '[' + f + ']\''
-
-        # der(x ^ 2, x)  ->  d/dx (x ^ 2)
-        return 'd/d%s (%s)' % (children[1], f)
-
-    def construct_logarithm(self, children):
-        if self[0].is_op(OP_ABS):
-            content = children[0]
-        else:
-            content = '(' + children[0] + ')'
-
-        # log(a, e)  ->  ln(a)
-        if self[1].is_identifier(E):
-            return 'ln%s' % content
-
-        # log(a, 10)  ->  log(a)
-        if self[1] == 10:
-            return 'log%s' % content
-
-        # log(a, 2)  ->  log_2(a)
-        if children[1].isdigit():
-            return 'log_%s%s' % (children[1], content)
 
     def construct_integral(self, children):
         # Make sure that any needed parentheses around f(x) are generated,
@@ -375,8 +365,8 @@ class ExpressionNode(Node, ExpressionBase):
             return '|%s|' % children[0]
 
         constructors = {
-                OP_DER: self.construct_derivative,
-                OP_LOG: self.construct_logarithm,
+                #OP_DER: self.construct_derivative,
+                #OP_LOG: self.construct_logarithm,
                 OP_INT: self.construct_integral,
                 OP_INT_INDEF: self.construct_indef_integral
                 }
@@ -393,8 +383,55 @@ class ExpressionNode(Node, ExpressionBase):
                 and len(self) == 1 and self[0].is_op(OP_ABS):
             return self.title() + children[0]
 
+    def arity(self):
+        if self.op in UNARY_FUNCTIONS:
+            return 1
+
+        if self.op == OP_LOG and self[1].value in (E, DEFAULT_LOGARITHM_BASE):
+            return 1
+
+        return len(self)
+
+    def operator(self):
+        if self.op == OP_LOG:
+            base = self[1].value
+
+            if base == DEFAULT_LOGARITHM_BASE:
+                return self.value
+
+            if base == E:
+                return 'ln'
+
+            return '%s_%s' % (self.value, str(self[1]))
+
+        if self.op == OP_DXDER:
+            return self.value + str(self[1])
+
+        if self.op == OP_INT and len(self) == 4:
+            return bounds_str(Leaf('int'), self[2], self[3])
+
+        return self.value
+
+    def is_postfix(self):
+        return self.op in (OP_PRIME, OP_INT_INDEF)
+
     def __str__(self):  # pragma: nocover
         return generate_line(self)
+
+    def custom_line(self):
+        if self.op == OP_INT_INDEF:
+            Fx, a, b = self
+            return bounds_str(ExpressionNode(OP_BRACKETS, Fx), a, b)
+
+    def preprocess_str_exp(self):
+        if self.op == OP_PRIME and not self[0].is_op(OP_PRIME):
+            self[0] = ExpressionNode(OP_BRACKETS, self[0])
+
+    def postprocess_str(self, s):
+        if self.op == OP_INT:
+            return '%s d%s' % (s, self[1])
+
+        return s
 
     def __eq__(self, other):
         """
@@ -407,7 +444,7 @@ class ExpressionNode(Node, ExpressionBase):
         self.nodes[self.nodes.index(old_child)] = new_child
 
     def graph(self):  # pragma: nocover
-        return generate_graph(negation_to_node(self))
+        return generate_graph(preprocess_node(self))
 
     def extract_polynome_properties(self):
         """
@@ -525,6 +562,7 @@ class ExpressionLeaf(Leaf, ExpressionBase):
     def __init__(self, *args, **kwargs):
         super(ExpressionLeaf, self).__init__(*args, **kwargs)
         self.type = TYPE_MAP[type(args[0])]
+        self.parens = False
 
     def __eq__(self, other):
         """
@@ -628,16 +666,22 @@ class Scope(object):
     def replace(self, node, replacement):
         self.remove(node, replacement=replacement)
 
+    #def as_nary_node(self):
+    def as_real_nary_node(self):
+        return ExpressionNode(self.node.op, *self.nodes) \
+                .negate(self.node.negated, clone=False)
+
+    #def as_binary_node(self):
     def as_nary_node(self):
-        return nary_node(self.node.op, self.nodes).negate(self.node.negated)
-        #return negate(nary_node(self.node.op, self.nodes), self.node.negated)
+        return nary_node(self.node.op, self.nodes) \
+                .negate(self.node.negated, clone=False)
 
     def all_except(self, node):
         before = range(0, node.scope_index)
         after = range(node.scope_index + 1, len(self))
         nodes = [self[i] for i in before + after]
 
-        return nary_node(self.node.op, nodes).negate(self.node.negated)
+        return negate(nary_node(self.node.op, nodes), self.node.negated)
 
 
 def nary_node(operator, scope):
@@ -662,6 +706,14 @@ def get_scope(node):
             scope += get_scope(child)
         else:
             scope.append(child)
+
+    #for child in node:
+    #    if child.is_op(node.op) and (not child.negated or node.op == OP_MUL):
+    #        sub_scope = get_scope(child)
+    #        sub_scope[0] = sub_scope[0].negate(child.negated)
+    #        scope += sub_scope
+    #    else:
+    #        scope.append(child)
 
     return scope
 
@@ -716,10 +768,13 @@ def tan(*args):
     return ExpressionNode(OP_TAN, *args)
 
 
-def log(exponent, base=10):
+def log(exponent, base=None):
     """
     Create a logarithm function node (default base is 10).
     """
+    if base is None:
+        base = DEFAULT_LOGARITHM_BASE
+
     if not isinstance(base, ExpressionLeaf):
         base = ExpressionLeaf(base)
 
@@ -737,7 +792,7 @@ def der(f, x=None):
     """
     Create a derivative node.
     """
-    return ExpressionNode(OP_DER, f, x) if x else ExpressionNode(OP_DER, f)
+    return ExpressionNode(OP_DXDER, f, x) if x else ExpressionNode(OP_PRIME, f)
 
 
 def integral(*args):
@@ -766,21 +821,3 @@ def sqrt(exp):
     Create a square root node.
     """
     return ExpressionNode(OP_SQRT, exp)
-
-
-def negation_to_node(node):
-    """
-    Recursively replace negation flags inside a node by explicit unary negation
-    nodes.
-    """
-    if node.negated:
-        negations = node.negated
-        node = negate(node, 0)
-
-        for i in range(negations):
-            node = ExpressionNode('-', node)
-
-    if node.is_leaf:
-        return node
-
-    return ExpressionNode(node.op, *map(negation_to_node, node))

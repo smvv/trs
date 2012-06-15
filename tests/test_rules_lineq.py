@@ -98,8 +98,8 @@ class TestRulesLineq(RulesTestCase):
             '2x = -3x - 5',
             '2x - -3x = -3x - 5 - -3x',
             '2x + 3x = -3x - 5 - -3x',
-            '(2 + 3)x = -3x - 5 - -3x',
-            '5x = -3x - 5 - -3x',
+            '2x + 3x = -3x - 5 + 3x',
+            '(2 + 3)x = -3x - 5 + 3x',
             '5x = -3x - 5 + 3x',
             '5x = (-1 + 1)3x - 5',
             '5x = 0 * 3x - 5',
@@ -116,11 +116,11 @@ class TestRulesLineq(RulesTestCase):
     def test_match_move_term_chain_advanced(self):
         self.assertRewrite([
             '-x = a',
-            '(-x)(-1) = a(-1)',
-            '-x(-1) = a(-1)',
-            '--x * 1 = a(-1)',
-            '--x = a(-1)',
-            'x = a(-1)',
+            '(-x) * -1 = a * -1',
+            '-x * -1 = a * -1',
+            '--x * 1 = a * -1',
+            '--x = a * -1',
+            'x = a * -1',
             'x = -a * 1',
             'x = -a',
         ])

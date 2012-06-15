@@ -72,12 +72,7 @@ def add_numerics(root, args):
     -2 + -3  ->  -5
     """
     scope, c0, c1 = args
-    value = c0.actual_value() + c1.actual_value()
-
-    # Replace the left node with the new expression
-    scope.replace(c0, Leaf(abs(value), negated=int(value < 0)))
-
-    # Remove the right node
+    scope.replace(c0, Leaf(c0.actual_value() + c1.actual_value()))
     scope.remove(c1)
 
     return scope.as_nary_node()
@@ -193,13 +188,10 @@ def match_multiply_numerics(node):
     numerics = filter(is_numeric_node, scope)
 
     for n in numerics:
-        if n.negated:
-            continue
-
         if n.value == 0:
             p.append(P(node, multiply_zero, (n,)))
 
-        if n.value == 1:
+        if not n.negated and n.value == 1:
             p.append(P(node, multiply_one, (scope, n)))
 
     for c0, c1 in combinations(numerics, 2):

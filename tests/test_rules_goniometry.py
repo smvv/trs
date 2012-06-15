@@ -30,30 +30,30 @@ class TestRulesGoniometry(RulesTestCase):
         self.assertEqual(doctest.testmod(m=goniometry)[0], 0)
 
     def test_match_add_quadrants(self):
-        s, c = root = tree('sin(t) ^ 2 + cos(t) ^ 2')
+        s, c = root = tree('sin^2 t + cos^2 t')
         self.assertEqualPos(match_add_quadrants(root),
                 [P(root, add_quadrants, (Scope(root), s, c))])
 
-        c, s = root = tree('cos(t) ^ 2 + sin(t) ^ 2')
+        c, s = root = tree('cos^2 t + sin^2 t')
         self.assertEqualPos(match_add_quadrants(root),
                 [P(root, add_quadrants, (Scope(root), s, c))])
 
-        (s, a), c = root = tree('sin(t) ^ 2 + a + cos(t) ^ 2')
+        (s, a), c = root = tree('sin^2 t + a + cos^2 t')
         self.assertEqualPos(match_add_quadrants(root),
                 [P(root, add_quadrants, (Scope(root), s, c))])
 
-        (s, c0), c1 = root = tree('sin(t) ^ 2 + cos(t) ^ 2 + cos(t) ^ 2')
+        (s, c0), c1 = root = tree('sin^2 t + cos^2 t + cos^2 t')
         self.assertEqualPos(match_add_quadrants(root),
                 [P(root, add_quadrants, (Scope(root), s, c0)),
                  P(root, add_quadrants, (Scope(root), s, c1))])
 
-        root = tree('sin(t) ^ 2 + cos(y) ^ 2')
+        root = tree('sin^2 t + cos^2 y')
         self.assertEqualPos(match_add_quadrants(root), [])
 
-        root = tree('sin(t) ^ 2 - cos(t) ^ 2')
+        root = tree('sin^2 t - cos^2 t')
         self.assertEqualPos(match_add_quadrants(root), [])
 
-        s, c = root = tree('-sin(t) ^ 2 - cos(t) ^ 2')
+        s, c = root = tree('-sin^2 t - cos^2 t')
         self.assertEqualPos(match_add_quadrants(root),
                 [P(root, factor_out_quadrant_negation, (Scope(root), s, c))])
 

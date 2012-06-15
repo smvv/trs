@@ -27,12 +27,13 @@ sys.path.insert(1, EXTERNAL_MODS)
 
 from pybison import BisonParser, BisonSyntaxError
 from graph_drawing.graph import generate_graph
+from graph_drawing.line import pred
 
 from node import ExpressionNode as Node, \
-        ExpressionLeaf as Leaf, OP_MAP, OP_DER, TOKEN_MAP, TYPE_OPERATOR, \
+        ExpressionLeaf as Leaf, OP_MAP, OP_DXDER, TOKEN_MAP, TYPE_OPERATOR, \
         OP_COMMA, OP_MUL, OP_POW, OP_LOG, OP_ADD, Scope, E, OP_ABS, \
         DEFAULT_LOGARITHM_BASE, OP_VALUE_MAP, SPECIAL_TOKENS, OP_INT, \
-        OP_INT_INDEF, negation_to_node
+        OP_INT_INDEF, INFINITY, OP_PRIME, OP_DIV
 from rules.utils import find_variable
 from rules.precedences import IMPLICIT_RULES
 from strategy import find_possibilities
@@ -44,6 +45,9 @@ import re
 
 # Rewriting an expression is stopped after this number of steps is passed.
 MAXIMUM_REWRITE_STEPS = 30
+
+# Precedence of the TIMES operator ("*")
+TIMES_PRED = pred(Node(OP_MUL))
 
 
 # Check for n-ary operator in child nodes
@@ -70,10 +74,13 @@ def find_integration_variable(exp):
     if len(scope) > 2 and scope[-2] == 'd' and scope[-1].is_identifier():
         x = scope[-1]
         scope.nodes = scope[:-2]
-
         return scope.as_nary_node(), x
 
     return exp, find_variable(exp)
+
+
+def apply_operator_negation(op, exp):
+    exp.negated += len(op) - 1
 
 
 class Parser(BisonParser):
@@ -95,9 +102,8 @@ class Parser(BisonParser):
     # TODO: add a runtime check to verify that this token list match the list
     # of tokens of the lex script.
     tokens = ['NUMBER', 'IDENTIFIER', 'NEWLINE', 'QUIT', 'RAISE', 'GRAPH',
-              'LPAREN', 'RPAREN', 'FUNCTION', 'FUNCTION_LPAREN', 'LBRACKET',
-              'RBRACKET', 'LCBRACKET', 'RCBRACKET', 'PIPE', 'PRIME',
-              'DERIVATIVE'] \
+              'LPAREN', 'RPAREN', 'FUNCTION', 'LBRACKET',
+              'RBRACKET', 'LCBRACKET', 'RCBRACKET', 'PIPE'] \
               + filter(lambda t: t != 'FUNCTION', TOKEN_MAP.values())
 
     # ------------------------------
@@ -108,18 +114,15 @@ class Parser(BisonParser):
         ('left', ('OR', )),
         ('left', ('AND', )),
         ('left', ('EQ', )),
-        ('left', ('MINUS', 'PLUS', 'NEG')),
-        ('left', ('INTEGRAL', 'DERIVATIVE')),
+        ('left', ('MINUS', 'PLUS')),
+        ('nonassoc', ('INTEGRAL', 'DERIVATIVE')),
         ('left', ('TIMES', )),
-        ('left', ('PRIME', )),
         ('left', ('DIVIDE', )),
-        ('right', ('FUNCTION', )),
-        ('right', ('POW', )),
-        ('left', ('SUB', )),
-        ('right', ('FUNCTION_LPAREN', )),
+        ('nonassoc', ('PRIME', )),
+        ('nonassoc', ('NEG', )),
+        ('nonassoc', ('FUNCTION', 'LOGARITHM')),
+        ('right', ('POW', 'SUB')),
         )
-
-    interactive = 0
 
     def __init__(self, **kwargs):
         BisonParser.__init__(self, **kwargs)
@@ -199,6 +202,7 @@ class Parser(BisonParser):
                 + '|([0-9])\s*([' + rsv + 'a-z])'    # 4a  -> 4 * a
                 + '|([' + rsv + 'a-z])([0-9])'       # a4  -> a ^ 4
                 + '|([' + rsv + '0-9])(\s+[0-9]))'   # 4 4 -> 4 * 4
+                # FIXME: Last line is a bit useless
                 )
 
         def preprocess_data(match):
@@ -241,8 +245,8 @@ class Parser(BisonParser):
 
         # Add parentheses to integrals with matching 'dx' so that the 'dx' acts
         # as a right parenthesis for the integral function
-        data = re.sub(r'(int(?:_.+\^.+\*)?)(.+?)(\*d\*[a-z])',
-                      '\\1(\\2)\\3', data)
+        #data = re.sub(r'(int(?:_.+(?:\^.+)?\*)?)(.+?)(\*d\*[a-z])',
+        #              '\\1(\\2)\\3', data)
 
         if self.verbose and data_before != data:  # pragma: nocover
             print 'hook_read_after() modified the input data:'
@@ -265,7 +269,6 @@ class Parser(BisonParser):
         if self.possibilities is not None:
             if self.verbose:
                 print 'Expression has not changed, not updating possibilities'
-
             return
 
         self.possibilities = find_possibilities(self.root_node)
@@ -455,9 +458,8 @@ class Parser(BisonParser):
         """
         debug : GRAPH exp
         """
-
         if option == 0:
-            print generate_graph(negation_to_node(values[1]))
+            print values[1].graph()
             return values[1]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
@@ -474,8 +476,6 @@ class Parser(BisonParser):
             | binary
             | nary
         """
-        #    | concat
-
         if option == 0:  # rule: NUMBER
             # TODO: A bit hacky, this achieves long integers and floats.
             value = float(values[0]) if '.' in values[0] else int(values[0])
@@ -486,6 +486,7 @@ class Parser(BisonParser):
 
         if 2 <= option <= 4:  # rule: LPAREN exp RPAREN | LBRACKET exp RBRACKET
                               #       | LCBRACKET exp RCBRACKET
+            values[1].parens = pred(values[1]) > TIMES_PRED
             return values[1]
 
         if 5 <= option <= 7:  # rule: unary | binary | nary
@@ -496,128 +497,158 @@ class Parser(BisonParser):
 
     def on_unary(self, target, option, names, values):
         """
-        unary : MINUS exp
-              | FUNCTION_LPAREN exp RPAREN
+        unary : MINUS exp %prec NEG
               | FUNCTION exp
+              | raised_function exp %prec FUNCTION
               | DERIVATIVE exp
               | exp PRIME
               | INTEGRAL exp
-              | integral_bounds TIMES exp %prec INTEGRAL
-              | LBRACKET exp RBRACKET lbnd ubnd
+              | integral_bounds exp %prec INTEGRAL
               | PIPE exp PIPE
+              | LOGARITHM exp
+              | logarithm_subscript exp %prec LOGARITHM
+              | TIMES exp
         """
 
-        if option == 0:  # rule: NEG exp
+        if option == 0:  # rule: MINUS exp
             values[1].negated += 1
 
             return values[1]
 
-        if option in (1, 2):  # rule: FUNCTION_LPAREN exp RPAREN | FUNCTION exp
-            op = values[0].split(' ', 1)[0]
+        if option == 1:  # rule: FUNCTION exp
+            if values[1].is_op(OP_COMMA):
+                return Node(values[0], *values[1])
 
-            if op == 'ln':
-                return Node(OP_LOG, values[1], Leaf(E))
+            return Node(values[0], values[1])
+
+        if option == 2:  # rule: raised_function exp
+            func, exponent = values[0]
 
             if values[1].is_op(OP_COMMA):
-                return Node(op, *values[1])
+                return Node(OP_POW, Node(func, *values[1]), exponent)
 
-            if op == OP_VALUE_MAP[OP_LOG]:
-                return Node(OP_LOG, values[1], Leaf(DEFAULT_LOGARITHM_BASE))
-
-            m = re.match(r'^log_([0-9]+|[a-zA-Z])', op)
-
-            if m:
-                value = m.group(1)
-
-                if value.isdigit():
-                    value = int(value)
-
-                return Node(OP_LOG, values[1], Leaf(value))
-
-            return Node(op, values[1])
+            return Node(OP_POW, Node(func, values[1]), exponent)
 
         if option == 3:  # rule: DERIVATIVE exp
-            # DERIVATIVE looks like 'd/d*x*' -> extract the 'x'
-            return Node(OP_DER, values[1], Leaf(values[0][-2]))
+            # DERIVATIVE looks like 'd/d*x' -> extract the 'x'
+            return Node(OP_DXDER, values[1], Leaf(values[0][-1]))
 
         if option == 4:  # rule: exp PRIME
-            return Node(OP_DER, values[0])
+            return Node(OP_PRIME, values[0])
 
         if option == 5:  # rule: INTEGRAL exp
             fx, x = find_integration_variable(values[1])
-
             return Node(OP_INT, fx, x)
 
-        if option == 6:  # rule: integral_bounds TIMES exp
+        if option == 6:  # rule: integral_bounds exp
             lbnd, ubnd = values[0]
-            fx, x = find_integration_variable(values[2])
-
+            fx, x = find_integration_variable(values[1])
             return Node(OP_INT, fx, x, lbnd, ubnd)
 
-        if option == 7:  # rule: LBRACKET exp RBRACKET lbnd ubnd
-            return Node(OP_INT_INDEF, values[1], values[3], values[4])
-
-        if option == 8:  # rule: PIPE exp PIPE
+        if option == 7:  # rule: PIPE exp PIPE
             return Node(OP_ABS, values[1])
+
+        if option == 8:  # rule: LOGARITHM exp
+            if values[1].is_op(OP_COMMA):
+                return Node(OP_LOG, *values[1])
+
+            if values[0] == 'ln':
+                base = E
+            else:
+                base = DEFAULT_LOGARITHM_BASE
+
+            return Node(OP_LOG, values[1], Leaf(base))
+
+        if option == 9:  # rule: logarithm_subscript exp
+            if values[1].is_op(OP_COMMA):
+                raise BisonSyntaxError('Shortcut logarithm base "log_%s" does '
+                        'not support additional arguments.' % (values[0]))
+
+            return Node(OP_LOG, values[1], values[0])
+
+        if option == 10:  # rule: TIMES exp
+            return values[1]
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
+
+    def on_raised_function(self, target, option, names, values):
+        """
+        raised_function : FUNCTION POW exp
+                        | LOGARITHM POW exp
+        """
+        #                | logarithm_subscript POW exp
+        if option in (0, 1):  # rule: {FUNCTION,LOGARITHM} POW exp
+            apply_operator_negation(values[1], values[2])
+            return values[0], values[2]
+
+    def on_logarithm_subscript(self, target, option, names, values):
+        """
+        logarithm_subscript : LOGARITHM SUB exp
+        """
+        if option == 0:  # rule: LOGARITHM SUB exp
+            apply_operator_negation(values[1], values[2])
+            return values[2]
 
     def on_integral_bounds(self, target, option, names, values):
         """
-        integral_bounds : INTEGRAL lbnd ubnd
+        integral_bounds : INTEGRAL SUB exp
         """
-        if option == 0:  # rule: INTEGRAL lbnd ubnd
-            return values[1], values[2]
+        if option == 0:  # rule: INTEGRAL SUB exp
+            if values[2].is_op(OP_POW):
+                lbnd, ubnd = values[2]
+            else:
+                lbnd = values[2]
+                ubnd = Leaf(INFINITY)
 
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_lbnd(self, target, option, names, values):
-        """
-        lbnd : SUB exp
-        """
-        if option == 0:  # rule: SUB exp
-            return values[1]
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_ubnd(self, target, option, names, values):
-        """
-        ubnd : POW exp
-        """
-        if option == 0:  # rule: POW exp
-            return values[1]
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
-
-    def on_power(self, target, option, names, values):
-        """
-        power : exp POW exp
-        """
-
-        if option == 0:  # rule: exp POW exp
-            return values[0], values[2]
-
-        raise BisonSyntaxError('Unsupported option %d in target "%s".'
-                               % (option, target))  # pragma: nocover
+            apply_operator_negation(values[1], lbnd)
+            return lbnd, ubnd
 
     def on_binary(self, target, option, names, values):
         """
-        binary : exp PLUS exp
-               | exp TIMES exp
-               | exp DIVIDE exp
+        binary : exp TIMES exp
+               | exp PLUS exp
                | exp EQ exp
                | exp AND exp
                | exp OR exp
+               | exp DIVIDE exp
                | exp MINUS exp
-               | power
+               | exp POW exp
+               | exp SUB exp
         """
 
-        if 0 <= option <= 5:  # rule: exp {PLUS,TIMES,DIVIDE,EQ,AND,OR} exp
+        if option == 0:  # rule: exp TIMES exp
+            first = values[0]
+            node = Node(values[1], first, values[2])
+
+            if first.negated and not first.parens:
+                node.negated += first.negated
+                first.negated = 0
+
+            return node
+
+        if 1 <= option <= 4:  # rule: exp {PLUS,EQ,AND,OR} exp
             return Node(values[1], values[0], values[2])
+
+        if option == 5:  # rule: exp DIVIDE exp
+            top = values[0]
+            bottom = values[2]
+            negated = 0
+
+            if top.negated and not top.parens:
+                negated = top.negated
+                top.negated = 0
+
+            if top.is_op(OP_MUL) and bottom.is_op(OP_MUL):
+                dtop, fx = top
+                dbot, x = bottom
+
+                if dtop.is_identifier('d') and dbot.is_identifier('d') \
+                        and x.is_identifier():
+                    # (d (fx)) / (dx)
+                    return Node(OP_DXDER, fx, x, negated=negated)
+
+            return Node(OP_DIV, top, bottom, negated=negated)
 
         if option == 6:  # rule: exp MINUS exp
             right = values[2]
@@ -628,8 +659,22 @@ class Parser(BisonParser):
 
             return Node(OP_ADD, values[0], right)
 
-        if option == 7:  # rule: power
-            return Node(OP_POW, *values[0])
+        if option == 7:  # rule: exp POW exp
+            apply_operator_negation(values[1], values[2])
+            return Node(OP_POW, values[0], values[2])
+
+        if option == 8:  # rule: exp SUB exp
+            bounds = values[2]
+
+            if bounds.is_op(OP_POW):
+                lbnd, ubnd = bounds
+            else:
+                lbnd = bounds
+                ubnd = Leaf(INFINITY)
+
+            lbnd.negated += len(values[1]) - 1
+
+            return Node(OP_INT_INDEF, values[0], lbnd, ubnd)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover
@@ -665,8 +710,6 @@ class Parser(BisonParser):
 
     # Put all functions in a single regex
     if functions:
-        operators += '("%s")[ ]*"(" { returntoken(FUNCTION_LPAREN); }\n' \
-                     % '"|"'.join(functions)
         operators += '("%s") { returntoken(FUNCTION); }\n' \
                      % '"|"'.join(functions)
 
@@ -710,7 +753,7 @@ class Parser(BisonParser):
 
     %%
 
-    d[ ]*"/"[ ]*"d*"[a-z]"*" { returntoken(DERIVATIVE); }
+    d[ ]*"/"[ ]*"d*"[a-z] { returntoken(DERIVATIVE); }
     [0-9]+"."?[0-9]* { returntoken(NUMBER); }
     [a-zA-Z]  { returntoken(IDENTIFIER); }
     "("       { returntoken(LPAREN); }
@@ -719,10 +762,7 @@ class Parser(BisonParser):
     "]"       { returntoken(RBRACKET); }
     "{"       { returntoken(LCBRACKET); }
     "}"       { returntoken(RCBRACKET); }
-    "'"       { returntoken(PRIME); }
     "|"       { returntoken(PIPE); }
-    log_([0-9]+|[a-zA-Z])"*(" { returntoken(FUNCTION_LPAREN); }
-    log_([0-9]+|[a-zA-Z])"*" { returntoken(FUNCTION); }
     """ + operators + r"""
     "raise"   { returntoken(RAISE); }
     "graph"   { returntoken(GRAPH); }
@@ -736,4 +776,5 @@ class Parser(BisonParser):
 
     yywrap() { return(1); }
     """
-    #int[ ]*"(" { returntoken(FUNCTION_LPAREN); }
+    #_-+       { returntoken(SUB); }
+    #"^"-+     { returntoken(POW); }

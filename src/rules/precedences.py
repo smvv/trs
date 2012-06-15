@@ -22,7 +22,7 @@ from .derivatives import chain_rule
 from .negation import double_negation, negated_factor, negated_nominator, \
         negated_denominator, negated_zero
 from .fractions import multiply_with_fraction, divide_fraction_by_term, \
-        add_nominators
+        add_nominators, division_by_one
 from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
@@ -37,6 +37,16 @@ HIGH = [
 
         # 4 / 4 + 1 / 4 -> 5 / 4 instead of 1 + 1/4
         add_nominators,
+
+        # Some operations are obvious, they are mostly done on-the-fly
+        multiply_zero,
+        multiply_one,
+        remove_zero,
+        double_negation,
+        division_by_one,
+        add_numerics,
+        multiply_numerics,
+        negated_factor,
         ]
 
 
@@ -104,12 +114,12 @@ IMPLICIT_RULES = [
         double_negation,
         negated_nominator,
         negated_denominator,
-        multiply_one,
         multiply_zero,
+        multiply_one,
+        division_by_one,
         negated_zero,
         remove_zero,
         remove_power_of_one,
-        negated_factor,
         add_numerics,
         swap_factors,
         ]

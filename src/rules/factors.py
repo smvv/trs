@@ -60,9 +60,9 @@ def match_expand(node):
 
 def expand(root, args):
     """
-    (a + b)(c + d)  ->  ac + ad + bc + bd
-    (a + b)c        ->  ac + bc
     a(b + c)        ->  ab + ac
+    (a + b)c        ->  ac + bc
+    (a + b)(c + d)  ->  ac + ad + bc + bd
     etc..
     """
     scope, left, right = args

@@ -226,7 +226,7 @@ def raised_base(root, args):
     return args[0]
 
 
-MESSAGES[raised_base] = _('Apply `g ^ (log_(g)(a)) = a` on {0}.')
+MESSAGES[raised_base] = _('Apply `g ^ log_g(a) = a` to {0}.')
 
 
 def match_factor_out_exponent(node):

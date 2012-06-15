@@ -106,8 +106,8 @@ class TestRulesNegation(RulesTestCase):
 
     def test_double_negated_division(self):
         self.assertRewrite([
-            '(-a) / (-b)',
-            '-a / (-b)',
+            '(-a) / -b',
+            '-a / -b',
             '--a / b',
             'a / b',
         ])

@@ -188,9 +188,7 @@ def power_rule(root, args):
     """
     [f(x) ^ g(x)]'  ->  [e ^ ln(f(x) ^ g(x))]'
     """
-    x = second_arg(root)
-
-    return der(L(E) ** ln(root[0]), x)
+    return der(L(E) ** ln(root[0]), second_arg(root))
 
 
 MESSAGES[power_rule] = \

@@ -14,7 +14,7 @@
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from src.node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
         nary_node, get_scope, OP_ADD, infinity, absolute, sin, cos, tan, log, \
-        ln, der, integral, indef, eq, negation_to_node
+        ln, der, integral, indef, eq
 from tests.rulestestcase import RulesTestCase, tree
 
 
@@ -121,8 +121,8 @@ class TestNode(RulesTestCase):
         self.assertEqual(get_scope(plus), self.l)
 
     def test_get_scope_negation(self):
-        root, a, b, cd = tree('a * b * -cd, a, b, -cd')
-        self.assertEqual(get_scope(root), [a, b, cd])
+        root, a, b, c, d = tree('ab * -cd, a, b, -c, d')
+        self.assertEqual(get_scope(root), [a, b, c, d])
 
     def test_get_scope_index(self):
         self.assertEqual(self.scope.index(self.a), 0)
@@ -244,15 +244,15 @@ class TestNode(RulesTestCase):
         self.assertTrue(ma.contains(a))
 
     def test_construct_function_derivative(self):
-        self.assertEqual(str(tree('der(x ^ 2)')), '[x ^ 2]\'')
-        self.assertEqual(str(tree('der(der(x ^ 2))')), '[x ^ 2]\'\'')
-        self.assertEqual(str(tree('der(x ^ 2, x)')), 'd/dx (x ^ 2)')
+        self.assertEqual(str(tree("(x ^ 2)'")), "[x ^ 2]'")
+        self.assertEqual(str(tree("(x ^ 2)''")), "[x ^ 2]''")
+        self.assertEqual(str(tree('d/dx x ^ 2')), 'd/dx x ^ 2')
 
     def test_construct_function_logarithm(self):
-        self.assertEqual(str(tree('log(x, e)')), 'ln(x)')
-        self.assertEqual(str(tree('log(x, 10)')), 'log(x)')
-        self.assertEqual(str(tree('log(x, 2)')), 'log_2(x)')
-        self.assertEqual(str(tree('log(x, g)')), 'log(x, g)')
+        self.assertEqual(str(tree('log(x, e)')), 'ln x')
+        self.assertEqual(str(tree('log(x, 10)')), 'log x')
+        self.assertEqual(str(tree('log(x, 2)')), 'log_2 x')
+        self.assertEqual(str(tree('log(x, g)')), 'log_g x')
 
     def test_construct_function_integral(self):
         self.assertEqual(str(tree('int x ^ 2')), 'int x ^ 2 dx')
@@ -318,9 +318,3 @@ class TestNode(RulesTestCase):
     def test_eq(self):
         x, a, b, expect = tree('x, a, b, x + a = b')
         self.assertEqual(eq(x + a, b), expect)
-
-    def test_negation_to_node(self):
-        a = tree('a')
-        self.assertEqual(negation_to_node(-a), N('-', a))
-        self.assertEqual(negation_to_node(-(a + 1)), N('-', a + 1))
-        self.assertEqual(negation_to_node(-(a - 1)), N('-', a + N('-', L(1))))

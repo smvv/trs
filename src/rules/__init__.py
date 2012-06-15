@@ -14,7 +14,7 @@
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from ..node import OP_ADD, OP_MUL, OP_DIV, OP_POW, OP_NEG, OP_SIN, OP_COS, \
         OP_TAN, OP_DER, OP_LOG, OP_INT, OP_INT_INDEF, OP_EQ, OP_ABS, OP_SQRT, \
-        OP_AND, OP_OR
+        OP_AND, OP_OR, OP_DXDER, OP_PRIME
 from .groups import match_combine_groups
 from .factors import match_expand
 from .powers import match_add_exponents, match_subtract_exponents, \
@@ -85,3 +85,4 @@ RULES = {
         OP_AND: [match_multiple_equations, match_double_case],
         OP_OR: [match_double_case],
         }
+RULES[OP_DXDER] = RULES[OP_PRIME] = RULES[OP_DER]

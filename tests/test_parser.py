@@ -89,12 +89,13 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('sin x'), sin(x))
         self.assertEqual(tree('sin 2 x'), sin(2) * x)  # FIXME: correct?
         self.assertEqual(tree('sin x ^ 2'), sin(x ** 2))
-        self.assertEqual(tree('sin(x) ^ 2'), sin(x) ** 2)
+        self.assertEqual(tree('sin^2 x'), sin(x) ** 2)
         self.assertEqual(tree('sin(x ^ 2)'), sin(x ** 2))
 
         self.assertEqual(tree('sin cos x'), sin(cos(x)))
         self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x ** 2)))
-        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x) ** 2))
+        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x ** 2)))
+        self.assertEqual(tree('sin (cos x) ^ 2'), sin(cos(x) ** 2))
 
     def test_brackets(self):
         self.assertEqual(*tree('[x], x'))
@@ -145,7 +146,7 @@ class TestParser(RulesTestCase):
             # FIXME: self.assertEqual(tree('a' + token + 'a'), a * t * a)
 
     def test_integral(self):
-        x, y, dx, a, b, l2 = tree('x, y, dx, a, b, 2')
+        x, y, dx, a, b, l2, oo = tree('x, y, dx, a, b, 2, oo')
 
         self.assertEqual(tree('int x'), integral(x, x))
         self.assertEqual(tree('int x ^ 2'), integral(x ** 2, x))
@@ -162,21 +163,18 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('int_a^(b2) x'), integral(x, x, a, b * 2))
 
         self.assertEqual(tree('int x ^ 2 + 1'), integral(x ** 2, x) + 1)
-        self.assertEqual(tree('int x ^ 2 + 1 dx'), integral(x ** 2 + 1, x))
 
         self.assertEqual(tree('int_a^b x ^ 2 dx'), integral(x ** 2, x, a, b))
-        self.assertEqual(tree('int_a^(b2) x ^ 2 + 1 dx'),
-                         integral(x ** 2 + 1, x, a, b * 2))
-        self.assertEqual(tree('int_(a^2)^b x ^ 2 + 1 dx'),
-                         integral(x ** 2 + 1, x, a ** 2, b))
+        self.assertEqual(tree('int_a x ^ 2 dx'), integral(x ** 2, x, a, oo))
 
         self.assertEqual(tree('int_(-a)^b x dx'), integral(x, x, -a, b))
-        # FIXME: self.assertEqual(tree('int_-a^b x dx'), integral(x, x, -a, b))
+        #self.assertEqual(tree('int_-a^b x dx'), integral(x, x, -a, b))
 
     def test_indefinite_integral(self):
-        x2, a, b = tree('x ^ 2, a, b')
+        x2, a, b, oo = tree('x ^ 2, a, b, oo')
 
-        self.assertEqual(tree('[x ^ 2]_a^b'), indef(x2, a, b))
+        self.assertEqual(tree('(x ^ 2)_a'), indef(x2, a, oo))
+        self.assertEqual(tree('(x ^ 2)_a^b'), indef(x2, a, b))
 
     def test_absolute_value(self):
         x = tree('x')

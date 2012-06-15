@@ -141,9 +141,9 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertRewrite([
             'int a / x',
             'int a * 1 / x dx',
-            'aint 1 / x dx',
+            'a(int 1 / x dx)',
             'a(ln|x| + C)',
-            'aln|x| + aC',
+            'a ln|x| + aC',
             # FIXME: 'aln|x| + C',  # ac -> C
         ])
 
@@ -176,24 +176,24 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqual(cosinus_integral(root, ()), expect)
 
     def test_match_sum_rule_integral(self):
-        (f, g), x = root = tree('int 2x + 3x dx')
+        (f, g), x = root = tree('int (2x + 3x) dx')
         self.assertEqualPos(match_sum_rule_integral(root),
                 [P(root, sum_rule_integral, (Scope(root[0]), f))])
 
-        ((f, g), h), x = root = tree('int 2x + 3x + 4x dx')
+        ((f, g), h), x = root = tree('int (2x + 3x + 4x) dx')
         self.assertEqualPos(match_sum_rule_integral(root),
                 [P(root, sum_rule_integral, (Scope(root[0]), f)),
                  P(root, sum_rule_integral, (Scope(root[0]), g)),
                  P(root, sum_rule_integral, (Scope(root[0]), h))])
 
     def test_sum_rule_integral(self):
-        ((f, g), h), x = root = tree('int 2x + 3x + 4x dx')
+        ((f, g), h), x = root = tree('int (2x + 3x + 4x) dx')
         self.assertEqual(sum_rule_integral(root, (Scope(root[0]), f)),
-                         tree('int 2x dx + int 3x + 4x dx'))
+                         tree('int 2x dx + int (3x + 4x) dx'))
         self.assertEqual(sum_rule_integral(root, (Scope(root[0]), g)),
-                         tree('int 3x dx + int 2x + 4x dx'))
+                         tree('int 3x dx + int (2x + 4x) dx'))
         self.assertEqual(sum_rule_integral(root, (Scope(root[0]), h)),
-                         tree('int 4x dx + int 2x + 3x dx'))
+                         tree('int 4x dx + int (2x + 3x) dx'))
 
     def test_match_remove_indef_constant(self):
         Fx, a, b = root = tree('[2x + C]_a^b')
