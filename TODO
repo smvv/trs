@@ -25,3 +25,8 @@
 - frontend: replace 'dx' with '(dx)' with regex before sending to parser
 
 - "sin^2 x" is supported by parser, but not yet by line printer.
+
+- "Division by 1 yields the nominator." verwijdert negatie
+- Raise constant -3 with 3 -> 27 ipv -27.
+- 1/x + 2/(x+1) -> (3x + 1) / (x(x + 1)):
+  a/b + c/d  ->  ad/(bd) + bc/(bd)  ->  (ad + bc)/(bd)
