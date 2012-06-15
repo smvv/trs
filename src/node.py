@@ -320,69 +320,6 @@ class ExpressionNode(Node, ExpressionBase):
             self.value = OP_VALUE_MAP[op]
             self.op = op
 
-    def construct_integral(self, children):
-        # Make sure that any needed parentheses around f(x) are generated,
-        # and append ' dx' to it (result 'f(x) dx')
-        fx, x = self[:2]
-        operand = re.sub(r'(\s*\*)?\s*d$', ' d' + x.value, str(fx * 'd'))
-        op = 'int'
-
-        # Add bounds
-        if len(self) > 2:
-            op += self.construct_bounds(*self[2:])
-
-        # int x ^ 2      ->  int x ^ 2 dx
-        # int x + 1      ->  int (x + 1) dx
-        # int_a^b x ^ 2  ->  int_a^b x ^ 2 dx
-        return op + ' ' + operand
-
-    def construct_bounds(self, lbnd, ubnd):
-        # FIXME: temporary fix: add parentheses around negated bounds to
-        # prevent a syntax error (solving the syntax error is better, but
-        # harder)
-        if lbnd.negated:
-            lbnds = '%s(%s)' % (OP_VALUE_MAP[OP_SUBSCRIPT], lbnd)
-        else:
-            lbnds = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
-
-        if ubnd.negated:
-            ubnds = '%s(%s)' % (OP_VALUE_MAP[OP_POW], ubnd)
-        else:
-            ubnds = str(ExpressionNode(OP_POW, ubnd))
-
-        return lbnds + ubnds
-
-    def construct_indef_integral(self, children):
-        # [x ^ 2]_a^b
-        F, lbnd, ubnd = self
-        #lbnd = str(ExpressionNode(OP_SUBSCRIPT, lbnd))
-        #ubnd = str(ExpressionNode(OP_POW, ubnd))
-
-        return '[%s]%s' % (F, self.construct_bounds(lbnd, ubnd))
-
-    def construct_function(self, children):
-        if self.op == OP_ABS:
-            return '|%s|' % children[0]
-
-        constructors = {
-                #OP_DER: self.construct_derivative,
-                #OP_LOG: self.construct_logarithm,
-                OP_INT: self.construct_integral,
-                OP_INT_INDEF: self.construct_indef_integral
-                }
-
-        if self.op in constructors:
-            result = constructors[self.op](children)
-
-            if result != None:
-                return result
-
-        # Function with absolute value as only parameter does not need
-        # parentheses
-        if self.op in TOKEN_MAP and TOKEN_MAP[self.op] == 'FUNCTION' \
-                and len(self) == 1 and self[0].is_op(OP_ABS):
-            return self.title() + children[0]
-
     def arity(self):
         if self.op in UNARY_FUNCTIONS:
             return 1
@@ -666,12 +603,12 @@ class Scope(object):
     def replace(self, node, replacement):
         self.remove(node, replacement=replacement)
 
-    #def as_nary_node(self):
+    # FIXME: def as_nary_node(self):
     def as_real_nary_node(self):
         return ExpressionNode(self.node.op, *self.nodes) \
                 .negate(self.node.negated, clone=False)
 
-    #def as_binary_node(self):
+    # FIXME: def as_binary_node(self):
     def as_nary_node(self):
         return nary_node(self.node.op, self.nodes) \
                 .negate(self.node.negated, clone=False)
