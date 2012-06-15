@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
-from tests.rulestestcase import RulesTestCase as TestCase, rewrite
+from tests.rulestestcase import RulesTestCase as TestCase
 
 
 class TestLeidenOefenopgave(TestCase):

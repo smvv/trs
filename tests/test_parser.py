@@ -101,7 +101,8 @@ class TestParser(RulesTestCase):
 
         self.assertEqual(tree('sin cos x'), sin(cos(x)))
         self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x ** 2)))
-        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x) ** 2))
+        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x ** 2)))
+        self.assertEqual(tree('sin (cos x) ^ 2'), sin(cos(x) ** 2))
 
         self.assertEqual(tree('sin (cos x) ^ 2'), sin(cos(x)) ** 2)
         self.assertEqual(tree('sin((cos x) ^ 2)'), sin(cos(x) ** 2))

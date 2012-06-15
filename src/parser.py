@@ -116,7 +116,6 @@ class Parser(BisonParser):
         ('left', ('MINUS', 'PLUS')),
         ('nonassoc', ('INTEGRAL', 'DERIVATIVE')),
         ('left', ('TIMES', )),
-        ('left', ('PRIME', )),
         ('left', ('DIVIDE', )),
         ('nonassoc', ('PRIME', )),
         ('nonassoc', ('NEG', )),
