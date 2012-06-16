@@ -596,6 +596,7 @@ class Parser(BisonParser):
         if option == 0:  # rule: INTEGRAL SUB exp
             if values[2].is_op(OP_POW):
                 lbnd, ubnd = values[2]
+                lbnd.negated += values[2].negated
             else:
                 lbnd = values[2]
                 ubnd = Leaf(INFINITY)
@@ -667,6 +668,7 @@ class Parser(BisonParser):
 
             if bounds.is_op(OP_POW):
                 lbnd, ubnd = bounds
+                lbnd.negated += bounds.negated
             else:
                 lbnd = bounds
                 ubnd = Leaf(INFINITY)

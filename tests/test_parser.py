@@ -168,7 +168,7 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('int_a x ^ 2 dx'), integral(x ** 2, x, a, oo))
 
         self.assertEqual(tree('int_(-a)^b x dx'), integral(x, x, -a, b))
-        #self.assertEqual(tree('int_-a^b x dx'), integral(x, x, -a, b))
+        self.assertEqual(tree('int_-a^b x^2 dx'), integral(x ** 2, x, -a, b))
 
     def test_indefinite_integral(self):
         x2, a, b, oo = tree('x ^ 2, a, b, oo')
