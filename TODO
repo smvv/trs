@@ -30,3 +30,5 @@
 - Raise constant -3 with 3 -> 27 ipv -27.
 - 1/x + 2/(x+1) -> (3x + 1) / (x(x + 1)):
   a/b + c/d  ->  ad/(bd) + bc/(bd)  ->  (ad + bc)/(bd)
+
+- To work 100% correctly, POW and SUB (^ and _) should have a precedence equal to INTEGRAL when used for integral bounds.
