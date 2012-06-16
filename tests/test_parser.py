@@ -171,10 +171,14 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('int_-a^b x^2 dx'), integral(x ** 2, x, -a, b))
 
     def test_indefinite_integral(self):
-        x2, a, b, oo = tree('x ^ 2, a, b, oo')
+        x2, a, b, oo, l2 = tree('x ^ 2, a, b, oo, 2')
 
         self.assertEqual(tree('(x ^ 2)_a'), indef(x2, a, oo))
         self.assertEqual(tree('(x ^ 2)_a^b'), indef(x2, a, b))
+        self.assertEqual(tree('(x ^ 2)_-a^b'), indef(x2, -a, b))
+        self.assertEqual(tree('(x ^ 2)_-a^-b'), indef(x2, -a, -b))
+        self.assertNotEqual(tree('(x ^ 2)_-2a^b'), indef(x2, -(l2 * a), b))
+        self.assertEqual(tree('(x ^ 2)_(-2a)^b'), indef(x2, -(l2 * a), b))
 
     def test_absolute_value(self):
         x = tree('x')
