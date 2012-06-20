@@ -32,3 +32,4 @@
   a/b + c/d  ->  ad/(bd) + bc/(bd)  ->  (ad + bc)/(bd)
 
 - To work 100% correctly, POW and SUB (^ and _) should have a precedence equal to INTEGRAL when used for integral bounds.
+- Give FUNCTION higher precedence than POW? -> "sin(x) ^ 2 == (sin x) ^ 2" rather than "sin(x ^ 2)" (which it is now).
