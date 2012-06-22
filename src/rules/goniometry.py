@@ -166,9 +166,9 @@ l0, l1, sq2, sq3 = L(0), L(1), sqrt(2), sqrt(3)
 half = l1 / 2
 
 CONSTANTS = {
-    OP_SIN: [l0, half, half * sq2, half * sq3, l1],
-    OP_COS: [l1, half * sq3, half * sq2, half, l0],
-    OP_TAN: [l0, l1 / 3 * sq3, l1, sq3]
+    OP_SIN: [l0, half, half * sq2, half * sq3, l1, l0],
+    OP_COS: [l1, half * sq3, half * sq2, half, l0, -l1],
+    OP_TAN: [l0, l1 / 3 * sq3, l1, sq3, l0]
 }
 
 
@@ -176,11 +176,11 @@ def match_standard_radian(node):
     """
     Apply a direct constant calculation from the constants table:
 
-        | 0 | pi / 6    | pi / 4    | pi / 3    | pi / 2
-    ----+---+-----------+-----------+-----------+-------
-    sin | 0 | 1/2       | sqrt(2)/2 | sqrt(3)/2 | 1
-    cos | 1 | sqrt(3)/2 | sqrt(2)/2 | 1/2       | 0
-    tan | 0 | sqrt(3)/3 | 1         | sqrt(3)   | -
+        | 0 | pi / 6    | pi / 4    | pi / 3    | pi / 2 | pi
+    ----+---+-----------+-----------+-----------+--------+---
+    sin | 0 | 1/2       | sqrt(2)/2 | sqrt(3)/2 | 1      | 0
+    cos | 1 | sqrt(3)/2 | sqrt(2)/2 | 1/2       | 0      | -1
+    tan | 0 | sqrt(3)/3 | 1         | sqrt(3)   | -      | 0
     """
     assert node.type == TYPE_OPERATOR and node.op in (OP_SIN, OP_COS, OP_TAN)
 
@@ -188,6 +188,9 @@ def match_standard_radian(node):
 
     if t == 0:
         return [P(node, standard_radian, (node.op, 0))]
+
+    if t == PI:
+        return [P(node, standard_radian, (node.op, 5))]
 
     denoms = [6, 4, 3]
 
@@ -204,7 +207,7 @@ def match_standard_radian(node):
 def standard_radian(root, args):
     op, column = args
 
-    return CONSTANTS[op][column].clone()
+    return CONSTANTS[op][column].negate(root.negated)
 
 
 MESSAGES[standard_radian] = _('Replace standard radian {0}.')

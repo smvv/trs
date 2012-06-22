@@ -109,10 +109,22 @@ class TestRulesGoniometry(RulesTestCase):
         self.assertEqualPos(match_standard_radian(t), \
                 [P(t, standard_radian, (OP_TAN, 0))])
 
+        root = tree('cos pi')
+        self.assertEqualPos(match_standard_radian(root), \
+                [P(root, standard_radian, (OP_COS, 5))])
+
+        root = tree('cos x')
+        self.assertEqualPos(match_standard_radian(root), [])
+
     def test_standard_radian(self):
-        l0, l1, sq3, pi6, pi4, pi2 = tree('0,1,sqrt(3),1/6*pi,1/4*pi,1/2*pi')
+        l0, l1, sq3, pi6, pi4, pi2, pi1 = tree('0,1,sqrt(3),1/6*pi,1/4*pi,1/2*pi,pi')
 
         self.assertEqual(standard_radian(sin(pi6), (OP_SIN, 1)), l1 / 2)
         self.assertEqual(standard_radian(sin(pi2), (OP_SIN, 4)), 1)
         self.assertEqual(standard_radian(cos(l0), (OP_COS, 0)), 1)
         self.assertEqual(standard_radian(tan(pi4), (OP_TAN, 3)), sq3)
+
+        self.assertEqual(standard_radian(sin(pi1), (OP_SIN, 5)), 0)
+        self.assertEqual(standard_radian(cos(pi1), (OP_COS, 5)), -1)
+
+        self.assertEqual(standard_radian(-cos(pi1), (OP_COS, 5)), --l1)
