@@ -83,6 +83,8 @@ class TestParser(RulesTestCase):
         # FIXME: self.assertEqual(tree('|a|b'), tree('|a| * b'))
         self.assertEqual(tree('|a||b|'), tree('|a| * |b|'))
 
+        self.assertEqual(tree('pi2'), tree('pi * 2'))
+
     def test_functions(self):
         x = tree('x')
 

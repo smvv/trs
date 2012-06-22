@@ -181,7 +181,7 @@ class Parser(BisonParser):
             return data
 
         # Replace known keywords with escape sequences.
-        words = list(self.__class__.words)
+        words = list(self.words)
         words.insert(10, '\n')
         words.insert(13, '\r')
 
@@ -211,8 +211,8 @@ class Parser(BisonParser):
             # inserted between a function and its argument(s): "sin x" should
             # not be written as "sin*x", because that is bogus.
             # Bugfix: omit 0x0e (pi) to prevent "pi a" (should be "pi*a")
-            if ord(left) <= 0x9 or 0x0b <= ord(left) <= 0x0d \
-                    or 0x0f <= ord(left) <= 0x19:
+            o = ord(left)
+            if o <= 0x9 or 0x0b <= o <= 0x0d or 0x0f <= o <= 0x19:
                 return left + ' ' + right
 
             # If all characters on the right are numbers. e.g. "a4", the
