@@ -16,7 +16,7 @@ from itertools import permutations
 
 from ..node import ExpressionNode as N, ExpressionLeaf as L, OP_ADD, OP_MUL, \
         OP_DIV, OP_SIN, OP_COS, OP_TAN, OP_SQRT, PI, TYPE_OPERATOR, sin, cos, \
-        Scope
+        Scope, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
 
@@ -98,7 +98,7 @@ def negated_sinus_parameter(root, args):
     """
     sin(-t)  ->  -sin(t)
     """
-    return -sin(+args[0])
+    return negate(sin(+args[0]), root.negated + 1)
 
 
 MESSAGES[negated_sinus_parameter] = \
