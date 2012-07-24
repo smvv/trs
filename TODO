@@ -26,10 +26,13 @@
 
 - "sin^2 x" is supported by parser, but not yet by line printer.
 
-- "Division by 1 yields the nominator." verwijdert negatie
-- Raise constant -3 with 3 -> 27 ipv -27.
 - 1/x + 2/(x+1) -> (3x + 1) / (x(x + 1)):
   a/b + c/d  ->  ad/(bd) + bc/(bd)  ->  (ad + bc)/(bd)
 
-- To work 100% correctly, POW and SUB (^ and _) should have a precedence equal to INTEGRAL when used for integral bounds.
-- Give FUNCTION higher precedence than POW? -> "sin(x) ^ 2 == (sin x) ^ 2" rather than "sin(x ^ 2)" (which it is now).
+#- To work 100% correctly, POW and SUB (^ and _) should have a precedence equal
+#  to INTEGRAL when used for integral bounds.
+
+- Give FUNCTION higher precedence than POW? -> "sin(x) ^ 2 == (sin x) ^ 2"
+  rather than "sin(x ^ 2)" (which it is now).
+
+- Add error message to exception in frontend.
