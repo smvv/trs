@@ -58,8 +58,6 @@ Division of 0 by 1 reduces to 0.
 
  - Line printer: 1 / (n + n)x  ->  1 / (n + n) * x
 
- - Parser: 'apia' -> 'aa'
-
  - Unit tests for strategy.
 
  - Parser: add unit tests for operator associativity (derivatives/integrals).

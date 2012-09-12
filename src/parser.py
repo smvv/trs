@@ -179,32 +179,24 @@ class Parser(BisonParser):
         # Replace known keywords with escape sequences.
         words = list(self.__class__.words)
         words.insert(10, '\n')
+        words.insert(13, '\r')
 
         for i, keyword in enumerate(words):
             # FIXME: Why case-insensitivity?
             data = re.sub(keyword, chr(i), data, flags=re.I)
 
-        # TODO: remove this quick preprocessing hack. This hack enables
-        # concatenated expressions, since the grammar currently does not
-        # support those. This workaround will replace:
-        #   - ")(" with ")*(".
-        #   - "a(" with "a*(".
-        #   - ")a" with ")*a".
-        #   - "ab" with "a*b".
-        #   - "4a" with "4*a".
-        #   - "a4" with "a^4".
-
-        pattern = ('(?:(\))\s*([([])'                         # )(  -> ) * (
-                                                              # )[  -> ) * [
-                + '|([\x00-\x09\x0b-\x19a-z0-9])\s*([([])'    # a(  -> a * (
-                                                              # a[  -> a * [
-                + '|(\))\s*([\x00-\x09\x0b-\x19a-z0-9])'      # )a  -> ) * a
-                + '|([\x00-\x09\x0b-\x19a-z])\s*'
-                  + '([\x00-\x09\x0b-\x19a-z0-9])'            # ab  -> a * b
-                + '|(\|)(\|)'                                 # ||  -> | * |
-                + '|([0-9])\s*([\x00-\x09\x0b-\x19a-z])'      # 4a  -> 4 * a
-                + '|([\x00-\x09\x0b-\x19a-z])([0-9])'         # a4  -> a ^ 4
-                + '|([\x00-\x09\x0b-\x190-9])(\s+[0-9]))'     # 4 4 -> 4 * 4
+        rsv = '\x00-\x09\x0b-\x0c\x0e-\x19'
+        pattern = ('(?:(\))\s*([([])'                # )(  -> ) * (
+                                                     # )[  -> ) * [
+                + '|([' + rsv + 'a-z0-9])\s*([([])'  # a(  -> a * (
+                                                     # a[  -> a * [
+                + '|(\))\s*([' + rsv + 'a-z0-9])'    # )a  -> ) * a
+                + '|([' + rsv + 'a-z])\s*'
+                  + '([' + rsv + 'a-z0-9])'          # ab  -> a * b
+                + '|(\|)(\|)'                        # ||  -> | * |
+                + '|([0-9])\s*([' + rsv + 'a-z])'    # 4a  -> 4 * a
+                + '|([' + rsv + 'a-z])([0-9])'       # a4  -> a ^ 4
+                + '|([' + rsv + '0-9])(\s+[0-9]))'   # 4 4 -> 4 * 4
                 )
 
         def preprocess_data(match):
@@ -213,7 +205,9 @@ class Parser(BisonParser):
             # Make sure there are no multiplication and exponentiation signs
             # inserted between a function and its argument(s): "sin x" should
             # not be written as "sin*x", because that is bogus.
-            if ord(left) <= 0x9 or 0x0b <= ord(left) <= 0x19:
+            # Bugfix: omit 0x0e (pi) to prevent "pi a" (should be "pi*a")
+            if ord(left) <= 0x9 or 0x0b <= ord(left) <= 0x0d \
+                    or 0x0f <= ord(left) <= 0x19:
                 return left + ' ' + right
 
             # If all characters on the right are numbers. e.g. "a4", the
@@ -223,7 +217,7 @@ class Parser(BisonParser):
             #    return '%s^%s' % (left, right)
 
             # match: ab | abc | abcd (where left = "a")
-            return '*'.join([left] + list(re.sub(r'^ +', '', right)))
+            return '*'.join([left] + list(right.lstrip()))
 
         if self.verbose:  # pragma: nocover
             data_before = data

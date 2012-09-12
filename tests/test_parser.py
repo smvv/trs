@@ -187,3 +187,6 @@ class TestParser(RulesTestCase):
 
     def test_precedence(self):
         self.assertEqual(tree('ab / cd'), tree('a * (b / c) * d'))
+
+    def test_pi_multiplication_sign(self):
+        self.assertEqual(tree('apia'), tree('a * pi * a'))
