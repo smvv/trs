@@ -33,3 +33,7 @@
   rather than "sin(x ^ 2)" (which it is now).
 
 - Add error message to exception in frontend.
+
+# Now works:
+# int_(-3)^(3) \pi (3^2 - x^2) dx  ->  36pi
+# int_(-r)^(r) \pi (r^2 - x^2) dx  ->  4 / 3 * pi * r ^ 3
