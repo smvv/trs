@@ -85,6 +85,8 @@ class TestRulesDerivatives(RulesTestCase):
         self.assertEqual(const_deriv_multiplication(root, args),
                          l2 * der(x, x))
 
+        self.assertRewrite(["[2x]'", "2[x]'", '2 * 1', '2'])
+
     def test_match_variable_power(self):
         root, x, l2 = tree('d/dx x ^ 2, x, 2')
         self.assertEqualPos(match_variable_power(root),

@@ -43,7 +43,7 @@ def match_combine_groups(node):
         if not n.is_numeric():
             groups.append((Leaf(1), n, n, True))
 
-        # Each number multiplication yields a group, multiple occurences of
+        # Each number multiplication yields a group, multiple occurrences of
         # the same group can be replaced by a single one
         if n.is_op(OP_MUL):
             n_scope = Scope(n)
