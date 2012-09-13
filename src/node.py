@@ -84,7 +84,7 @@ E = 'e'
 PI = 'pi'
 INFINITY = 'oo'
 
-SPECIAL_TOKENS = [E, PI, INFINITY]
+SPECIAL_TOKENS = [PI, INFINITY]
 
 # Default base to use in parsing 'log(...)'
 DEFAULT_LOGARITHM_BASE = 10

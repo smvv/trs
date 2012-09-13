@@ -148,7 +148,7 @@ class TestParser(RulesTestCase):
             self.assertEqual(tree(token), Leaf(token))
             a, t = Leaf('a'), Leaf(token)
             self.assertEqual(tree('a' + token), a * t)
-            # FIXME: self.assertEqual(tree('a' + token + 'a'), a * t * a)
+            self.assertEqual(tree('a' + token + 'a'), a * t * a)
 
     def test_integral(self):
         x, y, dx, a, b, l2, oo = tree('x, y, dx, a, b, 2, oo')

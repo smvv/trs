@@ -183,10 +183,12 @@ class Parser(BisonParser):
         # Replace known keywords with escape sequences.
         words = list(self.words)
         words.insert(0xa, '\n')
+        words.insert(0xc, '\f')
         words.insert(0xd, '\r')
 
         for i, keyword in enumerate(words):
             # FIXME: Why case-insensitivity?
+            # FIXME: good question...
             data = re.sub(keyword, chr(i), data, flags=re.I)
 
         rsv = '\x00-\x09\x0b-\x0c\x0e-\x19'
@@ -214,7 +216,7 @@ class Parser(BisonParser):
             # not be written as "sin*x", because that is bogus.
             # Bugfix: omit 0x0c (pi) to prevent "pi a" (should be "pi*a")
             o = ord(left)
-            if o <= 0x9 or 0xb <= o <= 0xc:
+            if o <= 0x9 or o == 0xb:
                 return left + ' ' + right
 
             # If all characters on the right are numbers. e.g. "a4", the
