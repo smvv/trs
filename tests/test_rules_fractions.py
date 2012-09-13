@@ -19,7 +19,8 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         divide_fraction, divide_by_fraction, match_extract_fraction_terms, \
         constant_to_fraction, extract_nominator_term, extract_fraction_terms, \
         match_division_in_denominator, multiply_with_term, \
-        divide_fraction_by_term
+        divide_fraction_by_term, match_combine_fractions, combine_fractions, \
+        match_remove_division_negation, remove_division_negation
 from src.node import ExpressionNode as N, Scope, OP_MUL
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -318,19 +319,43 @@ class TestRulesFractions(RulesTestCase):
     def test_multiply_with_term_chain(self):
         self.assertRewrite([
             '1 / (1 / b - 1 / a)',
-            '(b * 1) / (b(1 / b - 1 / a))',
-            'b / (b(1 / b - 1 / a))',
-            'b / (b * 1 / b + b * -1 / a)',
-            'b / (b * 1 / b - b * 1 / a)',
-            'b / ((b * 1) / b - b * 1 / a)',
-            'b / (b / b - b * 1 / a)',
-            'b / (1 - b * 1 / a)',
-            'b / (1 - (b * 1) / a)',
-            'b / (1 - b / a)',
-            '(ab) / (a(1 - b / a))',
-            '(ab) / (a * 1 + a * -b / a)',
-            '(ab) / (a + a * -b / a)',
-            '(ab) / (a - a b / a)',
-            '(ab) / (a - (ab) / a)',
+            '1 / ((1 * -a) / (b * -a) + (b * 1) / (b * -a))',
+            '1 / ((1 * -a + b * 1) / (b * -a))',
+            '1 / ((-a + b * 1) / (b * -a))',
+            '1 / ((-a + b) / (b * -a))',
+            '1 / ((-a + b) / (-ba))',
+            '1 / (-(-a + b) / (ba))',
+            '1 / ((--a - b) / (ba))',
+            '1 / ((a - b) / (ba))',
+            '(1ba) / (a - b)',
+            '(ba) / (a - b)',
             '(ab) / (a - b)',
         ])
+
+    def test_match_combine_fractions(self):
+        ab, cd = root = tree('a / b + c / d')
+        self.assertEqualPos(match_combine_fractions(root),
+                [P(root, combine_fractions, (Scope(root), ab, cd))])
+
+    def test_combine_fractions(self):
+        (a, b), (c, d) = ab, cd = root = tree('a / b + c / d')
+        self.assertEqual(combine_fractions(root, (Scope(root), ab, cd)),
+                         a * d / (b * d) + b * c / (b * d))
+
+    def test_match_remove_division_negation(self):
+        root = tree('-(-a + b) / c')
+        self.assertEqualPos(match_remove_division_negation(root),
+                [P(root, remove_division_negation, (True, root[0]))])
+
+        root = tree('-a / (-b + c)')
+        self.assertEqualPos(match_remove_division_negation(root),
+                [P(root, remove_division_negation, (False, root[1]))])
+
+    def test_remove_division_negation(self):
+        (a, b), c = root = tree('-(-a + b) / c')
+        self.assertEqual(remove_division_negation(root, (True, root[0])),
+                         (-a - b) / c)
+
+        a, (b, c) = root = tree('-a / (-b + c)')
+        self.assertEqual(remove_division_negation(root, (False, root[1])),
+                         +a / (-b - c))

@@ -20,6 +20,7 @@ from ..node import ExpressionNode as N, ExpressionLeaf as L, Scope, OP_DIV, \
         OP_ADD, OP_MUL, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
+from .negation import negate_polynome
 
 
 def match_constant_division(node):
@@ -300,7 +301,7 @@ def divide_by_fraction(root, args):
 
 
 MESSAGES[divide_by_fraction] = \
-        _('Move {3} to nominator of fraction `{1} / {2}`.')
+        _('Move {3} to the nominator of fraction `{1} / {2}`.')
 
 
 def is_power_combination(a, b):
@@ -464,3 +465,72 @@ def multiply_with_term(root, args):
 
 MESSAGES[multiply_with_term] = \
         _('Multiply nominator and denominator of {0} with {1}.')
+
+
+def match_combine_fractions(node):
+    """
+    a/b + c/d  ->  ad/(bd) + bc/(bd)  # ->  (ad + bc)/(bd)
+    """
+    assert node.is_op(OP_ADD)
+
+    scope = Scope(node)
+    fractions = [n for n in scope if n.is_op(OP_DIV)]
+    p = []
+
+    for left, right in combinations(fractions, 2):
+        p.append(P(node, combine_fractions, (scope, left, right)))
+
+    return p
+
+
+def combine_fractions(root, args):
+    """
+    a/b + c/d  ->  ad/(bd) + bc/(bd)
+    """
+    scope, ab, cd = args
+    (a, b), (c, d) = ab, cd
+    a = negate(a, ab.negated)
+    d = negate(d, cd.negated)
+
+    scope.replace(ab, a * d / (b * d) + b * c / (b * d))
+    scope.remove(cd)
+
+    return scope.as_nary_node()
+
+
+MESSAGES[combine_fractions] = _('Combine fraction {2} and {3}.')
+
+
+def match_remove_division_negation(node):
+    """
+    -a / (-b + c)  -> a / (--b - c)
+    """
+    assert node.is_op(OP_DIV)
+    nom, denom = node
+
+    if node.negated:
+        if nom.is_op(OP_ADD) and any([n.negated for n in Scope(nom)]):
+            return [P(node, remove_division_negation, (True, nom))]
+
+        if denom.is_op(OP_ADD) and any([n.negated for n in Scope(denom)]):
+            return [P(node, remove_division_negation, (False, denom))]
+
+    return []
+
+
+def remove_division_negation(root, args):
+    """
+    -a / (-b + c)  -> a / (--b - c)
+    """
+    nom, denom = root
+
+    if args[0]:
+        nom = negate_polynome(nom, ())
+    else:
+        denom = negate_polynome(denom, ())
+
+    return negate(nom / denom, root.negated - 1)
+
+
+MESSAGES[remove_division_negation] = \
+        _('Move negation from fraction {0} to polynome {2}.')

@@ -659,7 +659,7 @@ def negate(node, n=1, clone=False):
     Negate the given node n times. If clone is set to true, return a new node
     so that the original node is not altered.
     """
-    assert n >= 0
+    #assert n >= 0
 
     if clone:
         node = node.clone()
