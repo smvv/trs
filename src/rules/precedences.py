@@ -48,6 +48,10 @@ HIGH = [
         add_numerics,
         multiply_numerics,
         negated_factor,
+
+        # Combine occurences before doing other stuff to prevent duplicate
+        # calculations
+        combine_groups,
         ]
 
 
@@ -74,7 +78,7 @@ RELATIVE = [
 
         # Combine groups before expanding them
         # Expand 'single' before 'double' to avoid unnessecary complexity
-        (combine_groups, expand_single, expand_double),
+        (expand_single, expand_double),
 
         (factor_out_exponent_important, raise_numerics),
 
