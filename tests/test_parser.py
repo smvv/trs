@@ -63,6 +63,9 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('a vv b vv c'), (a | b) | c)
         self.assertEqual(tree('a vv b ^^ c'), a | (b & c))
 
+        self.assertEqual(tree('a & b'), a & b)
+        self.assertEqual(tree('a vv b & c'), a | (b & c))
+
     def test_preprocessor(self):
         self.assertEqual(tree('ab'), tree('a * b'))
         self.assertEqual(tree('abc'), tree('a * b * c'))

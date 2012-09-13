@@ -105,6 +105,7 @@ OP_MAP = {
         '^': OP_POW,
         '_': OP_SUBSCRIPT,
         '^^': OP_AND,
+        '&': OP_AND,
         'vv': OP_OR,
         'sin': OP_SIN,
         'cos': OP_COS,
