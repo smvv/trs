@@ -66,7 +66,6 @@ class TestLeidenOefenopgave(TestCase):
         ])
 
     def test_1_3(self):
-        # (x+1)^2 -> x^2 + 2x + 1
         self.assertRewrite([
             '(x + 1) ^ 2',
             '(x + 1)(x + 1)',
@@ -81,7 +80,6 @@ class TestLeidenOefenopgave(TestCase):
         ])
 
     def test_1_4(self):
-        # (x-1)^2 -> x^2 - 2x + 1
         self.assertRewrite([
             '(x - 1) ^ 2',
             '(x - 1)(x - 1)',
@@ -221,8 +219,5 @@ class TestLeidenOefenopgave(TestCase):
     #        '21 / x^3',
     #    ])
 
-    #def test_4_7(self):
-    #    self.assertRewrite([
-    #        '1 / x + 2 / (x + 1)',
-    #        '(3x + 1) / (x * (x + 1))',
-    #    ])
+    def test_4_7(self):
+        self.assertEvaluates('1 / x + 2 / (x + 1)', '(3x + 1) / (x(x + 1))')

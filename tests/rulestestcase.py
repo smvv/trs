@@ -93,6 +93,19 @@ class RulesTestCase(unittest.TestCase):
 
             raise
 
+    def assertEvaluates(self, exp, result):
+        node = tree(exp)
+
+        while node:
+            s = str(node)
+
+            if s == result:
+                return True
+
+            node = rewrite(s)
+
+        raise AssertionError('`%s` does not rewrite to `%s`' % (exp, result))
+
     def assertValidateSuccess(self, a, b):
         self.assertEqual(validate(a, b), VALIDATE_SUCCESS,
                          'Validation failed: %s !=> %s' % (a, b))
