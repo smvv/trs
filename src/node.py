@@ -80,11 +80,11 @@ OP_CBRACKETS = 31
 UNARY_FUNCTIONS = [OP_INT, OP_DXDER, OP_LOG]
 
 # Special identifiers
-PI = 'pi'
 E = 'e'
+PI = 'pi'
 INFINITY = 'oo'
 
-SPECIAL_TOKENS = [PI, E, INFINITY]
+SPECIAL_TOKENS = [E, PI, INFINITY]
 
 # Default base to use in parsing 'log(...)'
 DEFAULT_LOGARITHM_BASE = 10

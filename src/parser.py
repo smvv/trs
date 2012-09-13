@@ -182,16 +182,18 @@ class Parser(BisonParser):
 
         # Replace known keywords with escape sequences.
         words = list(self.words)
-        words.insert(10, '\n')
-        words.insert(13, '\r')
+        words.insert(0xa, '\n')
+        words.insert(0xd, '\r')
 
         for i, keyword in enumerate(words):
             # FIXME: Why case-insensitivity?
             data = re.sub(keyword, chr(i), data, flags=re.I)
 
         rsv = '\x00-\x09\x0b-\x0c\x0e-\x19'
-        pattern = ('(?:(\))\s*([([])'                # )(  -> ) * (
+        pattern = ('(?:([)\]])\s*([([])'             # )(  -> ) * (
                                                      # )[  -> ) * [
+                                                     # ](  -> [ * (
+                                                     # ][  -> [ * [
                 + '|([' + rsv + 'a-z0-9])\s*([([])'  # a(  -> a * (
                                                      # a[  -> a * [
                 + '|(\))\s*([' + rsv + 'a-z0-9])'    # )a  -> ) * a
@@ -210,9 +212,9 @@ class Parser(BisonParser):
             # Make sure there are no multiplication and exponentiation signs
             # inserted between a function and its argument(s): "sin x" should
             # not be written as "sin*x", because that is bogus.
-            # Bugfix: omit 0x0e (pi) to prevent "pi a" (should be "pi*a")
+            # Bugfix: omit 0x0c (pi) to prevent "pi a" (should be "pi*a")
             o = ord(left)
-            if o <= 0x9 or 0x0b <= o <= 0x0d or 0x0f <= o <= 0x19:
+            if o <= 0x9 or 0xb <= o <= 0xc:
                 return left + ' ' + right
 
             # If all characters on the right are numbers. e.g. "a4", the
@@ -222,7 +224,7 @@ class Parser(BisonParser):
             #    return '%s^%s' % (left, right)
 
             # match: ab | abc | abcd (where left = "a")
-            return '*'.join([left] + list(right.lstrip()))
+            return '*'.join([left] + list(re.sub('^ +', '', right)))
 
         if self.verbose:  # pragma: nocover
             data_before = data
