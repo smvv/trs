@@ -534,3 +534,56 @@ def remove_division_negation(root, args):
 
 MESSAGES[remove_division_negation] = \
         _('Move negation from fraction {0} to polynome {2}.')
+
+
+def match_fraction_in_division(node):
+    """
+    (1 / a * b) / c  ->  b / (ac)
+    c / (1 / a * b)  ->  (ac) / b
+    """
+    assert node.is_op(OP_DIV)
+    nom, denom = node
+    p = []
+
+    if nom.is_op(OP_MUL):
+        scope = Scope(nom)
+
+        for n in scope:
+            if n.is_op(OP_DIV) and n[0] == 1:
+                p.append(P(node, fraction_in_division, (True, scope, n)))
+
+    if denom.is_op(OP_MUL):
+        scope = Scope(denom)
+
+        for n in scope:
+            if n.is_op(OP_DIV) and n[0] == 1:
+                p.append(P(node, fraction_in_division, (False, scope, n)))
+
+    return p
+
+
+def fraction_in_division(root, args):
+    """
+    (1 / a * b) / c  ->  b / (ac)
+    c / (1 / a * b)  ->  (ac) / b
+    """
+    is_nominator, scope, fraction = args
+    nom, denom = root
+
+    if fraction.negated:
+        scope.replace(fraction, fraction[0].negate(fraction.negated))
+    else:
+        scope.remove(fraction)
+
+    if is_nominator:
+        nom = scope.as_nary_node()
+        denom = fraction[1] * denom
+    else:
+        nom = fraction[1] * nom
+        denom = scope.as_nary_node()
+
+    return negate(nom / denom, root.negated)
+
+
+MESSAGES[fraction_in_division] = \
+        _('Multiply both sides of fraction {0} with {3[1]}.')

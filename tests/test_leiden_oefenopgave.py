@@ -208,16 +208,16 @@ class TestLeidenOefenopgave(TestCase):
             '1 / (4x)',
         ])
 
-    #def test_4_6(self):
-    #    self.assertRewrite([
-    #        '(3 / x^2) / (x / 7)',
-    #        '3 / x ^ 2 / (1 / 7 * x)',
-    #        '3 / (x ^ 2 * 1 / 7 * x)',
-    #        '3 / (x ^ (2 + 1)1 / 7)',
-    #        '3 / (x ^ 3 * 1 / 7)',
-    #        '3 / (1 / 7 * x ^ 3)',
-    #        '21 / x^3',
-    #    ])
+    def test_4_6(self):
+        self.assertRewrite([
+            '(3 / x^2) / (x / 7)',
+            '3 / x ^ 2 / (1 / 7 * x)',
+            '3 / (x ^ 2 * 1 / 7x)',
+            '3 / (x ^ (2 + 1)1 / 7)',
+            '3 / (x ^ 3 * 1 / 7)',
+            '(7 * 3) / x ^ 3',
+            '21 / x ^ 3',
+        ])
 
     def test_4_7(self):
         self.assertEvaluates('1 / x + 2 / (x + 1)', '(3x + 1) / (x(x + 1))')

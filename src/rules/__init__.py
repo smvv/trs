@@ -26,7 +26,8 @@ from .numerics import match_add_numerics, match_divide_numerics, \
 from .fractions import match_constant_division, match_add_fractions, \
         match_multiply_fractions, match_divide_fractions, \
         match_extract_fraction_terms, match_division_in_denominator, \
-        match_combine_fractions, match_remove_division_negation
+        match_combine_fractions, match_remove_division_negation, \
+        match_fraction_in_division
 from .negation import match_negated_factor, match_negate_polynome, \
         match_negated_division
 from .sort import match_sort_polynome, match_sort_monomial
@@ -59,7 +60,7 @@ RULES = {
         OP_DIV: [match_subtract_exponents, match_divide_numerics,
                  match_constant_division, match_divide_fractions,
                  match_negated_division, match_extract_fraction_terms,
-                 match_division_in_denominator,
+                 match_division_in_denominator, match_fraction_in_division,
                  match_remove_division_negation],
         OP_POW: [match_multiply_exponents, match_duplicate_exponent,
                  match_raised_fraction, match_remove_negative_child,

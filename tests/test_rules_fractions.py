@@ -20,7 +20,8 @@ from src.rules.fractions import match_constant_division, division_by_one, \
         constant_to_fraction, extract_nominator_term, extract_fraction_terms, \
         match_division_in_denominator, multiply_with_term, \
         divide_fraction_by_term, match_combine_fractions, combine_fractions, \
-        match_remove_division_negation, remove_division_negation
+        match_remove_division_negation, remove_division_negation, \
+        match_fraction_in_division, fraction_in_division
 from src.node import ExpressionNode as N, Scope, OP_MUL
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
@@ -359,3 +360,26 @@ class TestRulesFractions(RulesTestCase):
         a, (b, c) = root = tree('-a / (-b + c)')
         self.assertEqual(remove_division_negation(root, (False, root[1])),
                          +a / (-b - c))
+
+    def test_match_fraction_in_division(self):
+        (fr, b), c = root = tree('(1 / a * b) / c')
+        self.assertEqualPos(match_fraction_in_division(root),
+                [P(root, fraction_in_division, (True, Scope(root[0]), fr))])
+
+        c, (fr, b) = root = tree('c / (1 / a * b)')
+        self.assertEqualPos(match_fraction_in_division(root),
+                [P(root, fraction_in_division, (False, Scope(root[1]), fr))])
+
+        (fr0, b), (fr1, d) = root = tree('(1 / a * b) / (1 / c * d)')
+        self.assertEqualPos(match_fraction_in_division(root),
+                [P(root, fraction_in_division, (True, Scope(root[0]), fr0)),
+                 P(root, fraction_in_division, (False, Scope(root[1]), fr1))])
+
+    def test_fraction_in_division(self):
+        root, expected = tree('(1 / a * b) / c, b / (ac)')
+        self.assertEqual(fraction_in_division(root,
+            (True, Scope(root[0]), root[0][0])), expected)
+
+        root, expected = tree('c / (1 / a * b), (ac) / b')
+        self.assertEqual(fraction_in_division(root,
+            (False, Scope(root[1]), root[1][0])), expected)
