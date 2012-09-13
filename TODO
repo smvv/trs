@@ -34,7 +34,8 @@
 
 - Add error message to exception in frontend.
 
-# Now works:
+# The following now works:
+# "apia" no succesfully results in "a * pi * a"
 # int_(-3)^(3) \pi (3^2 - x^2) dx  ->  36pi
 # int_(-r)^(r) \pi (r^2 - x^2) dx  ->  4 / 3 * pi * r ^ 3
 # "&" instead of "^^"

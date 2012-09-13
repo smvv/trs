@@ -128,7 +128,6 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('d/dx x ^ 2 + x'), der(exp, x) + x)
         self.assertEqual(tree('d/dx (x ^ 2 + x)'), der(exp + x, x))
         self.assertEqual(tree('d/d'), d / d)
-        # FIXME: self.assertEqual(tree('d(x ^ 2)/dx'), der(exp, x))
 
     def test_logarithm(self):
         x, g = tree('x, g')
