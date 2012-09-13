@@ -27,6 +27,7 @@ from .integrals import factor_out_constant, integrate_variable_root
 from .powers import remove_power_of_one
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
 from .lineq import substitute_variable, swap_sides, divide_term, multiply_term
+from .groups import combine_groups
 
 
 # Functions to move to the beginning of the possibilities list. Pairs of within
@@ -71,8 +72,9 @@ RELATIVE = [
         (chain_rule, raised_base),
         (raised_base, factor_out_exponent),
 
+        # Combine groups before expanding them
         # Expand 'single' before 'double' to avoid unnessecary complexity
-        (expand_single, expand_double),
+        (combine_groups, expand_single, expand_double),
 
         (factor_out_exponent_important, raise_numerics),
 
