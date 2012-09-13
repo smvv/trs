@@ -570,7 +570,7 @@ def fraction_in_division(root, args):
     is_nominator, scope, fraction = args
     nom, denom = root
 
-    if fraction.negated:
+    if fraction.negated or fraction[0].negated:
         scope.replace(fraction, fraction[0].negate(fraction.negated))
     else:
         scope.remove(fraction)

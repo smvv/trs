@@ -383,3 +383,15 @@ class TestRulesFractions(RulesTestCase):
         root, expected = tree('c / (1 / a * b), (ac) / b')
         self.assertEqual(fraction_in_division(root,
             (False, Scope(root[1]), root[1][0])), expected)
+
+        root, expected = tree('c / (-(1 / a) * b), (ac) / ((-1)b)')
+        self.assertEqual(fraction_in_division(root,
+            (False, Scope(root[1]), root[1][0])), expected)
+
+        root, expected = tree('c / ((-1) / a * b), (ac) / ((-1)b)')
+        self.assertEqual(fraction_in_division(root,
+            (False, Scope(root[1]), root[1][0])), expected)
+
+        root, expected = tree('c / (1 / (-a) * b), ((-a)c) / b')
+        self.assertEqual(fraction_in_division(root,
+            (False, Scope(root[1]), root[1][0])), expected)
