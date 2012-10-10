@@ -107,7 +107,15 @@
         window.update_math = function() {
             if (trigger_update) {
                 trigger_update = false;
-                update_math(input_textarea.val());
+
+                // Preprocess input to fix TRS-MathJax incompatibilities.
+                var input = input_textarea.val();
+
+                // Make sure that xx is not displayed as a cross.
+                while(/xx/.test(input))
+                    input = input.replace(/xx/, 'x x');
+
+                update_math(input);
             }
         };
 
