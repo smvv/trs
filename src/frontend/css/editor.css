@@ -31,6 +31,14 @@ body {
     width: 47%;
 }
 
+#error {
+    /*display: none;*/
+    font-size: 12px;
+    clear: both;
+    margin-top: 20px;
+    position: absolute;
+}
+
 #input {
     float: left;
     left: 2%;
