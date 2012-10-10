@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from parser import Parser, MAXIMUM_REWRITE_STEPS
-from possibilities import apply_suggestion
-from strategy import find_possibilities
 from tests.parser import ParserWrapper
 
 
@@ -35,7 +33,7 @@ def validate(a, b):
     b = parser.run([b])
 
     if a.equals(b):
-        return VALIDATION_NOPROGRESS
+        return VALIDATE_NOPROGRESS
 
     # Evaluate a and b, counting the number of steps
     # Optimization: if b is encountered while evaluating a, return

@@ -77,6 +77,10 @@ body {
     background-image: url(/static/img/cross.png);
 }
 
+#math .box.no-progress {
+    background-image: url(/static/img/error.png);
+}
+
 #math .hint {
     padding: 10px 15px 0 40px;
     background: url(/static/img/info.png) no-repeat scroll 15px 13px transparent;

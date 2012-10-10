@@ -260,18 +260,33 @@
 
             var i = 0;
 
-            // Mark every line as correct (and remove previous class names).
-            for(; i < math_lines.length && i <= response.validated; i++)
-                $(math_lines[i]).removeClass('wrong').addClass('correct');
+            // Remove the status indicator from all remaining lines.
+            for(; i < math_lines.length; i++) {
+                $(math_lines[i])
+                    .removeClass('correct')
+                    .removeClass('wrong')
+                    .removeClass('no-progress');
+            }
+
+            i = 0;
+
+            // Check if the first line has a correct syntax, since there is
+            // nothing to validate here.
+            if (i < math_lines.length && i <= response.validated) {
+                $(math_lines[i]).addClass('correct');
+                i++;
+            }
+
+            // Mark every line as {wrong,no-progress,correct,error}.
+            for (; i < math_lines.length && i <= response.validated; i++) {
+                status_classes = ['wrong', 'no-progress', 'correct', 'error'];
+                status_class = status_classes[response.status[i - 1]];
+                $(math_lines[i]).addClass(status_class);
+            }
 
             if (i < math_lines.length) {
                 // Mark the current line as wrong.
-                $(math_lines[i]).removeClass('correct').addClass('wrong');
-
-                // Remove the status indicator from the remaining lines.
-                for(i += 1; i < math_lines.length; i++)
-                    $(math_lines[i]).removeClass('correct')
-                        .removeClass('wrong');
+                $(math_lines[i]).addClass('wrong');
             }
 
             hide_loader();

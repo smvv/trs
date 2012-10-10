@@ -16,7 +16,7 @@ from tornado.web import RequestHandler, Application
 
 from src.parser import Parser
 from tests.parser import ParserWrapper
-from src.validation import validate as validate_expression
+from src.validation import validate as validate_expression, VALIDATE_SUCCESS
 import sys
 import traceback
 
@@ -134,6 +134,8 @@ class Validate(RequestHandler):
 
                 break
 
+            status = []
+
             # Validate each none empty line with the following none empty line.
             for i in range(i + 1, len(lines)):
                 line = lines[i].strip()
@@ -142,13 +144,16 @@ class Validate(RequestHandler):
                     skipped += 1
                     continue
 
-                if not validate_expression(last_line, line):
+                last_status = validate_expression(last_line, line)
+                status.append(last_status)
+
+                if not last_status:
                     i -= 1
                     break
 
                 last_line = line
 
-            self.write({'validated': i - skipped})
+            self.write({'validated': i - skipped, 'status': status})
         except Exception as e:
             i -= 1
             self.write(format_exception(e) + {'validated': i - skipped})
