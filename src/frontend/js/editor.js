@@ -277,10 +277,11 @@
                 i++;
             }
 
+            var status_classes = ['wrong', 'no-progress', 'correct', 'error'];
+
             // Mark every line as {wrong,no-progress,correct,error}.
             for (; i < math_lines.length && i <= response.validated; i++) {
-                status_classes = ['wrong', 'no-progress', 'correct', 'error'];
-                status_class = status_classes[response.status[i - 1]];
+                var status_class = status_classes[response.status[i - 1]];
                 $(math_lines[i]).addClass(status_class);
             }
 
