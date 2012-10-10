@@ -116,12 +116,28 @@
 
     var loader = $('#loader');
 
+    window.report_error = function(e) {
+        $('.panel').css({top: 74});
+        $('#error').text('error: ' + e.error).show();
+
+        if (console && console.log)
+            console.log('error:', e);
+
+        loader.hide();
+    };
+
+    window.clear_error = function() {
+        $('#error').hide();
+        $('.panel').css({top: 58});
+    };
+
     window.show_loader = function() {
         loader.show().css('display', 'inline-block');
     };
 
     window.hide_loader = function() {
         loader.hide();
+        clear_error();
     };
 
     window.append_hint = function(hint) {
@@ -146,6 +162,9 @@
             if (!response)
                 return;
 
+            if ('error' in response)
+                return report_error(response);
+
             if ('steps' in response) {
                 for(i = 0; i < response.steps.length; i++) {
                     cur = response.steps[i];
@@ -167,11 +186,7 @@
             input_textarea.focus();
 
             hide_loader();
-        }, 'json').error(function(e) {
-            console.log('error:', e);
-
-            hide_loader();
-        });
+        }, 'json').error(report_error);
     };
 
     window.hint_input = function() {
@@ -183,16 +198,15 @@
             if (!response)
                 return;
 
+            if ('error' in response)
+                return report_error(response);
+
             window.append_hint(response.hint);
 
             input_textarea.focus();
 
             hide_loader();
-        }, 'json').error(function(e) {
-            console.log('error:', e);
-
-            hide_loader();
-        });
+        }, 'json').error(report_error);
     };
 
     window.step_input = function() {
@@ -203,6 +217,9 @@
         $.post('/step', {data: input_textarea.val()}, function(response) {
             if (!response)
                 return;
+
+            if ('error' in response)
+                return report_error(response);
 
             if ('step' in response) {
                 window.append_input(response.step);
@@ -215,11 +232,7 @@
             input_textarea.focus();
 
             hide_loader();
-        }, 'json').error(function(e) {
-            console.log('error:', e);
-
-            hide_loader();
-        });
+        }, 'json').error(report_error);
     };
 
     window.validate_input = function() {
@@ -230,6 +243,9 @@
         $.post('/validate', {data: input_textarea.val()}, function(response) {
             if (!response)
                 return;
+
+            if ('error' in response)
+                return report_error(response);
 
             var math_container = $('#math'),
                 math_lines = math_container.find('div.box');
@@ -251,17 +267,14 @@
             }
 
             hide_loader();
-        }, 'json').error(function(e) {
-            console.log('error:', e);
-
-            hide_loader();
-        });
+        }, 'json').error(report_error);
     };
 
     window.clear_input = function() {
         input_textarea.val('');
         $('#math .box,#math .hint').remove();
         trigger_update = true;
+        clear_error();
         hide_loader();
     };
 })(jQuery);
