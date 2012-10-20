@@ -39,3 +39,6 @@
 # int_(-3)^(3) \pi (3^2 - x^2) dx  ->  36pi
 # int_(-r)^(r) \pi (r^2 - x^2) dx  ->  4 / 3 * pi * r ^ 3
 # "&" instead of "^^"
+
+- Add parentheses to functions: "sin(x)" instead of "sin x"
+- [((x+3)^5+4)^2]': chain rule should be executed first
