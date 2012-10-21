@@ -42,3 +42,7 @@
 
 - Add parentheses to functions: "sin(x)" instead of "sin x"
 - [((x+3)^5+4)^2]': chain rule should be executed first
+
+
+- Missed rewrite possibility:
+  (4x) / (2x ^ 2 - 2y ^ 2)  ->  (2x) / (x ^ 2 - y ^ 2)
