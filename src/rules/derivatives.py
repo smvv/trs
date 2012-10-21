@@ -208,7 +208,7 @@ def variable_root(root, args):
     """
     x, n = root[0]
 
-    return n * x ** (n - 1)
+    return (n).negate(root[0].negated) * x ** (n - 1)
 
 
 MESSAGES[variable_root] = \
@@ -225,9 +225,9 @@ def variable_exponent(root, args):
     g, x = root[0]
 
     if g == E:
-        return g ** x
+        return (g ** x).negate(root[0].negated)
 
-    return g ** x * ln(g)
+    return (g ** x).negate(root[0].negated) * ln(g)
 
 
 MESSAGES[variable_exponent] = \

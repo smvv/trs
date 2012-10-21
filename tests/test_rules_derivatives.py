@@ -138,6 +138,11 @@ class TestRulesDerivatives(RulesTestCase):
         x, n = root[0]
         self.assertEqual(variable_root(root, ()), n * x ** (n - 1))
 
+    def test_variable_root_with_negation(self):
+        root = tree('d/dx -x ^ 2')
+        x, n = root[0]
+        self.assertEqual(variable_root(root, ()), -n * x ** (n - 1))
+
     def test_variable_exponent(self):
         root = tree('d/dx 2 ^ x')
         g, x = root[0]
@@ -146,6 +151,10 @@ class TestRulesDerivatives(RulesTestCase):
         root = tree('d/dx e ^ x')
         e, x = root[0]
         self.assertEqual(variable_exponent(root, ()), e ** x)
+
+        root = tree('d/dx -e ^ x')
+        e, x = root[0]
+        self.assertEqual(variable_exponent(root, ()), -e ** x)
 
     def test_chain_rule(self):
         root = tree('(2 ^ x ^ 3)\'')
