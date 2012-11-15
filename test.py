@@ -13,6 +13,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
-from testrunner import main
+from external.testrunner import main
 import sys
 main(sys.argv[1:])
