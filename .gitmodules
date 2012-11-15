@@ -7,9 +7,6 @@
 [submodule "external/mathjax"]
 	path = external/mathjax
 	url = http://github.com/mathjax/MathJax
-[submodule "external/jquery"]
-	path = external/jquery
-	url = https://github.com/jquery/jquery.git
 [submodule "external/codemirror2"]
 	path = external/codemirror2
 	url = http://marijnhaverbeke.nl/git/codemirror2
