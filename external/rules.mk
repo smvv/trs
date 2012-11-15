@@ -1,4 +1,4 @@
-TGT_DIR += $(b)pybison $(b)jquery
+TGT_DIR += $(b)pybison
 
 PYBISON_INC := -Iexternal/pybison/src/c -I/usr/include/python2.7
 
@@ -30,9 +30,3 @@ endif
 $(b)pybison/%.c: $(d)pybison/src/pyrex/%.pyx
 	$(py2c) $(py2c_OPTS) -o $@ $<
 	$(RM) $(@D)/*.so
-
-build: $(b)jquery/jquery.min.js
-
-$(b)jquery/jquery.min.js: $(d)jquery/version.txt | $(b)jquery
-	$(MAKE) -C external/jquery
-	ln -sf ../../../$(<D)/dist/jquery.min.js $@
