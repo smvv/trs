@@ -7,9 +7,6 @@
 [submodule "external/mathjax"]
 	path = external/mathjax
 	url = http://github.com/mathjax/MathJax
-[submodule "external/codemirror2"]
-	path = external/codemirror2
-	url = http://marijnhaverbeke.nl/git/codemirror2
 [submodule "external/testrunner"]
 	path = external/testrunner
 	url = git@kompiler.org:python/testrunner
