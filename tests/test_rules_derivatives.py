@@ -118,19 +118,19 @@ class TestRulesDerivatives(RulesTestCase):
     def test_power_rule_chain(self):
         self.assertRewrite([
             "[x ^ x]'",
-            "[e ^ (ln x ^ x)]'",
-            "e ^ (ln x ^ x)[ln x ^ x]'",
-            "x ^ x * [ln x ^ x]'",
-            "x ^ x * [x ln x]'",
-            "x ^ x * ([x]' * ln x + x[ln x]')",
-            "x ^ x * (1ln x + x[ln x]')",
-            "x ^ x * (ln x + x[ln x]')",
-            "x ^ x * (ln x + x * 1 / x)",
-            "x ^ x * (ln x + (x * 1) / x)",
-            "x ^ x * (ln x + x / x)",
-            "x ^ x * (ln x + 1)",
-            "x ^ x * ln x + x ^ x * 1",
-            "x ^ x * ln x + x ^ x",
+            "[e ^ (ln(x ^ x))]'",
+            "e ^ (ln(x ^ x))[ln(x ^ x)]'",
+            "x ^ x * [ln(x ^ x)]'",
+            "x ^ x * [x ln(x)]'",
+            "x ^ x * ([x]' * ln(x) + x[ln(x)]')",
+            "x ^ x * (1ln(x) + x[ln(x)]')",
+            "x ^ x * (ln(x) + x[ln(x)]')",
+            "x ^ x * (ln(x) + x * 1 / x)",
+            "x ^ x * (ln(x) + (x * 1) / x)",
+            "x ^ x * (ln(x) + x / x)",
+            "x ^ x * (ln(x) + 1)",
+            "x ^ x * ln(x) + x ^ x * 1",
+            "x ^ x * ln(x) + x ^ x",
         ])
 
     def test_variable_root(self):

@@ -248,12 +248,6 @@ class TestNode(RulesTestCase):
         self.assertEqual(str(tree("(x ^ 2)''")), "[x ^ 2]''")
         self.assertEqual(str(tree('d/dx x ^ 2')), 'd/dx x ^ 2')
 
-    def test_construct_function_logarithm(self):
-        self.assertEqual(str(tree('log(x, e)')), 'ln x')
-        self.assertEqual(str(tree('log(x, 10)')), 'log x')
-        self.assertEqual(str(tree('log(x, 2)')), 'log_2 x')
-        self.assertEqual(str(tree('log(x, g)')), 'log_g x')
-
     def test_construct_function_integral(self):
         self.assertEqual(str(tree('int x ^ 2')), 'int x ^ 2 dx')
         self.assertEqual(str(tree('int x ^ 2 dx')), 'int x ^ 2 dx')
@@ -271,8 +265,21 @@ class TestNode(RulesTestCase):
                          '[x ^ 2]_(a - b)^(a + b)')
 
     def test_construct_function_absolute_child(self):
-        self.assertEqual(str(tree('ln(|x|)')), 'ln|x|')
-        self.assertEqual(str(tree('sin(|x|)')), 'sin|x|')
+        self.assertEqual(str(tree('ln(|x|)')), 'ln(|x|)')
+        self.assertEqual(str(tree('sin(|x|)')), 'sin(|x|)')
+
+    def test_construct_logarithm(self):
+        self.assertEqual(str(tree('log n')), 'log(n)')
+        self.assertEqual(str(tree('log(n)')), 'log(n)')
+
+        self.assertEqual(str(tree('ln n')), 'ln(n)')
+        self.assertEqual(str(tree('ln(n)')), 'ln(n)')
+
+        self.assertEqual(str(tree('log_2 n')), 'log_2(n)')
+        self.assertEqual(str(tree('log_2(n)')), 'log_2(n)')
+
+        self.assertEqual(str(tree('log_g n')), 'log_g(n)')
+        self.assertEqual(str(tree('log_(g + h) n')), 'log_(g + h)(n)')
 
     def test_infinity(self):
         self.assertEqual(infinity(), tree('oo'))

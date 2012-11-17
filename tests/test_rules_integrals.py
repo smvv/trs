@@ -142,9 +142,9 @@ class TestRulesIntegrals(RulesTestCase):
             'int a / x',
             'int a * 1 / x dx',
             'a(int 1 / x dx)',
-            'a(ln|x| + C)',
-            'a ln|x| + aC',
-            # FIXME: 'aln|x| + C',  # ac -> C
+            'a(ln(|x|) + C)',
+            'a ln(|x|) + aC',
+            # FIXME: 'a ln(|x|) + C',  # ac -> C
         ])
 
     def test_match_function_integral(self):

@@ -16,6 +16,7 @@
 import os.path
 import sys
 import copy
+import re
 
 sys.path.insert(0, os.path.realpath('external'))
 
@@ -324,22 +325,33 @@ class ExpressionNode(Node, ExpressionBase):
         if self.op in UNARY_FUNCTIONS:
             return 1
 
-        if self.op == OP_LOG and self[1].value in (E, DEFAULT_LOGARITHM_BASE):
-            return 1
+        #if self.op == OP_LOG and self[1].value in (E, DEFAULT_LOGARITHM_BASE):
+        #    return 1
+
+        # Functions always have parentheses
+        if self.op in TOKEN_MAP and TOKEN_MAP[self.op] == 'FUNCTION':
+            return 2
 
         return len(self)
 
     def operator(self):
+        # Append an opening parenthesis manually, the closing parentheses is
+        # appended by postprocess_str
         if self.op == OP_LOG:
             base = self[1].value
 
             if base == DEFAULT_LOGARITHM_BASE:
-                return self.value
+                return self.value + '('
 
             if base == E:
-                return 'ln'
+                return 'ln('
 
-            return '%s_%s' % (self.value, str(self[1]))
+            base = str(self[1])
+
+            if not re.match('^[0-9]+|[a-zA-Z]$', base):
+                base = '(' + base + ')'
+
+            return '%s_%s(' % (self.value, base)
 
         if self.op == OP_DXDER:
             return self.value + str(self[1])
@@ -365,6 +377,10 @@ class ExpressionNode(Node, ExpressionBase):
             self[0] = ExpressionNode(OP_BRACKETS, self[0])
 
     def postprocess_str(self, s):
+        # A bit hacky, but forced because of operator() method
+        if self.op == OP_LOG:
+            return s.replace('( ', '(') + ')'
+
         if self.op == OP_INT:
             return '%s d%s' % (s, self[1])
 
