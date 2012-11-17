@@ -44,5 +44,3 @@
 
 - Missed rewrite possibility:
   (4x) / (2x ^ 2 - 2y ^ 2)  ->  (2x) / (x ^ 2 - y ^ 2)
-
-- "indefinite" / "definite" are sometimes confused in messges, fix that...

@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from .utils import find_variables, substitute, find_variable
-from ..node import ExpressionLeaf as L, OP_INT, OP_INT_INDEF, OP_MUL, OP_DIV, \
-        OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, indef, \
+from ..node import ExpressionLeaf as L, OP_INT, OP_INT_DEF, OP_MUL, OP_DIV, \
+        OP_LOG, OP_SIN, OP_COS, Scope, sin, cos, ln, integral, int_def, \
         absolute, OP_ADD, negate
 from ..possibilities import Possibility as P, MESSAGES
 from ..translate import _
@@ -43,10 +43,10 @@ def solve_integral(integral, F):
     Solve an integral given its anti-derivative F:
     - First, finish the anti-derivative by adding a constant.
     - If no bounds are specified, return the anti-derivative.
-    - Given a lower bound a and upper bound b, the solution is the indefinite
+    - Given a lower bound a and upper bound b, the solution is the definite
       integral [F(x)]_a^b. If F(x) contains multiple variables so that the 'x'
-      is not identified by 'find_variable(F)' (which is used by the indefinite
-      integral), skip the reduction of the indefinite integral and return the
+      is not identified by 'find_variable(F)' (which is used by the definite
+      integral), skip the reduction of the definite integral and return the
       solution F(b) - F(a).
     """
     F += choose_constant(integral)
@@ -59,21 +59,21 @@ def solve_integral(integral, F):
         if x != find_variable(F):
             solution = substitute(F, x, ubnd) - substitute(F, x, lbnd)
         else:
-            solution = indef(F, lbnd, ubnd)
+            solution = int_def(F, lbnd, ubnd)
 
     return negate(solution, integral.negated)
 
 
-def match_solve_indef(node):
+def match_solve_definite(node):
     """
     [F(x)]_a^b  ->  F(b) - F(a)
     """
-    assert node.is_op(OP_INT_INDEF)
+    assert node.is_op(OP_INT_DEF)
 
-    return [P(node, solve_indef)]
+    return [P(node, solve_definite)]
 
 
-def solve_indef(root, args):
+def solve_definite(root, args):
     """
     [F(x)]_a^b  ->  F(b) - F(a)
     """
@@ -83,12 +83,12 @@ def solve_indef(root, args):
     return negate(substitute(Fx, x, b) - substitute(Fx, x, a), root.negated)
 
 
-def solve_indef_msg(root, args):  # pragma: nocover
-    return _('Solve indefinite integral {0} using substitution ' \
+def solve_definite_msg(root, args):  # pragma: nocover
+    return _('Solve definite integral {0} using substitution ' \
              'of `%s` with {0[2]} and {0[1]}.' % find_variable(root[0]))
 
 
-MESSAGES[solve_indef] = solve_indef_msg
+MESSAGES[solve_definite] = solve_definite_msg
 
 
 def match_integrate_variable_power(node):
@@ -363,11 +363,11 @@ def sum_rule_integral(root, args):
 MESSAGES[sum_rule_integral] = _('Apply the sum rule to {0}.')
 
 
-def match_remove_indef_constant(node):
+def match_remove_definite_constant(node):
     """
     [f(x) + c]_a^b  ->  [f(x)]_a^b
     """
-    assert node.is_op(OP_INT_INDEF)
+    assert node.is_op(OP_INT_DEF)
 
     if not node[0].is_op(OP_ADD):
         return []
@@ -376,10 +376,10 @@ def match_remove_indef_constant(node):
     x = find_variable(node[0])
     constants = [n for n in scope if not n.contains(x)]
 
-    return [P(node, remove_indef_constant, (scope, c)) for c in constants]
+    return [P(node, remove_definite_constant, (scope, c)) for c in constants]
 
 
-def remove_indef_constant(root, args):
+def remove_definite_constant(root, args):
     """
     [f(x) + c]_a^b  ->  [f(x)]_a^b
     """
@@ -388,8 +388,8 @@ def remove_indef_constant(root, args):
     Fx = scope.as_nary_node()
     a, b = root[1:]
 
-    return negate(indef(Fx, a, b), root.negated)
+    return negate(int_def(Fx, a, b), root.negated)
 
 
-MESSAGES[remove_indef_constant] = \
-        _('Remove constant {2} from indefinite integral.')
+MESSAGES[remove_definite_constant] = \
+        _('Remove constant {2} from definite integral.')

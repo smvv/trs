@@ -15,7 +15,7 @@
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from src.parser import Parser, find_possibilities
 from src.node import ExpressionNode as Node, ExpressionLeaf as Leaf, \
-        SPECIAL_TOKENS, sin, cos, der, log, ln, integral, indef, absolute, \
+        SPECIAL_TOKENS, sin, cos, der, log, ln, integral, int_def, absolute, \
         Scope
 from src.possibilities import Possibility as P
 from src.rules.numerics import add_numerics
@@ -178,15 +178,15 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('int_(-a)^b x dx'), integral(x, x, -a, b))
         self.assertEqual(tree('int_-a^b x^2 dx'), integral(x ** 2, x, -a, b))
 
-    def test_indefinite_integral(self):
+    def test_int_definite_integral(self):
         x2, a, b, oo, l2 = tree('x ^ 2, a, b, oo, 2')
 
-        self.assertEqual(tree('(x ^ 2)_a'), indef(x2, a, oo))
-        self.assertEqual(tree('(x ^ 2)_a^b'), indef(x2, a, b))
-        self.assertEqual(tree('(x ^ 2)_-a^b'), indef(x2, -a, b))
-        self.assertEqual(tree('(x ^ 2)_-a^-b'), indef(x2, -a, -b))
-        self.assertNotEqual(tree('(x ^ 2)_-2a^b'), indef(x2, -(l2 * a), b))
-        self.assertEqual(tree('(x ^ 2)_(-2a)^b'), indef(x2, -(l2 * a), b))
+        self.assertEqual(tree('(x ^ 2)_a'), int_def(x2, a, oo))
+        self.assertEqual(tree('(x ^ 2)_a^b'), int_def(x2, a, b))
+        self.assertEqual(tree('(x ^ 2)_-a^b'), int_def(x2, -a, b))
+        self.assertEqual(tree('(x ^ 2)_-a^-b'), int_def(x2, -a, -b))
+        self.assertNotEqual(tree('(x ^ 2)_-2a^b'), int_def(x2, -(l2 * a), b))
+        self.assertEqual(tree('(x ^ 2)_(-2a)^b'), int_def(x2, -(l2 * a), b))
 
     def test_absolute_value(self):
         x = tree('x')

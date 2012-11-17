@@ -14,7 +14,7 @@
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
 from src.node import ExpressionNode as N, ExpressionLeaf as L, Scope, \
         nary_node, get_scope, OP_ADD, infinity, absolute, sin, cos, tan, log, \
-        ln, der, integral, indef, eq
+        ln, der, integral, int_def, eq
 from tests.rulestestcase import RulesTestCase, tree
 
 
@@ -259,7 +259,7 @@ class TestNode(RulesTestCase):
         self.assertEqual(str(tree('int_(a-b)^(a+b) x ^ 2')),
                          'int_(a - b)^(a + b) x ^ 2 dx')
 
-    def test_construct_function_indef(self):
+    def test_construct_function_int_def(self):
         self.assertEqual(str(tree('[x ^ 2]_a^b')), '[x ^ 2]_a^b')
         self.assertEqual(str(tree('[x ^ 2]_(a-b)^(a+b)')),
                          '[x ^ 2]_(a - b)^(a + b)')
@@ -318,9 +318,9 @@ class TestNode(RulesTestCase):
         self.assertEqual(integral(x2, x, a, b), tree('int_a^b x^2 dx'))
         self.assertEqual(integral(x2, y, a, b), tree('int_a^b x^2 dy'))
 
-    def test_indef(self):
+    def test_int_def(self):
         x2, a, b, expect = tree('x ^ 2, a, b, [x ^ 2]_a^b')
-        self.assertEqual(indef(x2, a, b), expect)
+        self.assertEqual(int_def(x2, a, b), expect)
 
     def test_eq(self):
         x, a, b, expect = tree('x, a, b, x + a = b')

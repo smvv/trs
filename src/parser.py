@@ -31,7 +31,7 @@ from graph_drawing.line import pred
 from node import ExpressionNode as Node, \
         ExpressionLeaf as Leaf, OP_MAP, OP_DXDER, TOKEN_MAP, TYPE_OPERATOR, \
         OP_COMMA, OP_MUL, OP_POW, OP_LOG, OP_ADD, Scope, E, OP_ABS, \
-        DEFAULT_LOGARITHM_BASE, SPECIAL_TOKENS, OP_INT, OP_INT_INDEF, \
+        DEFAULT_LOGARITHM_BASE, SPECIAL_TOKENS, OP_INT, OP_INT_DEF, \
         INFINITY, OP_PRIME, OP_DIV
 from rules.utils import find_variable
 from rules.precedences import IMPLICIT_RULES
@@ -683,7 +683,7 @@ class Parser(BisonParser):
 
             lbnd.negated += len(values[1]) - 1
 
-            return Node(OP_INT_INDEF, values[0], lbnd, ubnd)
+            return Node(OP_INT_DEF, values[0], lbnd, ubnd)
 
         raise BisonSyntaxError('Unsupported option %d in target "%s".'
                                % (option, target))  # pragma: nocover

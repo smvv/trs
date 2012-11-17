@@ -12,8 +12,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with TRS.  If not, see <http://www.gnu.org/licenses/>.
-from src.rules.integrals import indef, choose_constant, solve_integral, \
-        match_solve_indef, solve_indef, match_integrate_variable_power, \
+from src.rules.integrals import choose_constant, solve_integral, \
+        match_solve_definite, solve_definite, match_integrate_variable_power, \
         integrate_variable_root, integrate_variable_exponent, \
         match_constant_integral, constant_integral, single_variable_integral, \
         match_factor_out_constant, factor_out_integral_negation, \
@@ -21,8 +21,8 @@ from src.rules.integrals import indef, choose_constant, solve_integral, \
         extend_division_integral, match_function_integral, \
         logarithm_integral, sinus_integral, cosinus_integral, \
         match_sum_rule_integral, sum_rule_integral, \
-        match_remove_indef_constant, remove_indef_constant
-from src.node import Scope
+        match_remove_definite_constant, remove_definite_constant
+from src.node import Scope, int_def
 from src.possibilities import Possibility as P
 from tests.rulestestcase import RulesTestCase, tree
 
@@ -35,26 +35,27 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqual(choose_constant(tree('int x ^ c')), a)
         self.assertEqual(choose_constant(tree('int a ^ c da')), b)
 
-    def test_match_solve_indef(self):
+    def test_match_solve_definite(self):
         root = tree('[x ^ 2]_a^b')
-        self.assertEqualPos(match_solve_indef(root), [P(root, solve_indef)])
+        self.assertEqualPos(match_solve_definite(root),
+                            [P(root, solve_definite)])
 
     def test_solve_integral(self):
         root, F, Fc = tree('int x ^ 2 dx, 1 / 3 x ^ 3, 1 / 3 x ^ 3 + C')
         self.assertEqual(solve_integral(root, F), Fc)
         x2, x, a, b = root = tree('int_a^b x ^ 2 dx')
-        self.assertEqual(solve_integral(root, F), indef(Fc, a, b))
+        self.assertEqual(solve_integral(root, F), int_def(Fc, a, b))
 
-    def test_solve_integral_skip_indef(self):
+    def test_solve_integral_skip_definite(self):
         root, x, C, l1 = tree('int_a^b y ^ x dy, x, C, 1')
         F = tree('1 / (x + 1)y ^ (x + 1)')
         y, a, b = root[1:4]
         Fx = lambda y: l1 / (x + 1) * y ** (x + 1) + C
         self.assertEqual(solve_integral(root, F), Fx(b) - Fx(a))
 
-    def test_solve_indef(self):
+    def test_solve_definite(self):
         root, expect = tree('[x ^ 2]_a^b, b ^ 2 - a ^ 2')
-        self.assertEqual(solve_indef(root, ()), expect)
+        self.assertEqual(solve_definite(root, ()), expect)
 
     def test_match_integrate_variable_power(self):
         root = tree('int x ^ n')
@@ -195,18 +196,18 @@ class TestRulesIntegrals(RulesTestCase):
         self.assertEqual(sum_rule_integral(root, (Scope(root[0]), h)),
                          tree('int 4x dx + int (2x + 3x) dx'))
 
-    def test_match_remove_indef_constant(self):
+    def test_match_remove_definite_constant(self):
         Fx, a, b = root = tree('[2x + C]_a^b')
-        self.assertEqualPos(match_remove_indef_constant(root),
-                [P(root, remove_indef_constant, (Scope(Fx), Fx[1]))])
+        self.assertEqualPos(match_remove_definite_constant(root),
+                [P(root, remove_definite_constant, (Scope(Fx), Fx[1]))])
 
         Fx, a, b = root = tree('[2x + x]_a^b')
-        self.assertEqualPos(match_remove_indef_constant(root), [])
+        self.assertEqualPos(match_remove_definite_constant(root), [])
 
         Fx, a, b = root = tree('[2x]_a^b')
-        self.assertEqualPos(match_remove_indef_constant(root), [])
+        self.assertEqualPos(match_remove_definite_constant(root), [])
 
-    def test_remove_indef_constant(self):
+    def test_remove_definite_constant(self):
         root, e = tree('[2x + C]_a^b, [2x]_a^b')
         Fx = root[0]
-        self.assertEqual(remove_indef_constant(root, (Scope(Fx), Fx[1])), e)
+        self.assertEqual(remove_definite_constant(root, (Scope(Fx), Fx[1])), e)

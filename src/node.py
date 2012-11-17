@@ -50,7 +50,7 @@ NARY_OPERATORS = [OP_ADD, OP_SUB, OP_MUL, OP_AND, OP_OR]
 
 # N-ary (functions)
 OP_INT = 11
-OP_INT_INDEF = 12
+OP_INT_DEF = 12
 OP_COMMA = 13
 OP_SQRT = 14
 OP_DER = 15
@@ -125,7 +125,7 @@ OP_MAP = {
         }
 
 OP_VALUE_MAP = dict([(v, k) for k, v in OP_MAP.iteritems()])
-OP_VALUE_MAP[OP_INT_INDEF] = 'indef'
+OP_VALUE_MAP[OP_INT_DEF] = 'indef'
 OP_VALUE_MAP[OP_ABS] = '||'
 OP_VALUE_MAP[OP_DXDER] = 'd/d'
 OP_VALUE_MAP[OP_PARENS] = '()'
@@ -363,13 +363,13 @@ class ExpressionNode(Node, ExpressionBase):
         return self.value
 
     def is_postfix(self):
-        return self.op in (OP_PRIME, OP_INT_INDEF)
+        return self.op in (OP_PRIME, OP_INT_DEF)
 
     def __str__(self):  # pragma: nocover
         return generate_line(self)
 
     def custom_line(self):
-        if self.op == OP_INT_INDEF:
+        if self.op == OP_INT_DEF:
             Fx, a, b = self
             return bounds_str(ExpressionNode(OP_BRACKETS, Fx), a, b)
 
@@ -751,16 +751,17 @@ def der(f, x=None):
 
 def integral(*args):
     """
-    Create an integral node.
+    Create an integral node (may be definite or indefinite, depending on
+    whether there are bounds in `args`).
     """
     return ExpressionNode(OP_INT, *args)
 
 
-def indef(*args):
+def int_def(*args):
     """
-    Create an indefinite integral node.
+    Create a definite integral node (bracket notation).
     """
-    return ExpressionNode(OP_INT_INDEF, *args)
+    return ExpressionNode(OP_INT_DEF, *args)
 
 
 def eq(left, right):
