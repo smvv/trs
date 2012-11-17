@@ -328,7 +328,8 @@ class ExpressionNode(Node, ExpressionBase):
         #if self.op == OP_LOG and self[1].value in (E, DEFAULT_LOGARITHM_BASE):
         #    return 1
 
-        # Functions always have parentheses
+        # Functions always have parentheses, so return a number higher than 1
+        # to prevent graph_drawing from treating them as unary operators
         if self.op in TOKEN_MAP and TOKEN_MAP[self.op] == 'FUNCTION':
             return 2
 
