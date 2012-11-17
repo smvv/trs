@@ -175,8 +175,11 @@ def start_server(app, port):
 
     enable_pretty_logging()
 
-    app.listen(port)
-    IOLoop.instance().start()
+    try:
+        app.listen(port)
+        IOLoop.instance().start()
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':
