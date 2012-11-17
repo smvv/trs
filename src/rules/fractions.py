@@ -435,7 +435,7 @@ def divide_fraction_by_term(root, args):
 
 
 MESSAGES[divide_fraction_by_term] = \
-        _('Divide nominator and denominator od {0} by {2}.')
+        _('Divide nominator and denominator of {0} by {2}.')
 
 
 def match_division_in_denominator(node):
