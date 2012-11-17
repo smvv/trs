@@ -278,16 +278,20 @@ MESSAGES[exponent_to_root] = \
 
 def match_extend_exponent(node):
     """
-    (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # n > 1
+    (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # 1 < n < 4
+
+    n is maxed at 3 because otherwise evaluations may get out of hand, and high
+    school expressions do not contain powers higher than 3
     """
     assert node.is_op(OP_POW)
 
     left, right = node
 
-    if right.is_numeric():
+    if right.is_numeric() and 1 < right.actual_value() < 4:
         for n in Scope(node):
             if n.is_op(OP_ADD):
-                return [P(node, extend_exponent, (left, right))]
+                return [P(node, extend_exponent,
+                          (left, right, right.actual_value() - 1))]
 
     return []
 
@@ -296,12 +300,15 @@ def extend_exponent(root, args):
     """
     (a + ... + z)^n -> (a + ... + z)(a + ... + z)^(n - 1)  # n > 1
     """
-    left, right = args
+    left, right, extended_exp = args
 
     if right.value > 2:
-        return left * left ** L(right.value - 1)
+        return left * left ** L(extended_exp)
 
     return left * left
+
+
+MESSAGES[extend_exponent] = _('Split exponent {2} to exponents `1` and {3}.')
 
 
 def match_constant_exponent(node):
