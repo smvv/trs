@@ -40,9 +40,9 @@
 # int_(-r)^(r) \pi (r^2 - x^2) dx  ->  4 / 3 * pi * r ^ 3
 # "&" instead of "^^"
 
-- Add parentheses to functions: "sin(x)" instead of "sin x"
 - [((x+3)^5+4)^2]': chain rule should be executed first
-
 
 - Missed rewrite possibility:
   (4x) / (2x ^ 2 - 2y ^ 2)  ->  (2x) / (x ^ 2 - y ^ 2)
+
+- "indefinite" / "definite" are sometimes confused in messges, fix that...
