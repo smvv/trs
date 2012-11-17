@@ -106,7 +106,6 @@ class TestParser(RulesTestCase):
         self.assertEqual(tree('sin (cos x) ^ 2'), sin(cos(x)) ** 2)
         self.assertEqual(tree('sin((cos x) ^ 2)'), sin(cos(x) ** 2))
 
-
     def test_brackets(self):
         self.assertEqual(*tree('[x], x'))
         self.assertEqual(*tree('[x], (x)'))
