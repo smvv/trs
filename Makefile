@@ -35,15 +35,17 @@ d := tests/
 include base.mk
 include $(d)/rules.mk
 
-.PHONY: doc
+.PHONY: all doc build clean pyclean distclean
 
 all: doc build
+
+distclean: clean pyclean
 
 clean:
 	rm -rf $(CLEAN)
 
-distclean:
-	rm -rf $(CLEAN) `find . -name \*.pyc`
+pyclean:
+	find -name \*.pyc -delete
 
 $(TGT_DIR):
 	mkdir -p $(TGT_DIR)
