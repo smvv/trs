@@ -24,7 +24,7 @@ from .negation import double_negation, negated_factor, negated_nominator, \
 from .fractions import multiply_with_fraction, divide_fraction_by_term, \
         add_nominators, division_by_one
 from .integrals import factor_out_constant, integrate_variable_root
-from .powers import remove_power_of_one
+from .powers import remove_power_of_one, extend_exponent
 from .sqrt import quadrant_sqrt, extract_sqrt_mult_priority
 from .lineq import substitute_variable, swap_sides, divide_term, multiply_term
 from .groups import combine_groups
@@ -62,23 +62,26 @@ LOW = [
         factor_in_exponent_multiplicant,
         reduce_fraction_constants,
 
+        # These rules lead to a longer expression, and are therefore not
+        # preferred as a first step
+        # Expand 'single' before 'double' to avoid unnessecary complexity
+        extend_exponent,
+        expand_single,
+        expand_double,
+
         # Sorting expression terms has a low priority because it is assumed to
         # be handled by the user
         swap_factors,
         ]
 
 
-# Fucntion precedences relative to eachother. Tuple (A, B) means that A has a
+# Function precedences relative to eachother. Tuple (A, B) means that A has a
 # higher priority than B. This list ignores occurences in the HIGH or LOW lists
 # above
 RELATIVE = [
         # Precedences needed for 'power rule' (derivative of an exponentiation)
         (chain_rule, raised_base),
         (raised_base, factor_out_exponent),
-
-        # Combine groups before expanding them
-        # Expand 'single' before 'double' to avoid unnessecary complexity
-        (expand_single, expand_double),
 
         (factor_out_exponent_important, raise_numerics),
 
@@ -104,7 +107,7 @@ RELATIVE = [
 
         # When solving of an equation with constants, expanding an equation has
         # a lower priority
-        (divide_term, multiply_term, swap_sides, expand_double, expand_single),
+        (divide_term, multiply_term, swap_sides),
         ]
 
 
