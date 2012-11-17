@@ -52,14 +52,16 @@ def solve_integral(integral, F):
     F += choose_constant(integral)
 
     if len(integral) < 3:
-        return F
+        solution = F
+    else:
+        x, lbnd, ubnd = integral[1:4]
 
-    x, lbnd, ubnd = integral[1:4]
+        if x != find_variable(F):
+            solution = substitute(F, x, ubnd) - substitute(F, x, lbnd)
+        else:
+            solution = indef(F, lbnd, ubnd)
 
-    if x != find_variable(F):
-        return substitute(F, x, ubnd) - substitute(F, x, lbnd)
-
-    return indef(F, lbnd, ubnd)
+    return negate(solution, integral.negated)
 
 
 def match_solve_indef(node):
@@ -78,7 +80,7 @@ def solve_indef(root, args):
     Fx, a, b = root
     x = find_variable(Fx)
 
-    return substitute(Fx, x, b) - substitute(Fx, x, a)
+    return negate(substitute(Fx, x, b) - substitute(Fx, x, a), root.negated)
 
 
 def solve_indef_msg(root, args):  # pragma: nocover
@@ -386,7 +388,7 @@ def remove_indef_constant(root, args):
     Fx = scope.as_nary_node()
     a, b = root[1:]
 
-    return indef(Fx, a, b)
+    return negate(indef(Fx, a, b), root.negated)
 
 
 MESSAGES[remove_indef_constant] = \
