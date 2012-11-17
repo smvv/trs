@@ -42,7 +42,7 @@ ${COVERAGE}:
 	@echo "Install package 'python-coverage' to generate a coverage report."
 	@echo "On Debian/Ubuntu use: sudo apt-get install python-coverage"; false
 
-$(TESTS): build/external/pybison; @python -m testrunner $@
+$(TESTS): build/external/pybison; @python -m external.testrunner $@
 
 profile-test-%: $(PROFILER_OUTPUT_DIR) build
 	 python -m cProfile -s cumulative \
