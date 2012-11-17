@@ -88,19 +88,23 @@ class TestParser(RulesTestCase):
 
         self.assertEqual(tree('pi2'), tree('pi * 2'))
 
-    def test_functions(self):
+    def test_function(self):
         x = tree('x')
 
         self.assertEqual(tree('sin x'), sin(x))
         self.assertEqual(tree('sin 2 x'), sin(2) * x)  # FIXME: correct?
         self.assertEqual(tree('sin x ^ 2'), sin(x ** 2))
         self.assertEqual(tree('sin^2 x'), sin(x) ** 2)
+
         self.assertEqual(tree('sin(x ^ 2)'), sin(x ** 2))
+        self.assertEqual(tree('sin(x) ^ 2'), sin(x) ** 2)
 
         self.assertEqual(tree('sin cos x'), sin(cos(x)))
         self.assertEqual(tree('sin cos x ^ 2'), sin(cos(x ** 2)))
-        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x ** 2)))
-        self.assertEqual(tree('sin (cos x) ^ 2'), sin(cos(x) ** 2))
+        self.assertEqual(tree('sin cos(x) ^ 2'), sin(cos(x) ** 2))
+
+        self.assertEqual(tree('sin (cos x) ^ 2'), sin(cos(x)) ** 2)
+        self.assertEqual(tree('sin((cos x) ^ 2)'), sin(cos(x) ** 2))
 
     def test_brackets(self):
         self.assertEqual(*tree('[x], x'))
