@@ -342,17 +342,17 @@ class ExpressionNode(Node, ExpressionBase):
             base = self[1].value
 
             if base == DEFAULT_LOGARITHM_BASE:
-                return self.value + '('
+                return self.value
 
             if base == E:
-                return 'ln('
+                return 'ln'
 
             base = str(self[1])
 
             if not re.match('^[0-9]+|[a-zA-Z]$', base):
                 base = '(' + base + ')'
 
-            return '%s_%s(' % (self.value, base)
+            return '%s_%s' % (self.value, base)
 
         if self.op == OP_DXDER:
             return self.value + str(self[1])
@@ -374,14 +374,12 @@ class ExpressionNode(Node, ExpressionBase):
             return bounds_str(ExpressionNode(OP_BRACKETS, Fx), a, b)
 
     def preprocess_str_exp(self):
-        if self.op == OP_PRIME and not self[0].is_op(OP_PRIME):
+        if self.op == OP_LOG:
+            self[0] = ExpressionNode(OP_PARENS, self[0])
+        elif self.op == OP_PRIME and not self[0].is_op(OP_PRIME):
             self[0] = ExpressionNode(OP_BRACKETS, self[0])
 
     def postprocess_str(self, s):
-        # A bit hacky, but forced because of operator() method
-        if self.op == OP_LOG:
-            return s.replace('( ', '(') + ')'
-
         if self.op == OP_INT:
             return '%s d%s' % (s, self[1])
 
