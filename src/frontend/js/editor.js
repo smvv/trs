@@ -36,6 +36,10 @@
         input_textarea.focus();
     });
 
+    // Put cursor at end of textarea
+    var old_val = input_textarea.val();
+    input_textarea.val('').focus().val(old_val);
+
     var STATUS_FAILURE = 0,
         STATUS_NOPROGRESS = 1,
         STATUS_SUCCESS = 2,
@@ -200,35 +204,37 @@
     var error = $('#error'),
         loader = $('#loader');
 
-    error.find('.close').click(function() {
-        error.hide();
-    });
-
     function report_error(e) {
-        error.show().find('.text').text(e.error);
+        var msg = e.error;
+
+        if ('statusText' in e)
+            msg = e.status + ' ' + e.statusText;
+
+        error.show().find('.text').text(msg);
 
         if (console && console.log)
             console.log('error:', e);
 
-        loader.hide();
-    };
+        hide_loader();
+    }
 
     function clear_error() {
         error.hide();
-    };
+    }
+
+    error.find('.close').click(clear_error);
 
     var pending_request = false;
 
     function show_loader() {
         pending_request = true;
         loader.css('visibility', 'visible');
-    };
+    }
 
     function hide_loader() {
         pending_request = false;
         loader.css('visibility', 'hidden');
-        clear_error();
-    };
+    }
 
     function append_hint(hint) {
         pretty_print.find('div').last().filter('.hint').remove();
@@ -238,11 +244,11 @@
         elem.append('<div class="icon icon-info-sign"/>');
         pretty_print.append(elem);
         QUEUE.Push(['Typeset', MathJax.Hub, elem[0]]);
-    };
+    }
 
     function append_input(input) {
         input_textarea.val(input_textarea.val() + '\n' + input);
-    };
+    }
 
     $('#btn-clear').click(function() {
         input_textarea.val('');
@@ -262,6 +268,7 @@
             }
 
             show_loader();
+            clear_error();
 
             // TODO: disable input box and enable it when this ajax request is done
             // (on failure and success).
@@ -274,6 +281,7 @@
 
                 handler(response);
                 hide_loader();
+                clear_error();
             }, 'json').error(report_error);
         });
     }
