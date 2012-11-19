@@ -15,7 +15,7 @@ TGT_DIR := $(TGT_DIR) $(PROFILER_OUTPUT_DIR)
 
 .PHONY: test coverage $(TESTS)
 
-test: $(TESTS) build/external/pybison
+test: $(TESTS)
 
 ifeq ($(findstring python-coverage,$(wildcard /usr/bin/*)), python-coverage)
 coverage: ${COVERAGE} build
@@ -42,7 +42,8 @@ ${COVERAGE}:
 	@echo "Install package 'python-coverage' to generate a coverage report."
 	@echo "On Debian/Ubuntu use: sudo apt-get install python-coverage"; false
 
-$(TESTS): build/external/pybison; @python -m external.testrunner $@
+$(TESTS): build
+	@python -m external.testrunner $@
 
 profile-test-%: $(PROFILER_OUTPUT_DIR) build
 	 python -m cProfile -s cumulative \
