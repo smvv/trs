@@ -217,11 +217,15 @@
         error.hide();
     };
 
+    var pending_request = false;
+
     function show_loader() {
+        pending_request = true;
         loader.css('visibility', 'visible');
     };
 
     function hide_loader() {
+        pending_request = false;
         loader.css('visibility', 'hidden');
         clear_error();
     };
@@ -251,7 +255,7 @@
     $('#btn-hint').click(function() {
         var input = input_textarea.val();
 
-        if (!$.trim(input).length)
+        if (pending_request || !$.trim(input).length)
             return;
 
         show_loader();
@@ -276,7 +280,7 @@
     $('#btn-step').click(function() {
         var input = input_textarea.val();
 
-        if (!$.trim(input).length)
+        if (pending_request || !$.trim(input).length)
             return;
 
         show_loader();
@@ -307,7 +311,7 @@
     $('#btn-validate').click(function() {
         var input = input_textarea.val();
 
-        if (!$.trim(input).length)
+        if (pending_request || !$.trim(input).length)
             return;
 
         show_loader();
@@ -353,7 +357,7 @@
     $('#btn-answer').click(function() {
         var input = input_textarea.val();
 
-        if (!$.trim(input).length)
+        if (pending_request || !$.trim(input).length)
             return;
 
         show_loader();
