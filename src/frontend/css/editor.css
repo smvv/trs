@@ -82,7 +82,7 @@ body {
     display: inline-block;
 }
 
-.popover-title button {
+.popover-title .btn-group {
     float: right;
     margin-right: -6px;
 }

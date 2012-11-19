@@ -2,39 +2,88 @@
     function Example(actions) {
         this.actions = actions;
         this.actions.push(this.destroy_popover);
+        this.current_elem = null;
     }
 
-    var current_example;
+    var current_example = null;
 
     $.extend(Example.prototype, {
         destroy_popover: function() {
-            this.current_elem && this.current_elem.popover('destroy');
+            if (this.current_elem) {
+                this.current_elem.popover('destroy');
+                this.current_elem = null;
+            }
         },
         show_popover: function(selector, alignment, description) {
+            var buttons = $('<div class="btn-group"/>'),
+                dropdown_buttons = $('<ul class="dropdown-menu pull-right"/>'),
+                btn_container = $('<div><div class="clear"/></div>');
+
+            buttons.append(
+                '<button class="btn btn-primary next-example-step">' +
+                    'next' +
+                '</button>'
+            );
+            buttons.append(
+                '<button class="btn btn-primary dropdown-toggle" ' +
+                        'data-toggle="dropdown">' +
+                    '<span class="caret"></span>' +
+                '</button>'
+            );
+            dropdown_buttons.append(
+                '<li><a href="#" class="cancel-example">cancel</a></li>'
+            );
+            dropdown_buttons.append(
+                '<li><a href="#" class="restart-example">restart</a></li>'
+            );
+            buttons.append(dropdown_buttons);
+            btn_container.prepend(buttons);
+
             this.destroy_popover();
             this.current_elem = $(selector);
             this.current_elem.popover({
                 trigger: 'manual',
                 placement: alignment,
                 html: true,
-                title: '<button id="next-example-step" class="btn btn-primary">next</button><div class="clear"/>',
+                title: btn_container,
                 content: description,
                 animation: false
             }).popover('show');
         },
-        play: function() {
+        reset: function() {
+            this.destroy_popover();
             this.current_action = 0;
+        },
+        cancel: function() {
+            this.reset();
+            current_example = null;
+        },
+        play: function() {
+            current_example && current_example.cancel();
             current_example = this;
+            this.current_action = 0;
             this.next();
         },
         next: function() {
             if (this.current_action < this.actions.length)
                 $.proxy(this.actions[this.current_action++], this)();
+
+            if (this.current_action == this.actions.length)
+                current_example = null;
         }
     });
 
-    $('#next-example-step').live('click', function() {
+    $('.next-example-step').live('click', function() {
         current_example.next();
+    });
+
+    $('.cancel-example').live('click', function() {
+        current_example.cancel();
+    });
+
+    $('.restart-example').live('click', function() {
+        current_example.reset();
+        current_example.play();
     });
 
     function clear_input() {
