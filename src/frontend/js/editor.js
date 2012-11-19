@@ -251,11 +251,11 @@
     }
 
     $('#btn-clear').click(function() {
-        input_textarea.val('');
-        pretty_print.find('.box,.hint').remove();
-        trigger_update = true;
         clear_error();
         hide_loader();
+        input_textarea.val('').focus();
+        trigger_update = true;
+        window.update_math();
     });
 
     function bind_request(btn, url, handler, condition) {
