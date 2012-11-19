@@ -12,6 +12,7 @@ body {
 }
 
 .math-input {
+    width: 436px !important;
     min-height: 314px;
     padding: 7px 11px;
     line-height: 26px;
