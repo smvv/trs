@@ -314,7 +314,7 @@ def sinus(root, args):
     return cos(root[0][0])
 
 
-MESSAGES[sinus] = _('Apply standard derivative `d/dx sin(x)` is `cos(x)`.')
+MESSAGES[sinus] = _('Apply standard derivative `d/dx sin(x)` = `cos(x)`.')
 
 
 def cosinus(root, args):
@@ -324,7 +324,7 @@ def cosinus(root, args):
     return -sin(root[0][0])
 
 
-MESSAGES[cosinus] = _('Apply standard derivative `d/dx cos(x)` is `-sin(x)`.')
+MESSAGES[cosinus] = _('Apply standard derivative `d/dx cos(x)` = `-sin(x)`.')
 
 
 def tangens(root, args):
@@ -337,7 +337,7 @@ def tangens(root, args):
 
 
 MESSAGES[tangens] = \
-        _('Convert the tanges to a division and apply the product rule.')
+        _('Convert the tangens to a division and apply the product rule.')
 
 
 def match_sum_product_rule(node):
