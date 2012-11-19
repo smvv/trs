@@ -253,10 +253,12 @@ def match_factor_out_exponent(node):
             p.append(P(node, factor_out_exponent))
     elif exp.is_numeric() and not exp.negated:
         b, a = exp.value, base.value
-        y = int(round(math.log(b, a)))
 
-        if b == a ** y:
-            p.append(P(node, make_raised_base, (y,)))
+        if not isinstance(a, str) and not isinstance(b, str):
+            y = int(round(math.log(b, a)))
+
+            if b == a ** y:
+                p.append(P(node, make_raised_base, (y,)))
 
     return p
 

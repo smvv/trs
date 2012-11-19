@@ -11,7 +11,8 @@
 # details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with TRS.  If not, see <http://www.gnu.org/licenses/>.
+import math
+
 from src.rules.logarithmic import log, match_constant_logarithm, \
         base_equals_raised, logarithm_of_one, divide_same_base, \
         match_add_logarithms, add_logarithms, expand_negations, \
@@ -174,6 +175,13 @@ class TestRulesLogarithmic(RulesTestCase):
                 [P(root, make_raised_base, (4,))])
 
         root = tree('log(99)')
+        self.assertEqualPos(match_factor_out_exponent(root), [])
+
+    def test_match_factor_out_exponent_make_raised_base_string(self):
+        root = tree('log_a(2)')
+        self.assertEqualPos(match_factor_out_exponent(root), [])
+
+        root = tree('log_e(%s)' % (math.e ** 2))
         self.assertEqualPos(match_factor_out_exponent(root), [])
 
     def test_split_negative_exponent(self):
