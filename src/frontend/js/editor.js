@@ -252,12 +252,14 @@
         hide_loader();
     });
 
-    function bind_request(btn, url, handler) {
+    function bind_request(btn, url, handler, condition) {
         $('#btn-' + btn).click(function() {
             var input = input_textarea.val();
 
-            if (pending_request || !$.trim(input).length)
+            if (pending_request || !$.trim(input).length
+                    || (condition && !condition())) {
                 return;
+            }
 
             show_loader();
 
@@ -276,10 +278,16 @@
         });
     }
 
+    // No need to show a hint if there is already one at the end of the
+    // calculation
+    function no_hint_displayed() {
+        return !pretty_print.children(':last').hasClass('hint');
+    }
+
     bind_request('hint', '/hint', function(response) {
         append_hint(response.hint);
         input_textarea.focus();
-    });
+    }, no_hint_displayed);
 
     bind_request('step', '/step', function(response) {
         if ('step' in response) {
@@ -287,7 +295,7 @@
             trigger_update = true;
         }
 
-        if('hint' in response)
+        if('hint' in response && no_hint_displayed())
             append_hint(response.hint);
 
         input_textarea.focus();
