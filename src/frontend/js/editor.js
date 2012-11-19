@@ -252,146 +252,93 @@
         hide_loader();
     });
 
-    $('#btn-hint').click(function() {
-        var input = input_textarea.val();
+    function bind_request(btn, url, handler) {
+        $('#btn-' + btn).click(function() {
+            var input = input_textarea.val();
 
-        if (pending_request || !$.trim(input).length)
-            return;
-
-        show_loader();
-
-        // TODO: disable input box and enable it when this ajax request is done
-        // (on failure and success).
-        $.post('/hint', {data: input}, function(response) {
-            if (!response)
+            if (pending_request || !$.trim(input).length)
                 return;
 
-            if ('error' in response)
-                return report_error(response);
+            show_loader();
 
+            // TODO: disable input box and enable it when this ajax request is done
+            // (on failure and success).
+            $.post(url, {data: input}, function(response) {
+                if (!response)
+                    return;
+
+                if ('error' in response)
+                    return report_error(response);
+
+                handler(response);
+                hide_loader();
+            }, 'json').error(report_error);
+        });
+    }
+
+    bind_request('hint', '/hint', function(response) {
+        append_hint(response.hint);
+        input_textarea.focus();
+    });
+
+    bind_request('step', '/step', function(response) {
+        if ('step' in response) {
+            append_input(response.step);
+            trigger_update = true;
+        }
+
+        if('hint' in response)
             append_hint(response.hint);
 
-            input_textarea.focus();
-
-            hide_loader();
-        }, 'json').error(report_error);
+        input_textarea.focus();
     });
 
-    $('#btn-step').click(function() {
-        var input = input_textarea.val();
+    bind_request('validate', '/validate', function(response) {
+        var math_lines = pretty_print.find('div.box');
+        var i = 0;
 
-        if (pending_request || !$.trim(input).length)
-            return;
+        // Remove the status indicator from all remaining lines.
+        for(; i < math_lines.length; i++)
+            set_status(math_lines[i]);
 
-        show_loader();
+        i = 0;
 
-        // TODO: disable input box and enable it when this ajax request is done
-        // (on failure and success).
-        $.post('/step', {data: input}, function(response) {
-            if (!response)
-                return;
+        // Check if the first line has a correct syntax, since there is
+        // nothing to validate here.
+        if (i < math_lines.length && i <= response.validated) {
+            set_status(math_lines[i], STATUS_SUCCESS);
+            i++;
+        }
 
-            if ('error' in response)
-                return report_error(response);
+        // Mark every line as {wrong,no-progress,correct,error}.
+        for (; i < math_lines.length && i <= response.validated; i++)
+            set_status(math_lines[i], response.status[i - 1]);
 
-            if ('step' in response) {
-                append_input(response.step);
+        if (i < math_lines.length) {
+            // Mark the current line as wrong.
+            set_status(math_lines[i], STATUS_FAILURE);
+        }
+    });
+
+    bind_request('answer', '/answer', function(response) {
+        if ('steps' in response) {
+            for(i = 0; i < response.steps.length; i++) {
+                cur = response.steps[i];
+
+                if ('step' in cur)
+                    append_input(cur.step);
+
+                if('hint' in cur)
+                    append_hint(cur.hint);
+
                 trigger_update = true;
+                window.update_math();
             }
+        }
 
-            if('hint' in response)
-                append_hint(response.hint);
+        if('hint' in response)
+            append_hint(response.hint);
 
-            input_textarea.focus();
-
-            hide_loader();
-        }, 'json').error(report_error);
-    });
-
-    $('#btn-validate').click(function() {
-        var input = input_textarea.val();
-
-        if (pending_request || !$.trim(input).length)
-            return;
-
-        show_loader();
-
-        // TODO: disable input box and enable it when this ajax request is done
-        // (on failure and success).
-        $.post('/validate', {data: input}, function(response) {
-            if (!response)
-                return;
-
-            if ('error' in response)
-                return report_error(response);
-
-            var math_lines = pretty_print.find('div.box');
-            var i = 0;
-
-            // Remove the status indicator from all remaining lines.
-            for(; i < math_lines.length; i++)
-                set_status(math_lines[i]);
-
-            i = 0;
-
-            // Check if the first line has a correct syntax, since there is
-            // nothing to validate here.
-            if (i < math_lines.length && i <= response.validated) {
-                set_status(math_lines[i], STATUS_SUCCESS);
-                i++;
-            }
-
-            // Mark every line as {wrong,no-progress,correct,error}.
-            for (; i < math_lines.length && i <= response.validated; i++)
-                set_status(math_lines[i], response.status[i - 1]);
-
-            if (i < math_lines.length) {
-                // Mark the current line as wrong.
-                set_status(math_lines[i], STATUS_FAILURE);
-            }
-
-            hide_loader();
-        }, 'json').error(report_error);
-    });
-
-    $('#btn-answer').click(function() {
-        var input = input_textarea.val();
-
-        if (pending_request || !$.trim(input).length)
-            return;
-
-        show_loader();
-
-        // TODO: disable input box and enable it when this ajax request is done
-        // (on failure and success).
-        $.post('/answer', {data: input}, function(response) {
-            if (!response)
-                return;
-
-            if ('error' in response)
-                return report_error(response);
-
-            if ('steps' in response) {
-                for(i = 0; i < response.steps.length; i++) {
-                    cur = response.steps[i];
-
-                    if ('step' in cur)
-                        append_input(cur.step);
-
-                    if('hint' in cur)
-                        append_hint(cur.hint);
-
-                    trigger_update = true;
-                    window.update_math();
-                }
-            }
-
-            if('hint' in response)
-                append_hint(response.hint);
-
-            input_textarea.focus();
-
-            hide_loader();
-        }, 'json').error(report_error);
+        input_textarea.focus();
     });
 })(jQuery);
