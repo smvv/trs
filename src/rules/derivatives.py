@@ -212,14 +212,14 @@ def variable_root(root, args):
 
 
 MESSAGES[variable_root] = \
-        _('Apply standard derivative `d/dx x ^ n = n * x ^ (n - 1)` on {0}.')
+        _('Apply standard derivative `d/dx x ^ n = n * x ^ (n - 1)` to {0}.')
 
 
 def variable_exponent(root, args):
     """
     der(g ^ x, x)  ->  g ^ x * ln(g)
 
-    Shortcut rule (because of presence on formula list):
+    Shortcut rule (because of presence of formula list):
     der(e ^ x, x)  ->  e ^ x
     """
     g, x = root[0]
@@ -231,7 +231,7 @@ def variable_exponent(root, args):
 
 
 MESSAGES[variable_exponent] = \
-        _('Apply standard derivative `d/dx g ^ x = g ^ x * ln g`.')
+        _('Apply standard derivative `d/dx g ^ x = g ^ x * ln g` to {0}.')
 
 
 def match_logarithmic(node):
