@@ -48,3 +48,5 @@
 - frontend: replace 'dx' with '(dx)' with regex before sending to parser
 
 - "sin^2 x" is supported by parser, but not yet by line printer.
+
+- Multiple integrals -> use different constant names (e.g. C and D instead of 2C)
