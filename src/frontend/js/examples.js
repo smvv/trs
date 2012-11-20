@@ -86,6 +86,10 @@
         current_example.play();
     });
 
+    function widescreen() {
+        return $('body').width() > 1400;
+    }
+
     function clear_input() {
         $('#math-input').val('').change();
         window.update_math && window.update_math();
@@ -129,11 +133,13 @@
     }
 
     function label_input(description) {
-        return label_elem('#math-input', 'left', description);
+        return label_elem('#math-input', widescreen() ? 'left' : 'bottom',
+                          description);
     }
 
     function label_pretty_print(description) {
-        return label_elem('#pretty-print', 'right', description);
+        return label_elem('#pretty-print', widescreen() ? 'right' : 'bottom',
+                          description);
     }
 
     function click_button(btn) {
