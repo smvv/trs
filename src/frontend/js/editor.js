@@ -314,7 +314,7 @@
         var i = 0;
 
         // Remove the status indicator from all remaining lines.
-        for(; i < math_lines.length; i++)
+        for (; i < math_lines.length; i++)
             set_status(math_lines[i]);
 
         i = 0;
@@ -338,13 +338,13 @@
 
     bind_request('answer', '/answer', function(response) {
         if ('steps' in response) {
-            for(i = 0; i < response.steps.length; i++) {
+            for (i = 0; i < response.steps.length; i++) {
                 cur = response.steps[i];
 
                 if ('step' in cur)
                     append_input(cur.step);
 
-                if('hint' in cur)
+                if ('hint' in cur)
                     append_hint(cur.hint);
 
                 trigger_update = true;
@@ -352,7 +352,7 @@
             }
         }
 
-        if('hint' in response)
+        if ('hint' in response)
             append_hint(response.hint);
 
         input_textarea.focus();
