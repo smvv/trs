@@ -47,6 +47,10 @@
 
 - frontend: replace 'dx' with '(dx)' with regex before sending to parser
 
-- "sin^2 x" is supported by parser, but not yet by line printer.
+- "sin^2 x" is supported by parser, but not yet by line printer
 
 - Multiple integrals -> use different constant names (e.g. C and D instead of 2C)
+
+- Mutual exclusion problem in MathJax renderer when using the "answer" button in the web interface
+
+- "Documentation" page in web interface
