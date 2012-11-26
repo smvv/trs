@@ -1,147 +1,92 @@
-html {
-    background-color: #ccddef;
-    margin: 0;
-    padding: 0;
+body {
+    padding-top: 40px;
+    background-color: #f9f9f9;
 }
 
-body {
-    margin: 0;
-    padding: 20px;
-    font: 16px/24px Verdana, Arial, sans;
+.alert {
+    display: none;
+    margin: 10px 0 0;
+}
+.alert strong {
+    margin-right: 8px;
+}
+
+.math-input {
+    width: 436px !important;
+    min-height: 314px;
+    padding: 7px 11px;
+    line-height: 26px;
+    overflow: hidden;
+    resize: none;
+}
+
+.pretty-print {
+    background-color: #fff;
+    border-color: #ccc;
+    min-height: 300px;
+    padding: 14px 19px;
+}
+
+.box, .hint {
+    position: relative;
+    margin: 5px 0;
+    padding-left: 20px;
+}
+
+.label, .icon {
+    position: absolute;
+    top: 50%;
+}
+.label {
+    margin-top: -9px;
+    left: -8px;
+}
+.icon {
+    margin-top: -8px;
+    left: 0;
+}
+
+.current-line {
+    border-right: 3px solid #ddd;
+}
+
+.credits {
+    text-align: center;
+    font-size: 13px;
 }
 
 #loader {
-    background: url(/static/img/load.gif) no-repeat scroll 0 0 transparent;
-    height: 31px;
-    width: 31px;
-    display: none;
-    position: absolute;
-    margin-top: -5px;
-    margin-left: 16px;
-}
-
-.panel {
-    background-color: #fff;
-    border: 3px solid #bbb;
-    cursor: text;
-    min-height: 400px;
-    padding-bottom: 10px;
-    position: absolute;
-    top: 58px;
-    width: 47%;
-}
-
-#error {
-    /*display: none;*/
-    font-size: 12px;
-    clear: both;
-    margin-top: 20px;
-    position: absolute;
-}
-
-#input {
-    float: left;
-    left: 2%;
-}
-
-#input textarea {
-    width: 100%;
-    border: 0;
-    margin: 0;
-    padding: 0;
-    height: 388px;
-    overflow-y: visible;
-    font: 16px/24px Verdana, Arial, sans;
-    outline: 0;
-}
-
-.box {
-    padding: 10px 15px 0 15px;
-}
-
-#math {
-    float:right;
-    right: 2%;
-}
-
-#math .box {
-    padding: 10px 15px 0 40px;
-    background: no-repeat scroll 15px 13px transparent;
-}
-
-#math .box.correct {
-    background-image: url(/static/img/tick.png);
-}
-
-#math .box.wrong {
-    background-image: url(/static/img/cross.png);
-}
-
-#math .box.no-progress {
-    background-image: url(/static/img/error.png);
-}
-
-#math .hint {
-    padding: 10px 15px 0 40px;
-    background: url(/static/img/info.png) no-repeat scroll 15px 13px transparent;
-    color: #666;
-    font-size: 14px;
-    line-height: 20px;
-}
-
-#math .hint .MathJax {
-    color: #000;
-}
-
-#control-buttons {
-    height: 21px;
-    left: 2%;
-    line-height: 0;
-    margin-bottom: 16px;
-    position: absolute;
-    vertical-align: top;
-}
-
-.separator {
-    border-right: 1px solid #999;
     display: inline-block;
-    width: 0;
-    height: 21px;
-    margin: 1px 5px;
-    vertical-align: top;
+    visibility: hidden;
+    position: relative;
+    background: url(/static/img/load.gif) no-repeat;
+    height: 16px;
+    width: 16px;
+    top: 8px;
+    margin-left: 10px;
 }
 
-.panel .label {
-    background-color: #fff;
-    border: 1px solid #ccc;
+.popover {
+    z-index: 1500;
+    white-space: normal;
+    color: #333;
+}
+
+.popover-content {
+    font-size: 14px;
+}
+
+.popover-title span {
+    font-size: 18px;
+    margin-top: 6px;
+    display: inline-block;
+}
+
+.popover-title .btn-group {
+    float: right;
+    margin-right: -6px;
+}
+
+.clear {
     clear: both;
-    float: left;
-    font-size: 10px;
-    line-height: 14px;
-    margin-left: 4px;
-    margin-top: -12px;
-    padding: 2px;
-}
-
-/* Codemirror should not resize the input area. */
-/*
-.CodeMirror-scroll {
-    height: auto;
-    overflow: visible;
-}
-
-.CodeMirror-lines {
-    padding: 0 !important;
-}
-*/
-
-#credits {
-    clear both;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    position: fixed;
-    font-size: 10px;
-    color: #666;
-    text-align: center;
 }
